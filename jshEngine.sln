@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29306.81
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jshEngine", "jshEngine\jshEngine.vcxproj", "{35ED534E-46AB-4805-9897-72889BEB0E02}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sandbox", "Sandbox\Sandbox.vcxproj", "{9B993604-C1A6-465E-946B-151DE500FA56}"
+	ProjectSection(ProjectDependencies) = postProject
+		{35ED534E-46AB-4805-9897-72889BEB0E02} = {35ED534E-46AB-4805-9897-72889BEB0E02}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{35ED534E-46AB-4805-9897-72889BEB0E02}.Debug|x64.ActiveCfg = Debug|x64
+		{35ED534E-46AB-4805-9897-72889BEB0E02}.Debug|x64.Build.0 = Debug|x64
+		{35ED534E-46AB-4805-9897-72889BEB0E02}.Release|x64.ActiveCfg = Release|x64
+		{35ED534E-46AB-4805-9897-72889BEB0E02}.Release|x64.Build.0 = Release|x64
+		{9B993604-C1A6-465E-946B-151DE500FA56}.Debug|x64.ActiveCfg = Debug|x64
+		{9B993604-C1A6-465E-946B-151DE500FA56}.Debug|x64.Build.0 = Debug|x64
+		{9B993604-C1A6-465E-946B-151DE500FA56}.Release|x64.ActiveCfg = Release|x64
+		{9B993604-C1A6-465E-946B-151DE500FA56}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {873B8696-FA32-40B1-8755-668A1E350CA9}
+	EndGlobalSection
+EndGlobal
