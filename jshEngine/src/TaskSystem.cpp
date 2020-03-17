@@ -4,14 +4,18 @@
 #include <vector>
 #include <atomic>
 
-namespace jshTask {
-
-	TaskList::TaskList() {}
+namespace jsh {
 
 	void TaskList::Add(const Task& task)
 	{
 		tasks.push(task);
 	}
+
+}
+
+using namespace jsh;
+
+namespace jshTask {
 
 	bool running = false;
 	uint8 numOfThreads = 0;
@@ -61,6 +65,8 @@ namespace jshTask {
 			m_Mutex.unlock();
 			return result;
 		}
+
+		inline TaskList* CurrentTaskList() { return m_pList; }
 
 	};
 
@@ -172,42 +178,28 @@ namespace jshTask {
 		Execute(list);
 	}
 
-	bool Doing(TaskList* taskList)
+	bool Doing()
 	{
-		if (taskList) {
-			for (uint8 i = 0; i < numOfThreads; ++i) {
-				
-			}
-		}
 		return doingTasks != completedTasks.load();
 	}
 
-	void Wait(TaskList* taskList)
+	void Wait()
 	{
-		if (Doing(taskList)) {
 
-			Task currentTask;
+		Task currentTask;
 
-			// do specific list
-			if (taskList) {
-
-				//TODO:
-
-				return;
-			}
-
-			// do all the lists
-			while (Doing()) {
-				for (uint8 i = 0; i < numOfThreads; ++i) {
-					while (pools[i].Get(currentTask)) {
-						currentTask();
-						completedTasks.fetch_add(1u);
-					}
-					std::this_thread::yield();
-					cv.notify_one();
+		// do all the lists
+		while (Doing()) {
+			for (uint8 i = 0; i < numOfThreads; ++i) {
+				while (pools[i].Get(currentTask)) {
+					currentTask();
+					completedTasks.fetch_add(1u);
 				}
+				std::this_thread::yield();
+				cv.notify_one();
 			}
 		}
+		
 	}
 
 	uint8 ThreadCount() {

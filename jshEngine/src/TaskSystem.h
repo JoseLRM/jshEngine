@@ -4,7 +4,7 @@
 #include <memory>
 #include <functional>
 
-namespace jshTask {
+namespace jsh {
 
 	typedef std::function<void()> Task;
 
@@ -14,8 +14,6 @@ namespace jshTask {
 #endif
 		std::queue<Task> tasks;
 
-		TaskList();
-
 	public:
 		void Add(const Task& task);
 	};
@@ -24,20 +22,24 @@ namespace jshTask {
 		size_t index = 0u;
 	};
 
+}
+
+namespace jshTask {
+
 #ifdef JSH_ENGINE
 	bool Initialize();
 	bool Close();
 #endif
 
-	TaskList* CreateTaskList();
+	jsh::TaskList* CreateTaskList();
 
-	void Execute(TaskList* taskList);
-	void Execute(const Task& task);
+	void Execute(jsh::TaskList* taskList);
+	void Execute(const jsh::Task& task);
 
-	void Async(size_t length, uint8 divisions, const std::function<void(ThreadArgs& args)>&);
+	void Async(size_t length, uint8 divisions, const std::function<void(jsh::ThreadArgs& args)>&);
 
-	bool Doing(TaskList* taskList = nullptr);
-	void Wait(TaskList* taskList = nullptr);
+	bool Doing();
+	void Wait();
 
 	uint8 ThreadCount();
 }
