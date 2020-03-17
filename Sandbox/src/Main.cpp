@@ -1,7 +1,5 @@
 #include "jshEngine.h"
 
-#include <chrono>
-
 class State : public jsh::State
 {
 public:
@@ -22,23 +20,7 @@ int main()
 	return 0;
 }
 
-State::State()
-{
-}
-
-class Test {
-	float m[16];
-public:
-	void Compute(uint32 n) {
-		for (int i = 0; i < 16; ++i) {
-			m[i] = i * n + n;
-			std::vector<float> inutil;
-			for (int j = 0; j < 16; j++) inutil.push_back(m[j]);
-
-			std::sort(inutil.begin(), inutil.end());
-		}
-	}
-};
+State::State() {}
 
 void State::Initialize()
 {
@@ -46,11 +28,48 @@ void State::Initialize()
 	jshGraphics::SetClearScreenColor(0.1f, 0.4f, 0.9f);
 
 	
+	jshEvent::Register<jsh::MouseEvent>(JSH_EVENT_LAYER_DEFAULT, [](jsh::MouseEvent& e) {
+		
+		if (e.IsButton()) {
+			jshLogln("Mouse pressed");
+		}
+		else if (e.IsDragged()) {
+			jshLogln("Mouse dragged");
+		}
+		else if(e.IsWheel()){
+			jshLogln("Mouse wheel");
+		}
+
+		return false;
+	});
+	
+	/*
+	jshEvent::Register<jsh::MouseButtonReleasedEvent>(JSH_EVENT_LAYER_DEFAULT, [](jsh::MouseButtonReleasedEvent& e) {
+
+		jshLogln("Mouse pressed %u", e.buttonCode);
+
+		return true;
+	});
+	*/
+	
+	jshEvent::Register<jsh::MouseDraggedEvent>(JSH_EVENT_LAYER_SYSTEM, [](jsh::MouseDraggedEvent& e) {
+	
+		if (e.draggedX < 0) e.Kill();
+	
+		return true;
+	});
+	
+
+	jshEvent::Register<jsh::MouseDraggedEvent>(JSH_EVENT_LAYER_DEFAULT, [](jsh::MouseDraggedEvent& e) {
+
+		jshLogln("Mouse dragged, pos(%u, %u), dragged(%i, %i)", e.mouseX, e.mouseY, e.draggedX, e.draggedY);
+
+		return true;
+	});
 }
 
 void State::Update(float deltaTime)
 {
-	
 }
 
 void State::FixedUpdate()

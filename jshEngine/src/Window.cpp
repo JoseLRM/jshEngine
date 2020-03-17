@@ -1,6 +1,11 @@
 #include "Window.h"
 
 #include "WinLib.h"
+#include "Input.h"
+#include "EventSystem.h"
+#include "Debug.h"
+
+using namespace jsh;
 
 namespace jshWindow {
 
@@ -19,6 +24,49 @@ namespace jshWindow {
 			PostQuitMessage(0);
 			return 0;
 
+		case WM_SYSKEYDOWN:
+		case WM_KEYDOWN:
+		{
+			// input
+			uint8 keyCode = (uint8)wParam;
+			if (keyCode > 255) jshLogW("Unknown keycode: %u", keyCode);
+			else if (~lParam & (1 << 30)) jshInput::KeyDown(keyCode);
+
+			break;
+		}
+		case WM_SYSKEYUP:
+		case WM_KEYUP:
+		{
+			// input
+			uint8 keyCode = (uint8)wParam;
+			if (keyCode > 255) jshLogW("Unknown keycode: %u", keyCode);
+			else jshInput::KeyUp(keyCode);
+
+			break;
+		}
+		case WM_LBUTTONDOWN:
+			jshInput::MouseDown(0);
+			break;
+		case WM_RBUTTONDOWN:
+			jshInput::MouseDown(1);
+			break;
+		case WM_MBUTTONDOWN:
+			jshInput::MouseDown(2);
+			break;
+		case WM_LBUTTONUP:
+			jshInput::MouseUp(0);
+			break;
+		case WM_RBUTTONUP:
+			jshInput::MouseUp(1);
+			break;
+		case WM_MBUTTONUP:
+			jshInput::MouseUp(2);
+			break;
+		case WM_MOUSEMOVE:
+			uint16 x = LOWORD(lParam);
+			uint16 y = HIWORD(lParam);
+			jshInput::MousePos(x, y);
+			break;
 		}
 
 		return DefWindowProcW(windowHandle, message, wParam, lParam);
@@ -63,6 +111,8 @@ namespace jshWindow {
 
 	bool UpdateInput()
 	{
+		jshInput::Update();
+
 		MSG message;
 
 		while (PeekMessageW(&message, NULL, 0, 0, PM_REMOVE) > 0) {

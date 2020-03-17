@@ -86,6 +86,7 @@
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\Debug.cpp" />
     <ClCompile Include="src\Graphics.cpp" />
+    <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\TaskSystem.cpp" />
     <ClCompile Include="src\Timer.cpp" />
     <ClCompile Include="src\Window.cpp" />
@@ -99,6 +100,7 @@
     <ClInclude Include="src\EventSystem.h" />
     <ClInclude Include="src\Graphics.h" />
     <ClInclude Include="src\GraphicsDesc.h" />
+    <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\State.h" />
     <ClInclude Include="src\TaskSystem.h" />
     <ClInclude Include="src\Timer.h" />

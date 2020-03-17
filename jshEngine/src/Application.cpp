@@ -8,6 +8,7 @@
 #include "Graphics.h"
 #include "Debug.h"
 #include "State.h"
+#include "Input.h"
 
 using namespace jsh;
 
