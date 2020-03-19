@@ -1,14 +1,13 @@
 #include "Application.h"
 
-#include "WinLib.h"
+#include "graphics/WinLib.h"
 
-#include "Window.h"
+#include "graphics/Window.h"
 #include "TaskSystem.h"
 #include "Timer.h"
-#include "Graphics.h"
+#include "graphics/Graphics.h"
 #include "Debug.h"
 #include "State.h"
-#include "Input.h"
 
 using namespace jsh;
 
@@ -64,6 +63,7 @@ namespace jshApplication {
 
 		jshLogI("jshEngine initialized");
 		initialized = true;
+		return true;
 	}
 
 	void Run()

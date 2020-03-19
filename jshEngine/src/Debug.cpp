@@ -1,6 +1,6 @@
 #include "Debug.h"
 
-#include "WinLib.h"
+#include "graphics/WinLib.h"
 
 namespace jshDebug {
 

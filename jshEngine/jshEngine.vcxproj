@@ -85,28 +85,29 @@
   <ItemGroup>
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\Debug.cpp" />
-    <ClCompile Include="src\Graphics.cpp" />
+    <ClCompile Include="src\graphics\Graphics.cpp" />
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\TaskSystem.cpp" />
     <ClCompile Include="src\Timer.cpp" />
-    <ClCompile Include="src\Window.cpp" />
+    <ClCompile Include="src\graphics\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\jshEngine.h" />
     <ClInclude Include="src\Application.h" />
     <ClInclude Include="src\common.h" />
     <ClInclude Include="src\Debug.h" />
-    <ClInclude Include="src\DirectX11Lib.h" />
+    <ClInclude Include="src\graphics\DirectX11Lib.h" />
     <ClInclude Include="src\EventSystem.h" />
-    <ClInclude Include="src\Graphics.h" />
-    <ClInclude Include="src\GraphicsDesc.h" />
+    <ClInclude Include="src\graphics\Graphics.h" />
+    <ClInclude Include="src\graphics\GraphicsDesc.h" />
     <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\State.h" />
     <ClInclude Include="src\TaskSystem.h" />
     <ClInclude Include="src\Timer.h" />
     <ClInclude Include="src\utils\dataStructures\safe_queue.h" />
-    <ClInclude Include="src\Window.h" />
-    <ClInclude Include="src\WinLib.h" />
+    <ClInclude Include="src\utils\dataStructures\vector.h" />
+    <ClInclude Include="src\graphics\Window.h" />
+    <ClInclude Include="src\graphics\WinLib.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

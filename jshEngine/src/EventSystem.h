@@ -95,7 +95,7 @@ namespace jsh {
 
 		static void Call(E& e)
 		{
-			for (int32 i = s_List.size() - 1; i >= 0; --i) {
+			for (int64 i = s_List.size() - 1; i >= 0; --i) {
 				if (!s_List[i].fn(e)) {
 					s_List.erase(s_List.begin() + i);
 				}
@@ -190,10 +190,10 @@ namespace jsh {
 	};
 
 	struct MouseDraggedEvent : public jsh::Event {
-		uint16 mouseX = 0.f;
-		uint16 mouseY = 0.f;
-		int16 draggedX = 0.f;
-		int16 draggedY = 0.f;
+		uint16 mouseX = 0u;
+		uint16 mouseY = 0u;
+		int16 draggedX = 0;
+		int16 draggedY = 0;
 
 		MouseDraggedEvent(uint16 x, uint16 y, int16 dx, int16 dy)
 			: mouseX(x), mouseY(y), draggedX(dx), draggedY(dy) {}

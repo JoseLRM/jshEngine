@@ -5,12 +5,14 @@
 #include "WinLib.h"
 #include "Window.h"
 
-namespace jshGraphics {
+ID3D11Device* device = nullptr;
+ID3D11DeviceContext* context = nullptr;
+IDXGISwapChain* swapChain = nullptr;
+ID3D11RenderTargetView* target = nullptr;
 
-	ID3D11Device* device			= nullptr;
-	ID3D11DeviceContext* context	= nullptr;
-	IDXGISwapChain* swapChain		= nullptr;
-	ID3D11RenderTargetView* target	= nullptr;
+using namespace jsh;
+
+namespace jshGraphics {
 
 	float clearScreenColor[] = {0.f, 0.f, 0.f, 1.f};
 
@@ -62,8 +64,8 @@ namespace jshGraphics {
 
 		// viewport
 		D3D11_VIEWPORT viewport;
-		viewport.Width = jshWindow::GetWidth();
-		viewport.Height = jshWindow::GetHeight();
+		viewport.Width = (float) jshWindow::GetWidth();
+		viewport.Height = (float) jshWindow::GetHeight();
 		viewport.MaxDepth = 1.f;
 		viewport.MinDepth = 0.f;
 		viewport.TopLeftX = 0;
@@ -88,19 +90,7 @@ namespace jshGraphics {
 		swapChain->Present(1u, 0u);
 		context->ClearRenderTargetView(target, clearScreenColor);
 		/*
-		struct Vertex {
-			float x, y;
-		};
-
-		Vertex vertexData[] = {
-			{0.f, 0.5f},
-			{0.5f, -0.5f},
-			{-0.5f, -0.5f}
-		};
-
-		uint32 indexData[] = {
-			0, 1, 2
-		};
+		
 
 		ID3D11Buffer* vertexBuffer = nullptr;
 		D3D11_BUFFER_DESC vbDesc = {};
@@ -135,7 +125,7 @@ namespace jshGraphics {
 
 		context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 		*/
-
+		
 	}
 
 	void SetTopology(JSH_TOPOLOGY topology) {
@@ -179,4 +169,87 @@ namespace jshGraphics {
 		clearScreenColor[1] = g;
 		clearScreenColor[2] = b;
 	}
+
+	constexpr D3D11_USAGE ParseUsage(JSH_USAGE usage)
+	{
+		switch (usage) {
+		case JSH_USAGE_DEFAULT:
+			return D3D11_USAGE_DEFAULT;
+		case JSH_USAGE_DYNAMIC:
+			return D3D11_USAGE_DYNAMIC;
+		case JSH_USAGE_IMMUTABLE:
+			return D3D11_USAGE_IMMUTABLE;
+		case JSH_USAGE_STAGING:
+			return D3D11_USAGE_STAGING;
+		default:
+			return D3D11_USAGE_DEFAULT;
+		}
+	}
+
+	// ---------------Graphics device------------
+
+	void CreateBuffer(Buffer& buffer)
+	{
+		ID3D11Buffer* ptr = nullptr;
+
+		D3D11_BUFFER_DESC desc = {};
+		desc.BindFlags = buffer.desc.BindFlags;
+		desc.ByteWidth = buffer.desc.ByteWidth;
+		desc.CPUAccessFlags = buffer.desc.CPUAccessFlags;
+		desc.MiscFlags = buffer.desc.MiscFlags;
+		desc.StructureByteStride = buffer.desc.StructureByteStride;
+		desc.Usage = ParseUsage(buffer.desc.Usage);
+
+		D3D11_SUBRESOURCE_DATA data = {};
+		data.pSysMem = buffer.data.pSysMem;
+		data.SysMemPitch = buffer.data.SysMemPitch;
+		data.SysMemSlicePitch = buffer.data.SysMemSlicePitch;
+
+		device->CreateBuffer(&desc, &data, &ptr);
+
+		buffer.ptr = reinterpret_cast<void*>(ptr);
+	}
+
+	void CreateVertexBuffer(jsh::Buffer& buffer, void* pData, uint32 bufferSize, uint32 stride)
+	{
+		buffer.desc.BindFlags = JSH_BIND_VERTEX_BUFFER;
+		buffer.desc.ByteWidth = bufferSize;
+		buffer.desc.CPUAccessFlags = 0;
+		buffer.desc.MiscFlags = 0u;
+		buffer.desc.StructureByteStride = stride;
+		buffer.desc.Usage = JSH_USAGE_DEFAULT;
+
+		buffer.data.pSysMem = pData;
+		buffer.data.SysMemPitch = 0;
+		buffer.data.SysMemSlicePitch = 0;
+
+		CreateBuffer(buffer);
+	}
+
+	void CreateIndexBuffer(jsh::Buffer& buffer, void* pData, uint32 indexSize, uint32 indexCount)
+	{
+		buffer.desc.BindFlags = JSH_BIND_INDEX_BUFFER;
+		buffer.desc.ByteWidth = indexSize * indexCount;
+		buffer.desc.CPUAccessFlags = 0;
+		buffer.desc.MiscFlags = 0u;
+		buffer.desc.StructureByteStride = indexSize;
+		buffer.desc.Usage = JSH_USAGE_DEFAULT;
+
+		buffer.data.pSysMem = pData;
+		buffer.data.SysMemPitch = 0;
+		buffer.data.SysMemSlicePitch = 0;
+
+		CreateBuffer(buffer);
+	}
+
+}
+
+namespace jsh {
+
+	void Resource::Clear()
+	{
+		ID3D11Resource* pRes = reinterpret_cast<ID3D11Resource*>(ptr);
+		pRes->Release();
+	}
+
 }
