@@ -59,6 +59,8 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);JSH_ENGINE</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)jshEngine/src</AdditionalIncludeDirectories>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -85,6 +87,8 @@
   <ItemGroup>
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\Debug.cpp" />
+    <ClCompile Include="src\ecs\Component.cpp" />
+    <ClCompile Include="src\ecs\Scene.cpp" />
     <ClCompile Include="src\graphics\Graphics.cpp" />
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\TaskSystem.cpp" />
@@ -96,6 +100,10 @@
     <ClInclude Include="src\Application.h" />
     <ClInclude Include="src\common.h" />
     <ClInclude Include="src\Debug.h" />
+    <ClInclude Include="src\ecs\Component.h" />
+    <ClInclude Include="src\ecs\Entity.h" />
+    <ClInclude Include="src\ecs\Scene.h" />
+    <ClInclude Include="src\ecs\System.h" />
     <ClInclude Include="src\graphics\DirectX11Lib.h" />
     <ClInclude Include="src\EventSystem.h" />
     <ClInclude Include="src\graphics\Graphics.h" />

@@ -10,7 +10,13 @@
 #define JSH_IMGUI
 #define JSH_CONSOLE
 
+#else
+
+#define NDEBUG
+
 #endif
+
+#include <assert.h>
 
 // platform macros
 #ifndef JSH_PLATFORM_WINDOWS
@@ -26,6 +32,7 @@ using namespace DirectX;
 
 using byte		= uint8_t;
 using wchar		= wchar_t;
+using ID_t		= uint32_t;
 
 using uint8		= uint8_t;
 using uint16	= uint16_t;

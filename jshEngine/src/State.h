@@ -5,7 +5,6 @@
 namespace jsh {
 
 	class State {
-
 	public:
 		State() = default;
 		virtual ~State() = default;
