@@ -36,4 +36,7 @@ namespace jshGraphics {
 	void CreateVertexBuffer(jsh::Buffer& buffer, void* pData, uint32 bufferSize, uint32 stride);
 	void CreateIndexBuffer(jsh::Buffer& buffer, void* pData, uint32 indexSize, uint32 indexCount);
 
+	void* GetDevice();
+	void* GetContext();
+
 }

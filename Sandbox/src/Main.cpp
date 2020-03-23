@@ -105,21 +105,7 @@ void State::Initialize()
 	m_Scene.CreateSEntities(e, 50, &entities, TestComponent(1), HelloTag());
 	m_Scene.CreateSEntities(entities[5], 50, nullptr, TestComponent(6969), HelloTag());
 
-	system0.SetExecuteType(JSH_ECS_SYSTEM_MULTITHREADED);
-	system0.SetTreeMode(true);
 
-	system1.SetExecuteType(JSH_ECS_SYSTEM_PARALLEL);
-	system1.SetTreeMode(true);
-	system1.SetCollectiveSystem();
-
-	system2.SetExecuteType(JSH_ECS_SYSTEM_PARALLEL);
-	system2.SetTreeMode(true);
-
-	system3.SetExecuteType(JSH_ECS_SYSTEM_PARALLEL);
-	system3.SetTreeMode(true);
-
-	system4.SetExecuteType(JSH_ECS_SYSTEM_PARALLEL);
-	system4.SetTreeMode(true);
 
 }
 
@@ -127,9 +113,9 @@ void State::Update(float deltaTime)
 {
 	jshLogln("----------------------------");
 	jsh::System* systems[] = {
+		&system0,
 		&system1,
 		&system2,
-		&system0,
 		&system3,
 		&system4
 	};

@@ -5,6 +5,9 @@
 #include "EventSystem.h"
 #include "Debug.h"
 
+#include "..//ImGui/imgui.h"
+#include "..//ImGui/imgui_impl_win32.h"
+
 using namespace jsh;
 
 namespace jshWindow {
@@ -19,6 +22,10 @@ namespace jshWindow {
 
 	LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
 	{
+#ifdef JSH_IMGUI
+		ImGui_ImplWin32_WndProcHandler(windowHandle, message, wParam, lParam);
+#endif
+
 		switch (message) {
 		case WM_CLOSE:
 			PostQuitMessage(0);

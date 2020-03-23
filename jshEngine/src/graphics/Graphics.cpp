@@ -59,6 +59,8 @@ namespace jshGraphics {
 		if (backBufferResource) device->CreateRenderTargetView(backBufferResource, nullptr, &target);
 		else return false;
 
+		context->OMSetRenderTargets(1, &target, nullptr);
+
 		// default topology
 		SetTopology(JSH_TOPOLOGY_TRIANGLES);
 
@@ -242,6 +244,14 @@ namespace jshGraphics {
 		CreateBuffer(buffer);
 	}
 
+	void* GetDevice()
+	{
+		return (void*)device;
+	}
+	void* GetContext()
+	{
+		return (void*)context;
+	}
 }
 
 namespace jsh {

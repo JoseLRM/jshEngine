@@ -1,6 +1,7 @@
 #include "Application.h"
 
 #include "graphics/WinLib.h"
+#include "graphics/DirectX11Lib.h"
 
 #include "graphics/Window.h"
 #include "TaskSystem.h"
@@ -8,6 +9,10 @@
 #include "graphics/Graphics.h"
 #include "Debug.h"
 #include "State.h"
+
+#include "ImGui/imgui.h"
+#include "ImGui/imgui_impl_dx11.h"
+#include "ImGui/imgui_impl_win32.h"
 
 using namespace jsh;
 
@@ -56,6 +61,15 @@ namespace jshApplication {
 
 		if (!jshDebug::Initialize()) return false;
 
+		//im gui initialize
+#ifdef JSH_IMGUI
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGui_ImplWin32_Init(jshWindow::GetWindowHandle());
+		ImGui_ImplDX11_Init((ID3D11Device*)jshGraphics::GetDevice(), (ID3D11DeviceContext*)jshGraphics::GetContext());
+		ImGui::StyleColorsDark();
+#endif
+
 		if (initialState) {
 			currentState = initialState;
 			initialState->Initialize();
@@ -95,7 +109,21 @@ namespace jshApplication {
 
 				// render
 				jshGraphics::Prepare();
+				
+				// prepare imgui
+#ifdef JSH_IMGUI
+				ImGui_ImplDX11_NewFrame();
+				ImGui_ImplWin32_NewFrame();
+				ImGui::NewFrame();
+#endif
+
 				currentState->Render();
+
+#ifdef JSH_IMGUI
+				ImGui::Render();
+				ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+#endif
+
 			}
 
 		}
