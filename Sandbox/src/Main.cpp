@@ -56,6 +56,11 @@ class State : public jsh::State
 	jsh::Buffer m_VertexBuffer;
 	jsh::Buffer m_IndexBuffer;
 
+	jsh::InputLayout m_IL;
+
+	jsh::VertexShader m_VS;
+	jsh::PixelShader m_PS;
+
 	System system0;
 	System system1;
 	System system2;
@@ -76,6 +81,7 @@ int main()
 {
 	jshApplication::Initialize(new State());
 	jshApplication::Run();
+	jshApplication::Close();
 
 	return 0;
 }
@@ -85,7 +91,7 @@ State::State() {}
 void State::Initialize()
 {
 	jshGraphics::SetTopology(JSH_TOPOLOGY_TRIANGLES);
-	jshGraphics::SetClearScreenColor(0.1f, 0.4f, 0.9f);
+	jshGraphics::SetClearScreenColor(0.9f, 0.4f, 0.1f);
 
 	struct Vertex {
 		float x, y;
@@ -101,9 +107,18 @@ void State::Initialize()
 		0, 1, 2
 	};
 
-	jshGraphics::CreateVertexBuffer(m_VertexBuffer, &vertexData, sizeof(Vertex) * std::size(vertexData), sizeof(float) * 2);
-	jshGraphics::CreateIndexBuffer(m_IndexBuffer, &indexData, sizeof(uint32), std::size(indexData));
-	
+	m_VertexBuffer = jshGraphics::CreateBuffer(&vertexData, sizeof(Vertex) * 6, sizeof(Vertex), JSH_USAGE_DEFAULT, JSH_BUFFER_TYPE_VERTEX);
+	m_IndexBuffer = jshGraphics::CreateBuffer(&indexData, sizeof(uint32) * 3, sizeof(uint32), JSH_USAGE_DEFAULT, JSH_BUFFER_TYPE_INDEX);
+
+	const JSH_INPUT_ELEMENT_DESC ied = {
+		"Position", 0, JSH_FORMAT_R32G32_FLOAT, 0, true, 0, 0
+	};
+
+	m_VS = jshGraphics::CreateVertexShader(L"VertexShader.cso");
+	m_PS = jshGraphics::CreatePixelShader(L"PixelShader.cso");
+
+	m_IL = jshGraphics::CreateInputLayout(&ied, 1, m_VS);
+
 	m_Scene.Create();
 
 	//system0.SetCollectiveSystem();
@@ -137,10 +152,17 @@ void State::FixedUpdate()
 
 void State::Render()
 {
+	jshGraphics::BindVertexShader(m_VS);
+	jshGraphics::BindPixelShader(m_PS);
+
+	jshGraphics::BindVertexBuffer(m_VertexBuffer, 0);
+	jshGraphics::BindIndexBuffer(m_IndexBuffer, 0);
+
+	jshGraphics::BindInputLayout(m_IL);
+
+	jshGraphics::DrawIndexed(3);
 }
 
 void State::Close()
 {
-	m_VertexBuffer.Clear();
-	m_IndexBuffer.Clear();
 }

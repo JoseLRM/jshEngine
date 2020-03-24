@@ -155,7 +155,7 @@ namespace jsh {
 		void UpdateSystems(System** systems, uint32 cant, float dt);
 
 		// ---------------DEBUG-------------------------
-#if defined(JSH_IMGUI) && defined(JSH_ENGINE)
+#if defined(JSH_IMGUI)
 	private:
 		Entity m_SelectedEntity = INVALID_ENTITY;
 
@@ -180,6 +180,7 @@ namespace jsh {
 				else ImGui::TreePop();
 			}
 		}
+
 	public:
 		void ShowEntityWindow()
 		{
@@ -196,6 +197,8 @@ namespace jsh {
 				}
 
 			}
+
+			if (m_SelectedEntity < 0 || m_SelectedEntity >= m_Entities.size()) m_SelectedEntity = INVALID_ENTITY;
 
 			ImGui::NextColumn();
 

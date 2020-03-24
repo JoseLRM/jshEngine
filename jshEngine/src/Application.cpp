@@ -1,18 +1,11 @@
 #include "Application.h"
 
-#include "graphics/WinLib.h"
-#include "graphics/DirectX11Lib.h"
-
 #include "graphics/Window.h"
 #include "TaskSystem.h"
 #include "Timer.h"
 #include "graphics/Graphics.h"
 #include "Debug.h"
 #include "State.h"
-
-#include "ImGui/imgui.h"
-#include "ImGui/imgui_impl_dx11.h"
-#include "ImGui/imgui_impl_win32.h"
 
 using namespace jsh;
 
@@ -22,6 +15,7 @@ namespace jshApplication {
 	bool g_Closed = false;
 	State* g_CurrentState = nullptr;
 
+#ifdef JSH_CONSOLE
 	struct Controller {
 		Controller()
 		{
@@ -29,14 +23,11 @@ namespace jshApplication {
 		}
 		~Controller()
 		{
-			Close();
-#ifdef JSH_CONSOLE
 			system("pause");
-#endif 
-
 		}
 	};
 	Controller controller;
+#endif 
 
 	bool Initialize(State* initialState)
 	{
@@ -62,13 +53,10 @@ namespace jshApplication {
 		if (!jshDebug::Initialize()) return false;
 
 		//im gui initialize
-#ifdef JSH_IMGUI
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGui_ImplWin32_Init(jshWindow::GetWindowHandle());
-		ImGui_ImplDX11_Init((ID3D11Device*)jshGraphics::GetDevice(), (ID3D11DeviceContext*)jshGraphics::GetContext());
-		ImGui::StyleColorsDark();
-#endif
+		jshImGui(if (!jshGraphics::InitializeImGui()) {
+			jshLogE("Cant't initialize ImGui");
+			return false;
+		});
 
 		if (initialState) {
 			g_CurrentState = initialState;
@@ -109,18 +97,8 @@ namespace jshApplication {
 
 				// render
 				jshGraphics::Prepare();
-				
-				// prepare imgui
-				jshImGui(ImGui_ImplDX11_NewFrame());
-				jshImGui(ImGui_ImplWin32_NewFrame());
-				jshImGui(ImGui::NewFrame());
-				jshImGui(jshDebug::ShowImGuiWindow());
 
 				g_CurrentState->Render();
-
-				// render imgui
-				jshImGui(ImGui::Render());
-				jshImGui(ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData()));
 
 			}
 

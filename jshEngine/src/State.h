@@ -22,11 +22,12 @@ namespace jsh {
 
 		virtual void Close() {}
 		
-#if defined(JSH_IMGUI) && defined(JSH_ENGINE)
+#if defined(JSH_IMGUI)
 	private:
 		uint16 m_ShowIndex = 0u;
-
+#ifdef JSH_ENGINE
 	public:
+#endif
 		bool ShowImGuiWindow()
 		{
 			bool result = true;

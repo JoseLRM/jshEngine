@@ -60,6 +60,9 @@
     <ClCompile Include="src\ImGui\imgui_demo.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\DirectX\GraphicsAPI_dx11.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common.h">
@@ -99,9 +102,6 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\GraphicsDesc.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\DirectX11Lib.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\Window.h">
@@ -146,5 +146,18 @@
     <ClInclude Include="src\ImGui\imstb_truetype.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\graphics\DirectX\GraphicsAPI_dx11.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\DirectX\DirectX11Lib.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\dataStructures\memory_pool.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="res\shaders\VertexShader.hlsl" />
+    <FxCompile Include="res\shaders\PixelShader.hlsl" />
   </ItemGroup>
 </Project>

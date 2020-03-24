@@ -89,6 +89,7 @@
     <ClCompile Include="src\Debug.cpp" />
     <ClCompile Include="src\ecs\Component.cpp" />
     <ClCompile Include="src\ecs\Scene.cpp" />
+    <ClCompile Include="src\graphics\DirectX\GraphicsAPI_dx11.cpp" />
     <ClCompile Include="src\graphics\Graphics.cpp" />
     <ClCompile Include="src\ImGui\imgui.cpp" />
     <ClCompile Include="src\ImGui\imgui_demo.cpp" />
@@ -110,8 +111,9 @@
     <ClInclude Include="src\ecs\Entity.h" />
     <ClInclude Include="src\ecs\Scene.h" />
     <ClInclude Include="src\ecs\System.h" />
-    <ClInclude Include="src\graphics\DirectX11Lib.h" />
+    <ClInclude Include="src\graphics\DirectX\DirectX11Lib.h" />
     <ClInclude Include="src\EventSystem.h" />
+    <ClInclude Include="src\graphics\DirectX\GraphicsAPI_dx11.h" />
     <ClInclude Include="src\graphics\Graphics.h" />
     <ClInclude Include="src\graphics\GraphicsDesc.h" />
     <ClInclude Include="src\ImGui\imconfig.h" />
@@ -130,6 +132,21 @@
     <ClInclude Include="src\utils\dataStructures\vector.h" />
     <ClInclude Include="src\graphics\Window.h" />
     <ClInclude Include="src\graphics\WinLib.h" />
+    <ClInclude Include="src\utils\dataStructures\memory_pool.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="res\shaders\PixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(FileName).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(FileName).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="res\shaders\VertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
