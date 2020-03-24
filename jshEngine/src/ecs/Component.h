@@ -23,6 +23,9 @@ namespace jsh {
 			return s_IDcount;
 		}
 
+	public:
+		jshImGui(virtual void ShowInfo() {});
+
 	};
 
 	template<class T>

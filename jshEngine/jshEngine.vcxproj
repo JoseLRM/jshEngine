@@ -91,6 +91,7 @@
     <ClCompile Include="src\ecs\Scene.cpp" />
     <ClCompile Include="src\graphics\Graphics.cpp" />
     <ClCompile Include="src\ImGui\imgui.cpp" />
+    <ClCompile Include="src\ImGui\imgui_demo.cpp" />
     <ClCompile Include="src\ImGui\imgui_draw.cpp" />
     <ClCompile Include="src\ImGui\imgui_impl_dx11.cpp" />
     <ClCompile Include="src\ImGui\imgui_impl_win32.cpp" />

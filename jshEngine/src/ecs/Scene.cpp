@@ -44,7 +44,7 @@ namespace jsh {
 			entityData.handleIndex = m_Entities.size();
 		}
 		else {
-			entity = m_EntityData.size();
+			entity = Entity(m_EntityData.size());
 
 			EntityData entityData;
 			entityData.handleIndex = m_Entities.size();
@@ -75,7 +75,7 @@ namespace jsh {
 		}
 
 		m_EntityData.reserve(cant);
-		Entity beginEntity = m_EntityData.size();
+		Entity beginEntity = Entity(m_EntityData.size());
 		for (uint32 i = 0; i < cant; ++i) {
 			EntityData ed;
 			ed.handleIndex = entityIndex + i;
@@ -93,7 +93,7 @@ namespace jsh {
 		// update parents count
 		jsh::vector<Entity> parentsToUpdate;
 		parentsToUpdate.push_back(parent, 3);
-		if (!parentsToUpdate.empty()) {
+		while (!parentsToUpdate.empty()) {
 
 			Entity e = parentsToUpdate.back();
 			parentsToUpdate.pop_back();
@@ -109,7 +109,7 @@ namespace jsh {
 			m_FreeEntityData.pop_back();
 		}
 		else {
-			entity = m_EntityData.size();
+			entity = Entity(m_EntityData.size());
 
 			if (m_EntityData.capacity() == m_EntityData.size()) m_EntityData.reserve(10u);
 			m_EntityData.push_back(EntityData());
@@ -144,7 +144,7 @@ namespace jsh {
 		// update parents count
 		jsh::vector<Entity> parentsToUpdate;
 		parentsToUpdate.push_back(parent, 3);
-		while (!parentsToUpdate.empty() && cant > 0) {
+		while (!parentsToUpdate.empty()) {
 
 			Entity e = parentsToUpdate.back();
 			parentsToUpdate.pop_back();
@@ -158,11 +158,11 @@ namespace jsh {
 		m_Entities.reserve(cant);
 
 		EntityData& parentData = m_EntityData[parent];
-		size_t entityIndex = parent + parentData.sonsCount - cant + 1;
+		size_t entityIndex = size_t(parent) + size_t(parentData.sonsCount) - size_t(cant) + 1u;
 
 		// if the parent and sons aren't in back of the list
 		if (entityIndex != m_Entities.size()) {
-			size_t newDataIndex = parent + parentData.sonsCount + 1;
+			size_t newDataIndex = size_t(parent) + size_t(parentData.sonsCount) + 1u;
 			// move old entities
 			for (size_t i = m_Entities.capacity() - 1; i >= newDataIndex; --i) {
 				m_Entities[i] = m_Entities[i - cant];
@@ -172,7 +172,7 @@ namespace jsh {
 
 		// creating entities
 		if (entities) entities->reserve(cant);
-		while (!m_FreeEntityData.empty()) {
+		while (!m_FreeEntityData.empty() && cant > 0) {
 			Entity entity = m_FreeEntityData.back();
 			m_FreeEntityData.pop_back();
 			cant--;
@@ -184,7 +184,7 @@ namespace jsh {
 			if (entities) entities->push_back_nr(entity);
 		}
 
-		Entity firstEntity = m_EntityData.size();
+		Entity firstEntity = Entity(m_EntityData.size());
 		m_EntityData.reserve(cant);
 		for (uint32 i = 0; i < cant; ++i) {
 
@@ -348,6 +348,8 @@ namespace jsh {
 
 	void Scene::UpdateSystem(System* system, float dt)
 	{
+		jsh::Time beginTime = jshTimer::Now();
+
 		if(system->GetExecuteType() == JSH_ECS_SYSTEM_SAFE 
 			|| system->GetExecuteType() == JSH_ECS_SYSTEM_PARALLEL) {
 
@@ -358,6 +360,7 @@ namespace jsh {
 		else {
 			if (system->IsIndividualSystem()) UpdateCollectiveAndMultithreadedSystem(system, dt);
 		}
+		SetUpdatePerformance(system, beginTime);
 	}
 
 	void Scene::UpdateSystems(System** systems, uint32 cant, float dt)
@@ -368,8 +371,13 @@ namespace jsh {
 		for (uint32 i = 0; i < cant; ++i) {
 			pSystem = systems[i];
 			if (pSystem->GetExecuteType() == JSH_ECS_SYSTEM_SAFE) {
+
+				jsh::Time beginTime = jshTimer::Now();
+
 				if (pSystem->IsIndividualSystem()) UpdateIndividualSafeSystem(pSystem, dt);
 				else UpdateCollectiveAndMultithreadedSystem(pSystem, dt);
+
+				SetUpdatePerformance(pSystem, beginTime);
 			}
 		}
 
@@ -377,7 +385,12 @@ namespace jsh {
 		for (uint32 i = 0; i < cant; ++i) {
 			pSystem = systems[i];
 			if (pSystem->GetExecuteType() == JSH_ECS_SYSTEM_MULTITHREADED) {
+
+				jsh::Time beginTime = jshTimer::Now();
+
 				if (pSystem->IsIndividualSystem()) UpdateCollectiveAndMultithreadedSystem(pSystem, dt);
+
+				SetUpdatePerformance(pSystem, beginTime);
 			}
 		}
 
@@ -386,8 +399,20 @@ namespace jsh {
 			pSystem = systems[i];
 			if (pSystem->GetExecuteType() == JSH_ECS_SYSTEM_PARALLEL) {
 				if (pSystem->IsIndividualSystem()) 
-					jshTask::Execute([pSystem, dt, this]() { UpdateIndividualSafeSystem(pSystem, dt); });
-				else jshTask::Execute([pSystem, dt, this]() { UpdateCollectiveAndMultithreadedSystem(pSystem, dt); });
+					jshTask::Execute([pSystem, dt, this]() { 
+
+					jsh::Time beginTime = jshTimer::Now();
+					UpdateIndividualSafeSystem(pSystem, dt);
+					SetUpdatePerformance(pSystem, beginTime);
+
+				});
+				else jshTask::Execute([pSystem, dt, this]() { 
+
+					jsh::Time beginTime = jshTimer::Now();
+					UpdateCollectiveAndMultithreadedSystem(pSystem, dt); 
+					SetUpdatePerformance(pSystem, beginTime);
+
+				});
 			}
 		}
 
@@ -400,7 +425,7 @@ namespace jsh {
 		// system requisites
 		auto& request = system->GetRequestedComponents();
 		auto& optional = system->GetOptionalComponents();
-		uint32 cantOfComponents = request.size() + optional.size();
+		uint32 cantOfComponents = Entity(request.size() + optional.size());
 
 		if (request.size() == 0) {
 			jshLogW("System '%s' haven't requested components", system->GetName());
@@ -417,7 +442,7 @@ namespace jsh {
 			}
 		}
 		// if one request is empty, exit
-		auto list = m_Components[idOfBestList];
+		auto& list = m_Components[idOfBestList];
 		if (list.size() == 0) return;
 		size_t sizeOfBestList = s_ComponentsSize[idOfBestList];
 
@@ -449,7 +474,6 @@ namespace jsh {
 							isValid = false;
 							break;
 						}
-
 						components[j] = comp;
 					}
 
@@ -514,7 +538,7 @@ namespace jsh {
 		// system requisites
 		auto& request = system->GetRequestedComponents();
 		auto& optional = system->GetOptionalComponents();
-		uint32 cantOfComponents = request.size() + optional.size();
+		uint32 cantOfComponents = uint32(request.size() + optional.size());
 
 		if (request.size() == 0) {
 			jshLogW("System '%s' haven't requested components", system->GetName());
@@ -531,13 +555,13 @@ namespace jsh {
 			}
 		}
 		// if one request is empty, exit
-		auto list = m_Components[idOfBestList];
+		auto& list = m_Components[idOfBestList];
 		if (list.size() == 0) return;
 		size_t sizeOfBestList = s_ComponentsSize[idOfBestList];
 
 		// for all the entities
 		BaseComponent* compOfBestList;
-		BaseComponent** components = new BaseComponent * [cantOfComponents];
+		BaseComponent** components = new BaseComponent*[cantOfComponents];
 
 		if (system->InTreeMode() && system->IsCollectiveSystem()) {
 			for (size_t i = 0; i < m_Entities.size(); ++i) {
@@ -572,7 +596,7 @@ namespace jsh {
 					}
 
 					componentsList.push_back(components, 50);
-					components = new BaseComponent * [cantOfComponents];
+					components = new BaseComponent*[cantOfComponents];
 				}
 			}
 		}
@@ -597,7 +621,6 @@ namespace jsh {
 					}
 
 					components[j] = comp;
-
 				}
 
 				if (!isValid) continue;
@@ -616,10 +639,7 @@ namespace jsh {
 		if (system->IsIndividualSystem()) {
 			jshTask::Async(componentsList.size(), jshTask::ThreadCount(), [this, &componentsList, system, dt](ThreadArgs args) {
 
-				float deltaTime = dt;
-				BaseComponent** components = componentsList[args.index];
-				Entity entity = components[0]->entityID;
-				system->UpdateEntity(*this, entity, components, deltaTime);
+				system->UpdateEntity(*this, componentsList[args.index][0]->entityID, componentsList[args.index], dt);
 
 			});
 

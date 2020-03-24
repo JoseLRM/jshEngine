@@ -36,4 +36,8 @@ namespace jshDebug {
 
 	void ShowOkWindow(const wchar* const description, uint8 level = 0);
 
+#ifdef JSH_IMGUI
+	void ShowImGuiWindow();
+#endif
+
 }

@@ -3,6 +3,7 @@
 #include "..//common.h"
 #include "Component.h"
 #include <string>
+#include "..//Timer.h"
 
 #define JSH_ECS_SYSTEM_SAFE				0u
 #define JSH_ECS_SYSTEM_PARALLEL			1u
@@ -21,14 +22,24 @@ namespace jsh {
 		bool m_IndividualSystem = true;
 		bool m_TreeMode = false;
 		uint8 m_ExecuteType = JSH_ECS_SYSTEM_SAFE;
+
 		std::string m_Name;
+		ID_t m_SystemID;
+
+		// performance members
+		jsh::Time m_LastTime = 0.f;
+		jsh::Time m_TimeCount = 0.f;
+		uint32 m_UpdatesCount = 0u;
 
 	public:
+		friend Scene;
 		System() {
-			m_Name = "System " + std::to_string(s_SystemCount++);
+			m_SystemID = s_SystemCount++;
+			m_Name = "System " + std::to_string(m_SystemID);
 		}
 
 		System(const char* name) {
+			m_SystemID = s_SystemCount++;
 			m_Name = name;
 		}
 

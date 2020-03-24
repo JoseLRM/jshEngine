@@ -17,19 +17,19 @@ using namespace jsh;
 
 namespace jshTask {
 
-	bool running = false;
-	uint8 numOfThreads = 0;
+	bool g_Running = false;
+	uint8 g_NumOfThreads = 0;
 
 	class ThreadPool;
-	ThreadPool* pools = nullptr;
+	ThreadPool* g_Pools = nullptr;
 
-	jsh::safe_dynamic_queue<TaskList*> taskLists;
-	std::condition_variable cv;
-	std::mutex sleepMutex;
-	std::mutex executeMutex;
+	jsh::safe_dynamic_queue<TaskList*> g_TaskLists;
+	std::condition_variable g_ConditionVariable;
+	std::mutex g_SleepMutex;
+	std::mutex g_ExecuteMutex;
 
-	std::atomic<uint32> completedTasks = 0;
-	uint32 doingTasks = 0;
+	std::atomic<uint32> g_CompletedTasks = 0;
+	uint32 g_DoingTasks = 0;
 
 	class ThreadPool {
 		TaskList* m_pList = nullptr;
@@ -49,7 +49,7 @@ namespace jshTask {
 				}
 			}
 			if (!result) {
-				if (taskLists.pop(m_pList)) {
+				if (g_TaskLists.pop(m_pList)) {
 					result = GetInternal(task);
 				}
 			}
@@ -72,43 +72,43 @@ namespace jshTask {
 
 	bool Initialize()
 	{
-		numOfThreads = std::thread::hardware_concurrency();
-		if (numOfThreads < 1) numOfThreads = 1;
+		g_NumOfThreads = std::thread::hardware_concurrency();
+		if (g_NumOfThreads < 1) g_NumOfThreads = 1;
 
-		pools = new ThreadPool[numOfThreads];
+		g_Pools = new ThreadPool[g_NumOfThreads];
 
-		running = true;
-		for (uint8 i = 0; i < numOfThreads; ++i) {
+		g_Running = true;
+		for (uint8 i = 0; i < g_NumOfThreads; ++i) {
 
 			std::thread worker([i]() {
 
 				uint8 ID = i;
 				Task currentTask;
 			
-				while (running) {
+				while (g_Running) {
 					
 					bool doing = true;
 					while (doing) {
 						doing = false;
-						if (pools[ID].Get(currentTask)) {
+						if (g_Pools[ID].Get(currentTask)) {
 							doing = true;
 							currentTask();
-							completedTasks.fetch_add(1u);
+							g_CompletedTasks.fetch_add(1u);
 						}
 						else {
-							for (uint8 i = 0; i < numOfThreads; ++i) {
+							for (uint8 i = 0; i < g_NumOfThreads; ++i) {
 								if (i == ID) continue;
-								if (pools[i].Get(currentTask)) {
+								if (g_Pools[i].Get(currentTask)) {
 									doing = true;
 									currentTask();
-									completedTasks.fetch_add(1u);
+									g_CompletedTasks.fetch_add(1u);
 								}
 							}
 						}
 					}
 
-					std::unique_lock<std::mutex> lock(sleepMutex);
-					cv.wait(lock);
+					std::unique_lock<std::mutex> lock(g_SleepMutex);
+					g_ConditionVariable.wait(lock);
 				}
 
 				jshLogI("Thread %u closed", ID);
@@ -125,8 +125,8 @@ namespace jshTask {
 	bool Close()
 	{
 		Wait();
-		running = false;
-		cv.notify_all();
+		g_Running = false;
+		g_ConditionVariable.notify_all();
 		return true;
 	}
 
@@ -138,11 +138,11 @@ namespace jshTask {
 
 	void Execute(TaskList* taskList)
 	{
-		executeMutex.lock();
-		doingTasks += taskList->tasks.size();
-		taskLists.push(taskList);
-		cv.notify_all();
-		executeMutex.unlock();
+		g_ExecuteMutex.lock();
+		g_DoingTasks += uint32(taskList->tasks.size());
+		g_TaskLists.push(taskList);
+		g_ConditionVariable.notify_all();
+		g_ExecuteMutex.unlock();
 	}
 
 	void Execute(const Task& task)
@@ -180,30 +180,35 @@ namespace jshTask {
 
 	bool Doing()
 	{
-		return doingTasks != completedTasks.load();
+		return g_DoingTasks != g_CompletedTasks.load();
 	}
 
 	void Wait()
 	{
-
-		Task currentTask;
-
-		// do all the lists
 		while (Doing()) {
-			for (uint8 i = 0; i < numOfThreads; ++i) {
-				while (pools[i].Get(currentTask)) {
-					currentTask();
-					completedTasks.fetch_add(1u);
-				}
-				std::this_thread::yield();
-				cv.notify_one();
-			}
+			g_ConditionVariable.notify_one();
+			std::this_thread::yield();
 		}
-		
 	}
 
 	uint8 ThreadCount() {
-		return numOfThreads;
+		return g_NumOfThreads;
 	}
+
+#ifdef JSH_IMGUI
+
+	bool ShowImGuiWindow()
+	{
+		bool result = true;
+		if (ImGui::Begin("Task System")) {
+			ImGui::Text(("Thread count: " + std::to_string(g_NumOfThreads)).c_str());
+
+			if (ImGui::Button("Close")) result = false;
+		}
+		ImGui::End();
+		return result;
+	}
+
+#endif
 
 }

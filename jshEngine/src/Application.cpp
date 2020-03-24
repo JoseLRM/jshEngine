@@ -18,9 +18,9 @@ using namespace jsh;
 
 namespace jshApplication {
 
-	bool initialized = false;
-	bool closed = false;
-	State* currentState = nullptr;
+	bool g_Initialized = false;
+	bool g_Closed = false;
+	State* g_CurrentState = nullptr;
 
 	struct Controller {
 		Controller()
@@ -40,7 +40,7 @@ namespace jshApplication {
 
 	bool Initialize(State* initialState)
 	{
-		if (initialized) return false;
+		if (g_Initialized) return false;
 
 		jshTimer::Initialize();
 
@@ -71,12 +71,12 @@ namespace jshApplication {
 #endif
 
 		if (initialState) {
-			currentState = initialState;
+			g_CurrentState = initialState;
 			initialState->Initialize();
 		}
 
 		jshLogI("jshEngine initialized");
-		initialized = true;
+		g_Initialized = true;
 		return true;
 	}
 
@@ -98,31 +98,29 @@ namespace jshApplication {
 
 			fixedUpdateCount += deltaTime;
 
-			if (currentState) {
+			if (g_CurrentState) {
 				// update
-				currentState->Update(deltaTime);
+				g_CurrentState->Update(deltaTime);
 
 				if (fixedUpdateCount >= 0.01666666f) {
 					fixedUpdateCount -= 0.01666666f;
-					currentState->FixedUpdate();
+					g_CurrentState->FixedUpdate();
 				}
 
 				// render
 				jshGraphics::Prepare();
 				
 				// prepare imgui
-#ifdef JSH_IMGUI
-				ImGui_ImplDX11_NewFrame();
-				ImGui_ImplWin32_NewFrame();
-				ImGui::NewFrame();
-#endif
+				jshImGui(ImGui_ImplDX11_NewFrame());
+				jshImGui(ImGui_ImplWin32_NewFrame());
+				jshImGui(ImGui::NewFrame());
+				jshImGui(jshDebug::ShowImGuiWindow());
 
-				currentState->Render();
+				g_CurrentState->Render();
 
-#ifdef JSH_IMGUI
-				ImGui::Render();
-				ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-#endif
+				// render imgui
+				jshImGui(ImGui::Render());
+				jshImGui(ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData()));
 
 			}
 
@@ -131,7 +129,7 @@ namespace jshApplication {
 
 	bool Close()
 	{
-		if (closed) return false;
+		if (g_Closed) return false;
 		CloseState();
 
 		if (!jshTask::Close()) return false;
@@ -140,29 +138,34 @@ namespace jshApplication {
 
 		if (!jshGraphics::Close()) return false;
 
-		closed = true;
+		g_Closed = true;
 		return true;
 	}
 
 	void LoadState(jsh::State* state)
 	{
-		if (!initialized) {
+		if (!g_Initialized) {
 			jshDebug::ShowOkWindow(L"Use 'jshApplication::Initialize(new State())' to set the first state", 2);
 			return;
 		}
 		CloseState();
-		currentState = state;
-		currentState->Initialize();
+		g_CurrentState = state;
+		g_CurrentState->Initialize();
 	}
 
 	void CloseState()
 	{
-		if (currentState) {
-			currentState->Close();
-			delete currentState;
-			currentState = nullptr;
+		if (g_CurrentState) {
+			g_CurrentState->Close();
+			delete g_CurrentState;
+			g_CurrentState = nullptr;
 		}
 		jshLogI("jshEngine closed");
+	}
+
+	State* GetCurrentState()
+	{
+		return g_CurrentState;
 	}
 
 }

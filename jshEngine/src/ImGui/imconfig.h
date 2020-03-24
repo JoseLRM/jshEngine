@@ -1,4 +1,4 @@
-#include "common.h"
+#include "..//common.h"
 #ifndef JSH_IMGUI
 #define IMGUI_DISABLE
 #endif

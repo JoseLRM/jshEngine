@@ -18,6 +18,19 @@
 
 #include <assert.h>
 
+// imgui macros
+#ifdef JSH_IMGUI
+
+#define jshImGui(x) x
+#include "ImGui/imgui.h"
+
+#else
+
+#define jshImGui(x)
+
+#endif 
+
+
 // platform macros
 #ifndef JSH_PLATFORM_WINDOWS
 #error Platform not supported

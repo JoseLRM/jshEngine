@@ -2,9 +2,15 @@
 
 struct TestComponent : jsh::Component<TestComponent> {
 	int data;
-	std::map<int, int> wtf;
 	TestComponent() : data(0) {}
 	TestComponent(int i) : data(i) {}
+
+	jshImGui(void ShowInfo() override {
+
+		ImGui::Text("Test Component");
+		ImGui::DragInt("Data", &data, 1);
+
+	});
 };
 jshDefineTag(HelloTag);
 jshDefineTag(PeneTag);
@@ -24,7 +30,10 @@ struct System : public jsh::System {
 		HelloTag* tag0 = (HelloTag*)comp[1];
 		PeneTag* tag1 = (PeneTag*)comp[2];
 
-		jshLogln("[%s] Entity %u: Data = %i, Tag0 = %s, Tag1 = %s", GetName(), entity, testComponent->data, tag0 ? "true" : "false", tag1 ? "true" : "false");
+		testComponent->data += sin(testComponent->data) * (int)103.f;
+		for (uint32 i = 0; i < 1; ++i) {
+			testComponent->data *= (i % 2 == 0) ? 8 : (1.f / 8.f);
+		}
 	}
 
 	void UpdateEntities(jsh::Scene& scene, jsh::vector<jsh::BaseComponent**>& components, float dt) override
@@ -36,7 +45,7 @@ struct System : public jsh::System {
 			HelloTag* tag0 = (HelloTag*)comp[1];
 			PeneTag* tag1 = (PeneTag*)comp[2];
 
-			jshLogln("[%s col] Entity %u: Data = %i, Tag0 = %s, Tag1 = %s", GetName(), entity, testComponent->data, tag0 ? "true" : "false", tag1 ? "true" : "false");
+			testComponent->data += sin(testComponent->data) * (int)103.f;
 		}
 	}
 
@@ -47,7 +56,6 @@ class State : public jsh::State
 	jsh::Buffer m_VertexBuffer;
 	jsh::Buffer m_IndexBuffer;
 
-	jsh::Scene m_Scene;
 	System system0;
 	System system1;
 	System system2;
@@ -98,28 +106,29 @@ void State::Initialize()
 	
 	m_Scene.Create();
 
-	m_Scene.CreateEntities(100, nullptr, PeneTag());
-	jsh::Entity e = m_Scene.CreateEntity(TestComponent(69));
-	m_Scene.CreateEntities(50, nullptr, TestComponent(0), HelloTag());
-	jsh::vector<jsh::Entity> entities;
-	m_Scene.CreateSEntities(e, 50, &entities, TestComponent(1), HelloTag());
-	m_Scene.CreateSEntities(entities[5], 50, nullptr, TestComponent(6969), HelloTag());
+	//system0.SetCollectiveSystem();
+	system0.SetExecuteType(JSH_ECS_SYSTEM_PARALLEL);
+	system1.SetExecuteType(JSH_ECS_SYSTEM_PARALLEL);
+	system2.SetExecuteType(JSH_ECS_SYSTEM_PARALLEL);
+	system3.SetExecuteType(JSH_ECS_SYSTEM_PARALLEL);
+	system4.SetExecuteType(JSH_ECS_SYSTEM_PARALLEL);
 
-
-
+	//m_Scene.CreateEntities(10000, nullptr, TestComponent(69));
+	
 }
 
 void State::Update(float deltaTime)
 {
-	jshLogln("----------------------------");
 	jsh::System* systems[] = {
 		&system0,
 		&system1,
 		&system2,
 		&system3,
-		&system4
+		&system4,
 	};
+	jsh::Time bTime = jshTimer::Now();
 	m_Scene.UpdateSystems(systems, 5, deltaTime);
+	//jsh::Time time = jshTimer::Now() - bTime;
 }
 
 void State::FixedUpdate()
@@ -128,7 +137,6 @@ void State::FixedUpdate()
 
 void State::Render()
 {
-	
 }
 
 void State::Close()

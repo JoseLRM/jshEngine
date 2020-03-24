@@ -3,6 +3,11 @@
 #include "System.h"
 #include "..//utils/dataStructures/vector.h"
 #include "..//Debug.h"
+#include "..//Timer.h"
+#include <mutex>
+
+#include "..//ImGui/imgui.h"
+
 namespace jsh {
 
 	class Scene {
@@ -11,8 +16,10 @@ namespace jsh {
 		jsh::vector<Entity> m_FreeEntityData;
 
 		static jsh::vector<size_t> s_ComponentsSize;
-
 		jsh::vector<jsh::vector<byte>> m_Components;
+
+		std::map<ID_t, System*> m_UpdatedSystems;
+		std::mutex m_UpdatedSystemsMutex;
 
 		// internal methods
 	private:
@@ -23,7 +30,7 @@ namespace jsh {
 		inline BaseComponent* GetComponent(const EntityData& entity, ID_t componentID) noexcept
 		{
 			auto it = entity.m_Indices.find(componentID);
-			if (it != entity.m_Indices.end()) return (BaseComponent*)(&m_Components[componentID][it->second]);
+			if (it != entity.m_Indices.end()) return (BaseComponent*)(&(m_Components[componentID][it->second]));
 
 			return nullptr;
 		}		
@@ -41,8 +48,20 @@ namespace jsh {
 			AddComponents(entities, args...);
 		}
 
+		// systems
 		void UpdateIndividualSafeSystem(System* system, float deltaTime);
 		void UpdateCollectiveAndMultithreadedSystem(System* system, float deltaTime);
+
+		inline void SetUpdatePerformance(System* pSystem, jsh::Time beginTime) noexcept
+		{
+			pSystem->m_TimeCount += pSystem->m_LastTime;
+			pSystem->m_UpdatesCount++;
+			pSystem->m_LastTime = jshTimer::Now() - beginTime;
+
+			m_UpdatedSystemsMutex.lock();
+			m_UpdatedSystems[pSystem->m_SystemID] = pSystem;
+			m_UpdatedSystemsMutex.unlock();
+		}
 
 	public:
 		Scene();
@@ -135,21 +154,86 @@ namespace jsh {
 		void UpdateSystem(System* system, float dt);
 		void UpdateSystems(System** systems, uint32 cant, float dt);
 
-		// Debug
-		void PrintEntities() {
-			for (uint32 i = 1; i < m_Entities.size(); ++i) {
-				jshLogln("Entity -> %u", m_Entities[i]);
+		// ---------------DEBUG-------------------------
+#if defined(JSH_IMGUI) && defined(JSH_ENGINE)
+	private:
+		Entity m_SelectedEntity = INVALID_ENTITY;
+
+		void ImGuiAddEntity(Entity entity)
+		{
+			EntityData& entityData = m_EntityData[entity];
+
+			bool empty = entityData.sonsCount == 0;
+			auto treeFlags = ImGuiTreeNodeFlags_OpenOnArrow | (empty ? ImGuiTreeNodeFlags_Bullet : ImGuiTreeNodeFlags_AllowItemOverlap);
+
+			bool active = ImGui::TreeNodeEx(("Entity " + std::to_string(entity)).c_str(), treeFlags);
+			if (ImGui::IsItemClicked()) m_SelectedEntity = entity;
+			if (active) {
+				if (!empty) {
+					for (uint32 i = 0; i < entityData.sonsCount; ++i) {
+						Entity e = m_Entities[entityData.handleIndex + i + 1];
+						i += m_EntityData[e].sonsCount;
+						ImGuiAddEntity(e);
+					}
+					ImGui::TreePop();
+				}
+				else ImGui::TreePop();
 			}
+		}
+	public:
+		void ShowEntityWindow()
+		{
+			ImGui::Columns(2);
+
+			for (size_t i = 1; i < m_Entities.size(); ++i) {
+
+				Entity entity = m_Entities[i];
+				EntityData& entityData = m_EntityData[entity];
+
+				if (entityData.parent == INVALID_ENTITY) {
+					ImGuiAddEntity(entity);
+					i += entityData.sonsCount;
+				}
+
+			}
+
+			ImGui::NextColumn();
+
+			if (m_SelectedEntity != INVALID_ENTITY) {
+
+				ImGui::Text(("Entity " + std::to_string(m_SelectedEntity)).c_str());
+
+				EntityData& entityData = m_EntityData[m_SelectedEntity];
+
+				for (auto& it : entityData.m_Indices) {
+
+					ID_t compID = it.first;
+					size_t index = it.second;
+
+					BaseComponent* comp = (BaseComponent*)(&(m_Components[compID][index]));
+					comp->ShowInfo();
+
+				}
+			}
+
+			ImGui::NextColumn();
+
 		}
 
-		void PrintComponent(ID_t compID)
+		void ShowSystemsWindow()
 		{
-			auto& list = m_Components[compID];
-			size_t compSize = s_ComponentsSize[compID];
-			for (size_t i = 0; i < list.size(); i += compSize) {
-				jshLogln("Component[%u] %u -> %u", compID, i, ((BaseComponent*)(&list[i]))->entityID);
+
+			for (uint32 i = 0; i < m_UpdatedSystems.size(); ++i) {
+				System* system = m_UpdatedSystems[i];
+
+				ImGui::Text(("[" + std::string(system->GetName()) + "] -> " + 
+					std::to_string(system->m_TimeCount / system->m_UpdatesCount)).c_str());
+
 			}
+
 		}
+
+#endif
 
 	};
 

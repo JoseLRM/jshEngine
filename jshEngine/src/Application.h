@@ -14,4 +14,6 @@ namespace jshApplication {
 
 	void CloseState();
 	void LoadState(jsh::State* state);
+	jsh::State* GetCurrentState();
+
 }

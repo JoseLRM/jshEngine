@@ -18,24 +18,20 @@ static inline std::chrono::steady_clock::time_point NowFromChrono()
 
 namespace jshTimer {
 
-	std::chrono::steady_clock::time_point initTime;
-	std::chrono::steady_clock::time_point capturedTime;
+	std::chrono::steady_clock::time_point g_InitTime;
 
 	void Initialize()
 	{
-		initTime = NowFromChrono();
-		capturedTime = NowFromChrono();
+		g_InitTime = NowFromChrono();
 	}
 
 	Time Now() {
-		return Time(std::chrono::duration<float>(NowFromChrono() - initTime).count());
+		return Time(std::chrono::duration<float>(NowFromChrono() - g_InitTime).count());
 	}
 
-	Time Capture()
+	Time TimeFrom(jsh::Time& time)
 	{
-		auto lastCapture = capturedTime;
-		capturedTime = NowFromChrono();
-		return Time(std::chrono::duration<float>(NowFromChrono() - lastCapture).count());
+		return Now() - time;
 	}
 
 }

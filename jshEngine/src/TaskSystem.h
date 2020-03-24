@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utils/dataStructures/safe_queue.h"
+#include "common.h"
 #include <memory>
 #include <functional>
 
@@ -42,4 +43,11 @@ namespace jshTask {
 	void Wait();
 
 	uint8 ThreadCount();
+
+#if defined(JSH_ENGINE) && defined(JSH_IMGUI)
+
+	bool ShowImGuiWindow();
+
+#endif
+
 }

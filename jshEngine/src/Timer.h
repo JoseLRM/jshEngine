@@ -32,7 +32,6 @@ namespace jshTimer {
 #endif 
 
 	jsh::Time Now();
-
-	jsh::Time Capture();
+	jsh::Time TimeFrom(jsh::Time& time);
 
 }

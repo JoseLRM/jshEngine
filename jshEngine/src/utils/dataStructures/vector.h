@@ -14,6 +14,7 @@ namespace jsh {
 	private:
 		inline void internal_alloc(size_t newSize) {
 			T* newData = reinterpret_cast<T*>(malloc(newSize * sizeof(T)));
+			if (newData == 0) return;
 			if (newSize < m_Pos) m_Pos = newSize;
 			memcpy(newData, m_Data, m_Pos * sizeof(T));
 			free(m_Data);
@@ -115,6 +116,7 @@ namespace jsh {
 		{
 			size_t moveSize = (m_Pos - i) * sizeof(T);
 			T* aux = reinterpret_cast<T*>(malloc(moveSize));
+			if (aux == 0) return;
 			memcpy(aux, &m_Data[i], moveSize);
 			if (m_Pos == m_Size) reserve(1);
 			memcpy(&m_Data[i + 1], aux, moveSize);
