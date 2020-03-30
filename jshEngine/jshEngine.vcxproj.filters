@@ -69,10 +69,13 @@
     <ClCompile Include="src\graphics\GraphicsObjects.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\3D\Renderer3D.cpp">
+    <ClCompile Include="src\utils\AssetLoader.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\utils\AssetLoader.cpp">
+    <ClCompile Include="src\graphics\Renderer.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\components\CameraComponent.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
@@ -182,7 +185,19 @@
     <ClInclude Include="src\graphics\GraphicsObjects.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\3D\Renderer3D.h">
+    <ClInclude Include="src\graphics\Renderer.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\components\2D\Transform2DComponent.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\components\3D\Transform3DComponent.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\components\3D\ModelComponent.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\components\CameraComponent.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>

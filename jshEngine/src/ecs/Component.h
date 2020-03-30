@@ -42,3 +42,15 @@ namespace jsh {
 }
 #define jshDefineTag(name) struct name : public jsh::Component<name> {}; template class jsh::Component<name>
 #define jshDefineComponent(name) template class jsh::Component<name>
+
+// core components
+namespace jsh {
+
+	struct NameComponent : jsh::Component<NameComponent> {
+		const char* name;
+
+		NameComponent(const char* name) : name(name) {}
+	};
+	jshDefineComponent(NameComponent);
+
+}

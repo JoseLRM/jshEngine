@@ -1,12 +1,14 @@
-#include "Renderer3D.h"
+#include "Renderer.h"
 
-#include "..//..//ecs/Scene.h"
-#include "..//..//components/Components.h"
-#include "..//Graphics.h"
+#include "..//ecs/Scene.h"
+#include "..//components/Components.h"
+#include "Graphics.h"
 
 using namespace jsh;
 
-namespace jshRenderer3D {
+namespace jshRenderer {
+
+	void Draw(jsh::Mesh& mesh, jsh::Transform3DComponent* transform);
 
 	class MeshRendererSystem : public jsh::System {
 	public:
@@ -43,6 +45,7 @@ namespace jshRenderer3D {
 	Buffer cvBuffer;
 	alignas(16) struct {
 		XMMATRIX tm;
+		XMMATRIX vm;
 		XMMATRIX pm;
 	} cvData;
 
@@ -57,6 +60,8 @@ namespace jshRenderer3D {
 		float intensity;
 		vec4 color;
 	} cpData;
+
+	CameraComponent* g_MainCamera = nullptr;
 
 	bool Initialize()
 	{
@@ -86,6 +91,10 @@ namespace jshRenderer3D {
 	{
 		Scene& scene = *pScene;
 
+		g_MainCamera->UpdateMatrices();
+		cvData.vm = g_MainCamera->GetViewMatrix();
+		cvData.pm = g_MainCamera->GetProjectionMatrix();
+
 		System* systems[] = {
 			&meshRendererSystem,
 			&modelRendererSystem,
@@ -96,7 +105,7 @@ namespace jshRenderer3D {
 
 	void Draw(jsh::Mesh& mesh, jsh::Transform3DComponent* transform)
 	{
-		cvData.tm = XMMatrixTranspose(XMMatrixRotationX(transform->rotation.x * 0.0174533f) * XMMatrixRotationY(transform->rotation.y * 0.0174533f) * XMMatrixRotationZ(transform->rotation.z * 0.0174533f)
+		cvData.tm = XMMatrixTranspose(XMMatrixRotationX(ToRadians(transform->rotation.x)) * XMMatrixRotationY(ToRadians(transform->rotation.y)) * XMMatrixRotationZ(ToRadians(transform->rotation.z))
 			* XMMatrixTranslation(transform->position.x, transform->position.y, transform->position.z));
 		jshGraphics::UpdateConstantBuffer(cvBuffer, &cvData);
 
@@ -105,6 +114,12 @@ namespace jshRenderer3D {
 
 		mesh.Bind();
 		jshGraphics::DrawIndexed(mesh.GetIndexCount());
+	}
+
+	void SetCamera(jsh::CameraComponent* camera)
+	{
+		camera->UpdateMatrices();
+		g_MainCamera = camera;
 	}
 
 }

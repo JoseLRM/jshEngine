@@ -4,7 +4,7 @@
 #include "..//utils/dataStructures/memory_pool.h"
 #include "Debug.h"
 #include <map>
-#include "3D/Renderer3D.h"
+#include "Renderer.h"
 
 JSH_GRAPHICS_API g_GraphicsAPI = JSH_GRAPHCS_API_NULL;
 
@@ -26,7 +26,7 @@ namespace jshGraphics {
 		solidShader.ps = jshGraphics::CreatePixelShader(L"SolidPixel.cso");
 		jshGraphics::CreateShader("SolidShader", solidShader);
 
-		jshRenderer3D::Initialize();
+		jshRenderer::Initialize();
 
 		return result;
 	}
