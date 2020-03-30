@@ -1,6 +1,7 @@
 #pragma once
 
-#include "GraphicsDesc.h"
+#include "GraphicsPrimitives.h"
+#include "GraphicsObjects.h"
 
 namespace jshGraphics {
 
@@ -16,6 +17,7 @@ namespace jshGraphics {
 
 #endif
 
+	JSH_GRAPHICS_API GetAPI();
 
 	void SetClearScreenColor(float c = 0.f);
 	void SetClearScreenColor(float r, float g, float b);
@@ -24,26 +26,11 @@ namespace jshGraphics {
 
 }
 
+
+// Abstracted methods
 namespace jshGraphics {
-
-	/////////////////////CREATE///////////////////////////
-	jsh::Buffer CreateBuffer(void* data, uint32 size, uint32 stride, JSH_USAGE usage, JSH_BUFFER_TYPE bufferType);
 	
-	jsh::InputLayout CreateInputLayout(const JSH_INPUT_ELEMENT_DESC* descriptors, uint32 cant, jsh::VertexShader);
-
-	jsh::VertexShader CreateVertexShader(const wchar* path);
-	jsh::VertexShader CreatePixelShader(const wchar* path);
-
-	////////////////////BIND///////////////////////////////
-	
-	void BindVertexBuffer(jsh::Buffer buffer, uint32 slot);
-	void BindIndexBuffer(jsh::Buffer buffer, uint32 slot);
-	void BindConstantBuffer(jsh::Buffer buffer, uint32 slot, JSH_SHADER_TYPE shaderType);
-
-	void BindInputLayout(jsh::InputLayout inputLayout);
-
-	void BindVertexShader(jsh::VertexShader);
-	void BindPixelShader(jsh::PixelShader);
+	void UpdateConstantBuffer(jsh::Buffer buffer, void* data);
 
 	//////////////////DRAW CALLS//////////////////
 	void DrawIndexed(uint32 indicesCount);

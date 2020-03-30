@@ -6,19 +6,19 @@
 namespace jsh {
 
 	struct BaseComponent {
-		ID_t entityID = 0;
+		uint32 entityID = 0;
 
 	private:
-		static ID_t s_IDcount;
+		static uint16 s_IDcount;
 
 	protected:
-		static ID_t GetComponentID(size_t componentSize)
+		static uint16 GetComponentID(size_t componentSize)
 		{
 			return s_IDcount++;
 		}
 
 	public:
-		static ID_t GetComponentsCount()
+		static uint16 GetComponentsCount()
 		{
 			return s_IDcount;
 		}
@@ -30,12 +30,12 @@ namespace jsh {
 
 	template<class T>
 	struct Component : public BaseComponent {
-		const static ID_t ID;
+		const static uint16 ID;
 		const static size_t SIZE;
 	};
 
 	template<class T>
-	const ID_t jsh::Component<T>::ID(BaseComponent::GetComponentID(sizeof(T)));
+	const uint16 jsh::Component<T>::ID(BaseComponent::GetComponentID(sizeof(T)));
 	template<class T>
 	const size_t Component<T>::SIZE(sizeof(T));
 

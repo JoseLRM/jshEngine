@@ -9,15 +9,15 @@ namespace jsh {
 	class memory_pool {
 
 		vector<T> m_Data;
-		vector<ID_t> m_RemovedList;
+		vector<uint32> m_RemovedList;
 		mutable std::mutex m_Mutex;
 
 	public:
 		memory_pool() {}
 
-		ID_t push(const T& t = T()) noexcept
+		uint32 push(const T& t = T()) noexcept
 		{
-			ID_t id;
+			uint32 id;
 			if (m_RemovedList.empty()) {
 				id = m_Data.size();
 				m_Data.push_back(t, 10);
@@ -29,14 +29,14 @@ namespace jsh {
 			return id + 1;
 		}
 
-		void remove(ID_t id) noexcept
+		void remove(uint32 id) noexcept
 		{
 			m_RemovedList.push_back(id-1, 10);
 		}
 
 		inline bool empty() const noexcept { return (m_Data.size() - m_RemovedList.size()) == 0; }
 		inline T& pop() noexcept {
-			ID_t id;
+			uint32 id;
 			while (true) {
 				m_Data.pop_back();
 				id = m_Data.size();
@@ -53,7 +53,7 @@ namespace jsh {
 			return m_Data[id];
 		}
 
-		inline T& operator[](ID_t i) noexcept { return m_Data[i-1]; }
+		inline T& operator[](uint32 i) noexcept { return m_Data[i-1]; }
 
 		inline void lock() const noexcept { m_Mutex.lock(); }
 		inline void unlock() const noexcept { m_Mutex.unlock(); }

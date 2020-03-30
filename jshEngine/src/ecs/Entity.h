@@ -8,7 +8,7 @@ namespace jsh {
 
 	class Scene;
 
-	typedef ID_t Entity;
+	typedef uint32 Entity;
 
 	constexpr Entity INVALID_ENTITY = 0u;
 
@@ -17,7 +17,7 @@ namespace jsh {
 		Entity parent = INVALID_ENTITY;
 		uint32 sonsCount = 0u;
 
-		std::map<ID_t, size_t> m_Indices;
+		std::map<uint16, size_t> m_Indices;
 
 	public:
 		EntityData() {}

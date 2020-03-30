@@ -1,5 +1,5 @@
 #include "Component.h"
 
 namespace jsh {
-	ID_t BaseComponent::s_IDcount = 0;
+	uint16 BaseComponent::s_IDcount = 0;
 }

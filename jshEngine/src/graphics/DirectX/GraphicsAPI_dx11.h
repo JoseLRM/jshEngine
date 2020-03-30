@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..//GraphicsDesc.h"
+#include "..//GraphicsPrimitives.h"
 
 
 namespace jshGraphics_dx11 {
@@ -17,22 +17,27 @@ namespace jshGraphics_dx11 {
 	void SetTopology(JSH_TOPOLOGY);
 
 	//////////////////////////////CREATION//////////////////////////////
-	jsh::Buffer CreateBuffer(void* data, uint32 size, uint32 stride, JSH_USAGE usage, JSH_BUFFER_TYPE bufferType);
-	
+	jsh::Buffer CreateBuffer(void* data, uint32 size, uint32 stride, JSH_USAGE usage, uint32 slot, JSH_BUFFER_TYPE bufferType, JSH_SHADER_TYPE constShaderType = JSH_SHADER_TYPE_VERTEX);
+
 	jsh::InputLayout CreateInputLayout(const JSH_INPUT_ELEMENT_DESC* descriptors, uint32 cant, jsh::VertexShader);
 	
 	jsh::VertexShader CreateVertexShader(const wchar* path);
 	jsh::VertexShader CreatePixelShader(const wchar* path);
 
+	jsh::DepthStencilState CreateDepthStencilState(bool depth, bool stencil);
+
 	/////////////////////////BINDING////////////////////////////////////////
-	void BindVertexBuffer(jsh::Buffer ID, uint32 slot);
-	void BindIndexBuffer(jsh::Buffer ID, uint32 slot);
-	void BindConstantBuffer(jsh::Buffer ID, uint32 slot, JSH_SHADER_TYPE shaderType);
+	void BindVertexBuffer(jsh::Buffer buffer);
+	void BindIndexBuffer(jsh::Buffer buffer);
+	void BindConstantBuffer(jsh::Buffer buffer);
+	void UpdateConstantBuffer(jsh::Buffer buffer, void* data);
 
 	void BindInputLayout(jsh::InputLayout inputLayout);
 
 	void BindVertexShader(jsh::VertexShader);
 	void BindPixelShader(jsh::PixelShader);
+
+	void BindDepthStencilState(jsh::DepthStencilState state);
 
 	//////////////////////////RENDER CALLS////////////////////////////////////
 	void DrawIndexed(uint32 indicesCount);

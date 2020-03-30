@@ -63,6 +63,18 @@
     <ClCompile Include="src\graphics\DirectX\GraphicsAPI_dx11.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\GraphicsPrimitives.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\GraphicsObjects.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\3D\Renderer3D.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\AssetLoader.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common.h">
@@ -155,9 +167,29 @@
     <ClInclude Include="src\utils\dataStructures\memory_pool.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\components\Components.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\AssetLoader.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\Math.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\GraphicsPrimitives.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\GraphicsObjects.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\3D\Renderer3D.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="res\shaders\VertexShader.hlsl" />
-    <FxCompile Include="res\shaders\PixelShader.hlsl" />
+    <FxCompile Include="shaders\QuadPixel.hlsl" />
+    <FxCompile Include="shaders\QuadVertex.hlsl" />
+    <FxCompile Include="shaders\SolidPixel.hlsl" />
+    <FxCompile Include="shaders\SolidVertex.hlsl" />
   </ItemGroup>
 </Project>

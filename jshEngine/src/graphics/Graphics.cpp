@@ -1,7 +1,10 @@
 #include "Graphics.h"
 
 #include "DirectX/GraphicsAPI_dx11.h"
+#include "..//utils/dataStructures/memory_pool.h"
 #include "Debug.h"
+#include <map>
+#include "3D/Renderer3D.h"
 
 JSH_GRAPHICS_API g_GraphicsAPI = JSH_GRAPHCS_API_NULL;
 
@@ -15,7 +18,17 @@ namespace jshGraphics {
 	{
 		g_GraphicsAPI = JSH_GRAPHCS_API_DIRECTX11;
 
-		return jshGraphics_dx11::Initialize();
+		bool result = jshGraphics_dx11::Initialize();
+
+		// default shaders
+		Shader solidShader;
+		solidShader.vs = jshGraphics::CreateVertexShader(L"SolidVertex.cso");
+		solidShader.ps = jshGraphics::CreatePixelShader(L"SolidPixel.cso");
+		jshGraphics::CreateShader("SolidShader", solidShader);
+
+		jshRenderer3D::Initialize();
+
+		return result;
 	}
 
 #ifdef JSH_IMGUI
@@ -33,6 +46,11 @@ namespace jshGraphics {
 	void Prepare()
 	{
 		jshGraphics_dx11::Prepare(g_ClearScreenColor);
+	}
+
+	JSH_GRAPHICS_API GetAPI()
+	{
+		return g_GraphicsAPI;
 	}
 
 	void SetTopology(JSH_TOPOLOGY topology) {
@@ -55,95 +73,9 @@ namespace jshGraphics {
 
 	///////////////GRAPHICS API//////////////////////////////////////
 
-	////////////////////CREATE/////////////////////////
-	jsh::Buffer CreateBuffer(void* data, uint32 size, uint32 stride, JSH_USAGE usage, JSH_BUFFER_TYPE bufferType)
+	void UpdateConstantBuffer(jsh::Buffer buffer, void* data)
 	{
-		switch (g_GraphicsAPI) {
-
-		case JSH_GRAPHCS_API_DIRECTX11:
-			return jshGraphics_dx11::CreateBuffer(data, size, stride, usage, bufferType);
-
-		case JSH_GRAPHCS_API_NULL:
-		default:
-			//TODO: throw exception
-			jshDebug::ShowOkWindow(L"Undefined Graphics API", 3u);
-			return INVALID_BUFFER;
-		}
-	}
-
-	jsh::InputLayout CreateInputLayout(const JSH_INPUT_ELEMENT_DESC* descriptors, uint32 cant, jsh::VertexShader vs)
-	{
-		return jshGraphics_dx11::CreateInputLayout(descriptors, cant, vs);
-	}
-
-	jsh::VertexShader CreateVertexShader(const wchar* path)
-	{
-		return jshGraphics_dx11::CreateVertexShader(path);
-	}
-	jsh::VertexShader CreatePixelShader(const wchar* path)
-	{
-		return jshGraphics_dx11::CreatePixelShader(path);
-	}
-
-	//////////////////////BIND////////////////
-
-	void BindVertexBuffer(jsh::Buffer buffer, uint32 slot)
-	{
-		switch (g_GraphicsAPI)
-		{
-
-		case JSH_GRAPHCS_API_DIRECTX11:
-			jshGraphics_dx11::BindVertexBuffer(buffer, slot);
-			return;
-		case JSH_GRAPHCS_API_NULL:
-		default:
-			//TODO: throw exception
-			jshDebug::ShowOkWindow(L"Undefined Graphics API", 3u);
-			return;
-		}
-	}
-	void BindIndexBuffer(jsh::Buffer buffer, uint32 slot)
-	{
-		switch (g_GraphicsAPI)
-		{
-		case JSH_GRAPHCS_API_DIRECTX11:
-			jshGraphics_dx11::BindIndexBuffer(buffer, slot);
-			return;
-		case JSH_GRAPHCS_API_NULL:
-		default:
-			//TODO: throw exception
-			jshDebug::ShowOkWindow(L"Undefined Graphics API", 3u);
-			return;
-		}
-	}
-	void BindConstantBuffer(jsh::Buffer buffer, uint32 slot, JSH_SHADER_TYPE shaderType)
-	{
-		switch (g_GraphicsAPI)
-		{
-
-		case JSH_GRAPHCS_API_DIRECTX11:
-			jshGraphics_dx11::BindConstantBuffer(buffer, slot, shaderType);
-			return;
-		case JSH_GRAPHCS_API_NULL:
-		default:
-			//TODO: throw exception
-			jshDebug::ShowOkWindow(L"Undefined Graphics API", 3u);
-			return;
-		}
-	}
-
-	void BindInputLayout(jsh::InputLayout inputLayout)
-	{
-		jshGraphics_dx11::BindInputLayout(inputLayout);
-	}
-
-	void BindVertexShader(jsh::VertexShader vs)
-	{
-		jshGraphics_dx11::BindVertexShader(vs);
-	}
-	void BindPixelShader(jsh::PixelShader ps)
-	{
-		jshGraphics_dx11::BindPixelShader(ps);
+		jshGraphics_dx11::UpdateConstantBuffer(buffer, data);
 	}
 
 	//////////////////DRAW CALLS//////////////////

@@ -7,12 +7,15 @@
 #include "..//src/TaskSystem.h"
 #include "..//src/graphics/Window.h"
 #include "..//src/graphics/Graphics.h"
+#include "..//src/graphics/3D/Renderer3D.h"
 #include "..//src/Debug.h"
 #include "..//src/EventSystem.h"
 #include "..//src/Input.h"
 #include "..//src/State.h"
 #include "..//src/ecs/Scene.h"
 #include "..//src/ecs/Component.h"
+
+#include "..//src/utils/AssetLoader.h"
 
 // data structures
 #include "..//src/utils/dataStructures/vector.h"

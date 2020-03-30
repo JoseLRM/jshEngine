@@ -10,7 +10,7 @@ namespace jsh {
 
 	void Scene::Create() noexcept
 	{
-		for (ID_t id = 0; id < BaseComponent::GetComponentsCount(); ++id) {
+		for (uint16 id = 0; id < BaseComponent::GetComponentsCount(); ++id) {
 			m_Components.push_back(jsh::vector<byte>());
 		}
 		CreateEntity(); // allocate invalid Entity :)
@@ -22,7 +22,7 @@ namespace jsh {
 
 	Scene::~Scene()
 	{
-		for (ID_t id = 0; id < BaseComponent::GetComponentsCount(); ++id) {
+		for (uint16 id = 0; id < m_Components.size(); ++id) {
 			m_Components[id].clear();
 		}
 		m_Components.clear();
@@ -249,7 +249,7 @@ namespace jsh {
 
 #pragma region COMPONENTS
 	//--------------------------COMPONENTS--------------------------
-	void Scene::AddComponent(Entity entity, BaseComponent* comp, ID_t componentID, size_t componentSize) noexcept
+	void Scene::AddComponent(Entity entity, BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept
 	{
 		comp->entityID = entity;
 		auto& list = m_Components[componentID];
@@ -269,7 +269,7 @@ namespace jsh {
 		m_EntityData[entity].m_Indices[componentID] = index;
 	}
 
-	void Scene::AddComponents(jsh::vector<Entity>& entities, BaseComponent* comp, ID_t componentID, size_t componentSize) noexcept
+	void Scene::AddComponents(jsh::vector<Entity>& entities, BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept
 	{
 		auto& list = m_Components[componentID];
 		size_t index = list.size();
@@ -296,7 +296,7 @@ namespace jsh {
 		}
 	}
 
-	void Scene::RemoveComponent(Entity entity, ID_t componentID, size_t componentSize) noexcept
+	void Scene::RemoveComponent(Entity entity, uint16 componentID, size_t componentSize) noexcept
 	{
 		EntityData& entityData = m_EntityData[entity];
 		auto it = entityData.m_Indices.find(componentID);
@@ -321,7 +321,7 @@ namespace jsh {
 
 	void Scene::RemoveComponents(EntityData& entityData) noexcept
 	{
-		ID_t componentID;
+		uint16 componentID;
 		size_t componentSize, index;
 		for (auto& it : entityData.m_Indices) {
 			componentID = it.first;
@@ -434,7 +434,7 @@ namespace jsh {
 
 		// for optimization, choose the sortest component list
 		uint32 indexOfBestList = 0;
-		ID_t idOfBestList = request[0];
+		uint16 idOfBestList = request[0];
 		for (uint32 i = 1; i < request.size(); ++i) {
 			if (m_Components[request[i]].size() < m_Components[idOfBestList].size()) {
 				idOfBestList = request[i];
@@ -547,7 +547,7 @@ namespace jsh {
 
 		// for optimization, choose the sortest component list
 		uint32 indexOfBestList = 0;
-		ID_t idOfBestList = request[0];
+		uint16 idOfBestList = request[0];
 		for (uint32 i = 1; i < request.size(); ++i) {
 			if (m_Components[request[i]].size() < m_Components[idOfBestList].size()) {
 				idOfBestList = request[i];

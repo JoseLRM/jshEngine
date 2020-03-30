@@ -16,15 +16,15 @@ namespace jsh {
 	class System {
 		static uint32 s_SystemCount;
 
-		jsh::vector<ID_t> m_RequestedComponents;
-		jsh::vector<ID_t> m_OptionalComponents;
+		jsh::vector<uint16> m_RequestedComponents;
+		jsh::vector<uint16> m_OptionalComponents;
 
 		bool m_IndividualSystem = true;
 		bool m_TreeMode = false;
 		uint8 m_ExecuteType = JSH_ECS_SYSTEM_SAFE;
 
 		std::string m_Name;
-		ID_t m_SystemID;
+		uint16 m_SystemID;
 
 		// performance members
 		jsh::Time m_LastTime = 0.f;
@@ -73,8 +73,8 @@ namespace jsh {
 			return m_ExecuteType;
 		}
 
-		inline jsh::vector<ID_t>& GetRequestedComponents() noexcept { return m_RequestedComponents; }
-		inline jsh::vector<ID_t>& GetOptionalComponents() noexcept { return m_OptionalComponents; }
+		inline jsh::vector<uint16>& GetRequestedComponents() noexcept { return m_RequestedComponents; }
+		inline jsh::vector<uint16>& GetOptionalComponents() noexcept { return m_OptionalComponents; }
 
 		template<typename Component>
 		inline void AddRequestedComponents()

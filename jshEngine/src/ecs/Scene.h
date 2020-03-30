@@ -6,11 +6,14 @@
 #include "..//Timer.h"
 #include <mutex>
 
-#include "..//ImGui/imgui.h"
+#include "..//components/Components.h"
 
 namespace jsh {
 
 	class Scene {
+#ifdef JSH_ENGINE
+	public:
+#endif
 		jsh::vector<Entity> m_Entities;
 		std::vector<EntityData> m_EntityData;
 		jsh::vector<Entity> m_FreeEntityData;
@@ -18,16 +21,16 @@ namespace jsh {
 		static jsh::vector<size_t> s_ComponentsSize;
 		jsh::vector<jsh::vector<byte>> m_Components;
 
-		std::map<ID_t, System*> m_UpdatedSystems;
+		std::map<uint16, System*> m_UpdatedSystems;
 		std::mutex m_UpdatedSystemsMutex;
 
 		// internal methods
 	private:
-		void AddComponent(Entity entity, BaseComponent* comp, ID_t componentID, size_t componentSize) noexcept;
-		void AddComponents(jsh::vector<Entity>& entities, BaseComponent* comp, ID_t componentID, size_t componentSize) noexcept;
+		void AddComponent(Entity entity, BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept;
+		void AddComponents(jsh::vector<Entity>& entities, BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept;
 		
-		void RemoveComponent(Entity entity, ID_t componentID, size_t componentSize) noexcept;
-		inline BaseComponent* GetComponent(const EntityData& entity, ID_t componentID) noexcept
+		void RemoveComponent(Entity entity, uint16 componentID, size_t componentSize) noexcept;
+		inline BaseComponent* GetComponent(const EntityData& entity, uint16 componentID) noexcept
 		{
 			auto it = entity.m_Indices.find(componentID);
 			if (it != entity.m_Indices.end()) return (BaseComponent*)(&(m_Components[componentID][it->second]));
@@ -166,7 +169,15 @@ namespace jsh {
 			bool empty = entityData.sonsCount == 0;
 			auto treeFlags = ImGuiTreeNodeFlags_OpenOnArrow | (empty ? ImGuiTreeNodeFlags_Bullet : ImGuiTreeNodeFlags_AllowItemOverlap);
 
-			bool active = ImGui::TreeNodeEx(("Entity " + std::to_string(entity)).c_str(), treeFlags);
+			bool active;
+			NameComponent* nameComponent = GetComponent<NameComponent>(entity);
+			if (nameComponent) {
+				active = ImGui::TreeNodeEx(nameComponent->name, treeFlags);
+			}
+			else {
+				active = ImGui::TreeNodeEx(("Entity " + std::to_string(entity)).c_str(), treeFlags);
+			}
+
 			if (ImGui::IsItemClicked()) m_SelectedEntity = entity;
 			if (active) {
 				if (!empty) {
@@ -204,13 +215,20 @@ namespace jsh {
 
 			if (m_SelectedEntity != INVALID_ENTITY) {
 
-				ImGui::Text(("Entity " + std::to_string(m_SelectedEntity)).c_str());
+				NameComponent* nameComponent = GetComponent<NameComponent>(m_SelectedEntity);
+				if (nameComponent) {
+					ImGui::Text(nameComponent->name);
+				}
+				else {
+					ImGui::Text(("Entity " + std::to_string(m_SelectedEntity)).c_str());
+				}
+
 
 				EntityData& entityData = m_EntityData[m_SelectedEntity];
 
 				for (auto& it : entityData.m_Indices) {
 
-					ID_t compID = it.first;
+					uint16 compID = it.first;
 					size_t index = it.second;
 
 					BaseComponent* comp = (BaseComponent*)(&(m_Components[compID][index]));

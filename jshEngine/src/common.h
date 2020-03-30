@@ -30,6 +30,7 @@
 
 #endif 
 
+#define BIT(x) 1 << x
 
 // platform macros
 #ifndef JSH_PLATFORM_WINDOWS
@@ -37,22 +38,8 @@
 #endif
 
 // includes
-#include <stdint.h>
-#include <DirectXMath.h>
+#include "utils/Math.h"
 #include <string>
 
-using namespace DirectX;
-
-using byte		= uint8_t;
-using wchar		= wchar_t;
-using ID_t		= uint32_t;
-
-using uint8		= uint8_t;
-using uint16	= uint16_t;
-using uint32	= uint32_t;
-using uint64	= uint64_t;
-
-using int8		= int8_t;
-using int16		= int16_t;
-using int32		= int32_t;
-using int64		= int64_t;
+constexpr const wchar* JSH_FILEPATH_ASSET = L"..//assets/";
+constexpr const wchar* JSH_FILEPATH_RES = L"..//res/";
