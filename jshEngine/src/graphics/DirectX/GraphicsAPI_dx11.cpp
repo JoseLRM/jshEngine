@@ -37,10 +37,24 @@ namespace jshGraphics_dx11 {
 		ID3D11InputLayout* ptr = nullptr;
 	};
 
+	struct Texture {
+		ID3D11Texture2D* texturePtr;
+		ID3D11ShaderResourceView* viewPtr;
+		jsh::Sampler samplerID;
+		JSH_SHADER_TYPE shaderType;
+		uint32 slot;
+	};
+
 	struct DepthStencilState {
 		ID3D11DepthStencilState* statePtr;
 		ID3D11Texture2D* texturePtr;
 		ID3D11DepthStencilView* viewPtr;
+	};
+
+	struct Sampler {
+		ID3D11SamplerState* ptr;
+		uint32 slot;
+		JSH_SHADER_TYPE shaderType;
 	};
 
 	////////////////////ALLOCATION//////////////////////////
@@ -51,8 +65,12 @@ namespace jshGraphics_dx11 {
 	jsh::memory_pool<VertexShader> g_VertexShaders;
 	jsh::memory_pool<PixelShader> g_PixelShaders;
 
+	jsh::memory_pool<Texture> g_Textures;
+
 	jsh::memory_pool<DepthStencilState> g_DepthStencilStates;
 	jsh::DepthStencilState g_CurrentDepthStencilState = jsh::INVALID_DEPTHSTENCIL_STATE;
+
+	jsh::memory_pool<Sampler> g_Samplers;
 
 	ID3D11Device* device = nullptr;
 	ID3D11DeviceContext* context = nullptr;
@@ -110,6 +128,15 @@ namespace jshGraphics_dx11 {
 			jshLogE("Invalid topology");
 			return D3D11_BIND_VERTEX_BUFFER;
 		}
+	}
+
+	constexpr D3D11_FILTER ParseFilter(JSH_FILTER filter)
+	{
+		return (D3D11_FILTER)filter;
+	}
+	constexpr D3D11_TEXTURE_ADDRESS_MODE ParseTextureAddress(JSH_TEXTURE_ADDRESS_MODE addressMode)
+	{
+		return (D3D11_TEXTURE_ADDRESS_MODE)addressMode;
 	}
 
 	constexpr DXGI_FORMAT ParseFormat(JSH_FORMAT format) {
@@ -403,6 +430,64 @@ namespace jshGraphics_dx11 {
 		return ID;
 	}
 
+	jsh::Texture CreateTexture(void* data, uint32 pitch, uint32 width, uint32 height, uint32 slot, JSH_FORMAT format, JSH_SHADER_TYPE shaderType, jsh::Sampler sampler)
+	{
+		jsh::Texture ID = g_Textures.push();
+		Texture& texture = g_Textures[ID];
+
+		D3D11_TEXTURE2D_DESC texDesc;
+		texDesc.ArraySize = 1u;
+		texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		texDesc.CPUAccessFlags = 0u;
+		texDesc.Format = ParseFormat(format);
+		texDesc.Width = width;
+		texDesc.Height = height;
+		texDesc.MipLevels = 1u;
+		texDesc.MiscFlags = 0u;
+		texDesc.SampleDesc.Count = 1u;
+		texDesc.SampleDesc.Quality = 0u;
+		texDesc.Usage = D3D11_USAGE_IMMUTABLE;
+
+		D3D11_SUBRESOURCE_DATA subDesc;
+		subDesc.pSysMem = data;
+		subDesc.SysMemPitch = pitch;
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
+		viewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		viewDesc.Format = ParseFormat(format);
+		viewDesc.Texture2D.MipLevels = 1u;
+		viewDesc.Texture2D.MostDetailedMip = 0u;
+		
+		device->CreateTexture2D(&texDesc, &subDesc, &texture.texturePtr);
+		device->CreateShaderResourceView(texture.texturePtr, &viewDesc, &texture.viewPtr);
+
+		texture.slot = slot;
+		texture.shaderType = shaderType;
+		if (sampler == jsh::INVALID_SAMPLER) sampler = CreateSampler(JSH_FILTER_MIN_MAG_MIP_LINEAR, JSH_TEXTURE_ADDRESS_WRAP, 0, JSH_SHADER_TYPE_PIXEL);
+		texture.samplerID = sampler;
+
+		return ID;
+	}
+
+	jsh::Sampler CreateSampler(JSH_FILTER filter, JSH_TEXTURE_ADDRESS_MODE addressMode, uint32 slot, JSH_SHADER_TYPE shaderType)
+	{
+		jsh::Sampler ID = g_Samplers.push();
+		Sampler& sampler = g_Samplers[ID];
+
+		D3D11_SAMPLER_DESC desc = {};
+		desc.Filter = ParseFilter(filter);
+		desc.AddressU = ParseTextureAddress(addressMode);
+		desc.AddressV = ParseTextureAddress(addressMode);
+		desc.AddressW = ParseTextureAddress(addressMode);
+
+		device->CreateSamplerState(&desc, &sampler.ptr);
+
+		sampler.shaderType = shaderType;
+		sampler.slot = slot;
+
+		return ID;
+	}
+
 	/////////////////////////BINDING////////////////////////////////////////
 
 	void BindVertexBuffer(jsh::Buffer ID)
@@ -482,6 +567,52 @@ namespace jshGraphics_dx11 {
 		DepthStencilState& ds = g_DepthStencilStates[state];
 		context->OMSetDepthStencilState(ds.statePtr, 1u);
 		context->OMSetRenderTargets(1u, &target, ds.viewPtr);
+	}
+
+	void BindTexture(jsh::Texture ID)
+	{
+		Texture& texture = g_Textures[ID];
+
+		switch (texture.shaderType)
+		{
+		case JSH_SHADER_TYPE_VERTEX:
+			context->VSSetShaderResources(texture.slot, 1u, &texture.viewPtr);
+			break;
+		case JSH_SHADER_TYPE_PIXEL:
+			context->PSSetShaderResources(texture.slot, 1u, &texture.viewPtr);
+			break;
+		case JSH_SHADER_TYPE_GEOMETRY:
+			context->GSSetShaderResources(texture.slot, 1u, &texture.viewPtr);
+			break;
+		case JSH_SHADER_TYPE_NULL:
+		default:
+			jshLogE("Invalid shader type");
+			break;
+		}
+
+		BindSampler(texture.samplerID);
+	}
+
+	void BindSampler(jsh::Sampler ID)
+	{
+		Sampler& sampler = g_Samplers[ID];
+
+		switch (sampler.shaderType)
+		{
+		case JSH_SHADER_TYPE_VERTEX:
+			context->VSSetSamplers(sampler.slot, 1u, &sampler.ptr);
+			break;
+		case JSH_SHADER_TYPE_PIXEL:
+			context->PSSetSamplers(sampler.slot, 1u, &sampler.ptr);
+			break;
+		case JSH_SHADER_TYPE_GEOMETRY:
+			context->GSSetSamplers(sampler.slot, 1u, &sampler.ptr);
+			break;
+		case JSH_SHADER_TYPE_NULL:
+		default:
+			jshLogE("Invalid shader type");
+			break;
+		}
 	}
 
 	///////////////////////////RENDER CALLS/////////////////////////

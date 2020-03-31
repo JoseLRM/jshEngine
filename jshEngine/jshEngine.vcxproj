@@ -112,6 +112,7 @@
     <ClCompile Include="src\Timer.cpp" />
     <ClCompile Include="src\graphics\Window.cpp" />
     <ClCompile Include="src\utils\AssetLoader.cpp" />
+    <ClCompile Include="src\utils\stb_lib.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\jshEngine.h" />
@@ -154,15 +155,16 @@
     <ClInclude Include="src\graphics\WinLib.h" />
     <ClInclude Include="src\utils\dataStructures\memory_pool.h" />
     <ClInclude Include="src\utils\Math.h" />
+    <ClInclude Include="src\utils\stb_lib.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shaders\QuadPixel.hlsl">
+    <FxCompile Include="shaders\SimpleTexPixel.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="shaders\QuadVertex.hlsl">
+    <FxCompile Include="shaders\SimpleTexVertex.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>

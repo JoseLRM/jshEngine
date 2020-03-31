@@ -40,8 +40,8 @@ namespace jsh {
 	const size_t Component<T>::SIZE(sizeof(T));
 
 }
-#define jshDefineTag(name) struct name : public jsh::Component<name> {}; template class jsh::Component<name>
-#define jshDefineComponent(name) template class jsh::Component<name>
+#define jshDefineTag(name) struct name : public jsh::Component<name> {}; template struct jsh::Component<name>
+#define jshDefineComponent(name) template struct jsh::Component<name>
 
 // core components
 namespace jsh {

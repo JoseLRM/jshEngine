@@ -26,6 +26,11 @@ namespace jshGraphics {
 		solidShader.ps = jshGraphics::CreatePixelShader(L"SolidPixel.cso");
 		jshGraphics::CreateShader("SolidShader", solidShader);
 
+		Shader simpleTexShader;
+		simpleTexShader.vs = jshGraphics::CreateVertexShader(L"SimpleTexVertex.cso");
+		simpleTexShader.ps = jshGraphics::CreatePixelShader(L"SimpleTexPixel.cso");
+		jshGraphics::CreateShader("SimpleTexShader", simpleTexShader);
+
 		jshRenderer::Initialize();
 
 		return result;

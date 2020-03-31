@@ -3,6 +3,7 @@
 #include "..//ecs/Scene.h"
 #include "..//components/Components.h"
 #include "Graphics.h"
+#include "..//utils/AssetLoader.h"
 
 using namespace jsh;
 
@@ -62,6 +63,7 @@ namespace jshRenderer {
 	} cpData;
 
 	CameraComponent* g_MainCamera = nullptr;
+	jsh::Texture texture;
 
 	bool Initialize()
 	{
@@ -79,6 +81,9 @@ namespace jshRenderer {
 		cpData.att.linear = 0.3f;
 		cpData.att.quadratic = 0.016f;
 		cpBuffer = jshGraphics::CreateBuffer(&cpData, sizeof(cpData), 0, JSH_USAGE_DEFAULT, 0u, JSH_BUFFER_TYPE_CONSTANT, JSH_SHADER_TYPE_PIXEL);
+
+		texture = jshLoader::LoadTexture("res/models/pene.jpg");
+
 		return true;
 	}
 
@@ -113,6 +118,7 @@ namespace jshRenderer {
 		jshGraphics::BindConstantBuffer(cpBuffer);
 
 		mesh.Bind();
+		jshGraphics::BindTexture(texture);
 		jshGraphics::DrawIndexed(mesh.GetIndexCount());
 	}
 

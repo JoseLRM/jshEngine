@@ -1,8 +1,7 @@
 #pragma once
 
-//#define JSH_DEBUG
-#define JSH_PLATFORM_WINDOWS
 #define JSH_DEBUG
+#define JSH_PLATFORM_WINDOWS
 
 // debug macros
 #ifdef JSH_DEBUG

@@ -37,9 +37,12 @@ namespace jsh {
 
 		m_Created = true;
 
-		JSH_MESH_DATA basicFlag = JSH_MESH_DATA_INDICES | JSH_MESH_DATA_POSANDNOR;
-		if (m_DataFlags == basicFlag) CreateSolid();
+		if (m_DataFlags & JSH_MESH_DATA_TEX_COORDS) {
+			CreateSimpleTex();
+			return;
+		}
 
+		CreateSolid();
 	}
 	void jsh::Mesh::Close()
 	{
@@ -61,7 +64,8 @@ namespace jsh {
 		m_pNorData = nor;
 		m_VertexCount = vertices;
 
-		if (pos && nor) m_DataFlags |= JSH_MESH_DATA_POSANDNOR;
+		if (pos) m_DataFlags |= JSH_MESH_DATA_POSITIONS;
+		if (nor) m_DataFlags |= JSH_MESH_DATA_NORMALS;
 	}
 
 	void jsh::Mesh::SetIndices(uint32* data, uint32 indices)
@@ -69,6 +73,12 @@ namespace jsh {
 		m_pIndexData = data;
 		m_IndexCount = indices;
 		if (data) m_DataFlags |= JSH_MESH_DATA_INDICES;
+	}
+
+	void Mesh::SetTextureCoords(float* coords)
+	{
+		m_pTexCoordsData = coords;
+		if (coords) m_DataFlags |= JSH_MESH_DATA_TEX_COORDS;
 	}
 
 	void jsh::Mesh::CreateSolid()
@@ -99,6 +109,46 @@ namespace jsh {
 		InputLayout inputLayout = jshGraphics::CreateInputLayout(desc, 2, shader.vs);
 
 		m_Bindables.reserve(5u);
+		m_Bindables.push_back_nr({ vertexBuffer, JSH_GRAPHICS_PRIMITIVE_VERTEX_BUFFER });
+		m_Bindables.push_back_nr({ indexBuffer, JSH_GRAPHICS_PRIMITIVE_INDEX_BUFFER });
+		m_Bindables.push_back_nr({ shader.vs, JSH_GRAPHICS_PRIMITIVE_VERTEX_SHADER });
+		m_Bindables.push_back_nr({ shader.ps, JSH_GRAPHICS_PRIMITIVE_PIXEL_SHADER });
+		m_Bindables.push_back_nr({ inputLayout, JSH_GRAPHICS_PRIMITIVE_INPUT_LAYOUT });
+
+		delete[] vData;
+	}
+
+	void Mesh::CreateSimpleTex()
+	{
+		float* vData = new float[m_VertexCount * 8u];
+		size_t bufferPtr = 0u;
+		for (uint32 i = 0; i < m_VertexCount; i++) {
+			vData[bufferPtr++] = m_pPosData[i * 3u + 0];
+			vData[bufferPtr++] = m_pPosData[i * 3u + 1];
+			vData[bufferPtr++] = m_pPosData[i * 3u + 2];
+			vData[bufferPtr++] = m_pNorData[i * 3u + 0];
+			vData[bufferPtr++] = m_pNorData[i * 3u + 1];
+			vData[bufferPtr++] = m_pNorData[i * 3u + 2];
+			vData[bufferPtr++] = m_pTexCoordsData[i * 2u + 0];
+			vData[bufferPtr++] = m_pTexCoordsData[i * 2u + 1];
+		}
+
+		Buffer vertexBuffer = jshGraphics::CreateBuffer(vData, m_VertexCount * 8u * sizeof(float), 8 * sizeof(float), JSH_USAGE_IMMUTABLE, 0u, JSH_BUFFER_TYPE_VERTEX);
+		Buffer indexBuffer = jshGraphics::CreateBuffer(m_pIndexData, m_IndexCount * sizeof(uint32), sizeof(uint32), JSH_USAGE_IMMUTABLE, 0u, JSH_BUFFER_TYPE_INDEX);
+		assert(vertexBuffer != INVALID_BUFFER);
+		assert(indexBuffer != INVALID_BUFFER);
+
+		const Shader& shader = jshGraphics::GetShader("SimpleTexShader");
+
+		const JSH_INPUT_ELEMENT_DESC desc[] = {
+				{"Position", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 0u, 0u},
+				{"Normal", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 3 * sizeof(float), 0u},
+				{"TexCoord", 0, JSH_FORMAT_R32G32_FLOAT, 0, true, 6 * sizeof(float), 0u}
+		};
+
+		InputLayout inputLayout = jshGraphics::CreateInputLayout(desc, 3, shader.vs);
+
+		m_Bindables.reserve(6u);
 		m_Bindables.push_back_nr({ vertexBuffer, JSH_GRAPHICS_PRIMITIVE_VERTEX_BUFFER });
 		m_Bindables.push_back_nr({ indexBuffer, JSH_GRAPHICS_PRIMITIVE_INDEX_BUFFER });
 		m_Bindables.push_back_nr({ shader.vs, JSH_GRAPHICS_PRIMITIVE_VERTEX_SHADER });

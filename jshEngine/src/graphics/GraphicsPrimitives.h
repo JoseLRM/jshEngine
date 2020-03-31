@@ -14,12 +14,15 @@ namespace jsh {
 	typedef uint16 Viewport;
 
 	typedef uint16 DepthStencilState;
+	typedef uint16 Sampler;
 
 	constexpr Buffer INVALID_BUFFER = 0u;
 	constexpr InputLayout INVALID_INPUT_LAYOUT = 0u;
+	constexpr Texture INVALID_TEXTURE = 0u;
 	constexpr uint16 INVALID_SHADER = 0u;
 	constexpr Viewport INVALID_VIEWPORT = 0u;
 	constexpr DepthStencilState INVALID_DEPTHSTENCIL_STATE = 0u;
+	constexpr Sampler INVALID_SAMPLER = 0u;
 
 	struct Bindable {
 		uint16 ID = 0u;
@@ -50,7 +53,8 @@ namespace jshGraphics {
 	void BindPixelShader(jsh::PixelShader);
 
 	/////////////////////////TEXTURE////////////////////////
-
+	jsh::Texture CreateTexture(void* data, uint32 pitch, uint32 width, uint32 height, uint32 slot, JSH_FORMAT format, JSH_SHADER_TYPE shaderType, jsh::Sampler sampler);
+	void BindTexture(jsh::Texture texture);
 
 	/////////////////////////VIEWPORT////////////////////////
 
@@ -58,5 +62,9 @@ namespace jshGraphics {
 	/////////////////////////DEPTHSTENCILSTATE////////////////////////
 	jsh::DepthStencilState CreateDepthStencilState(bool depth, bool stencil);
 	void BindDepthStencilState(jsh::DepthStencilState state);
+
+	/////////////////////////SAMPLER////////////////////////
+	jsh::Sampler CreateSampler(JSH_FILTER filter, JSH_TEXTURE_ADDRESS_MODE addressMode, uint32 slot, JSH_SHADER_TYPE shaderType);
+	void BindSampler(jsh::Sampler sampler);
 
 }

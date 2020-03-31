@@ -78,6 +78,9 @@
     <ClCompile Include="src\components\CameraComponent.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils\stb_lib.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common.h">
@@ -200,11 +203,14 @@
     <ClInclude Include="src\components\CameraComponent.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\utils\stb_lib.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shaders\QuadPixel.hlsl" />
-    <FxCompile Include="shaders\QuadVertex.hlsl" />
     <FxCompile Include="shaders\SolidPixel.hlsl" />
     <FxCompile Include="shaders\SolidVertex.hlsl" />
+    <FxCompile Include="shaders\SimpleTexVertex.hlsl" />
+    <FxCompile Include="shaders\SimpleTexPixel.hlsl" />
   </ItemGroup>
 </Project>

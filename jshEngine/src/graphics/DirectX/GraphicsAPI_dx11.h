@@ -21,10 +21,14 @@ namespace jshGraphics_dx11 {
 
 	jsh::InputLayout CreateInputLayout(const JSH_INPUT_ELEMENT_DESC* descriptors, uint32 cant, jsh::VertexShader);
 	
+	jsh::Texture CreateTexture(void* data, uint32 pitch, uint32 width, uint32 height, uint32 slot, JSH_FORMAT format, JSH_SHADER_TYPE shaderType, jsh::Sampler sampler);
+
 	jsh::VertexShader CreateVertexShader(const wchar* path);
 	jsh::VertexShader CreatePixelShader(const wchar* path);
 
 	jsh::DepthStencilState CreateDepthStencilState(bool depth, bool stencil);
+
+	jsh::Sampler CreateSampler(JSH_FILTER filter, JSH_TEXTURE_ADDRESS_MODE addressMode, uint32 slot, JSH_SHADER_TYPE shaderType);
 
 	/////////////////////////BINDING////////////////////////////////////////
 	void BindVertexBuffer(jsh::Buffer buffer);
@@ -34,10 +38,14 @@ namespace jshGraphics_dx11 {
 
 	void BindInputLayout(jsh::InputLayout inputLayout);
 
+	void BindTexture(jsh::Texture texture);
+
 	void BindVertexShader(jsh::VertexShader);
 	void BindPixelShader(jsh::PixelShader);
 
 	void BindDepthStencilState(jsh::DepthStencilState state);
+
+	void BindSampler(jsh::Sampler sampler);
 
 	//////////////////////////RENDER CALLS////////////////////////////////////
 	void DrawIndexed(uint32 indicesCount);

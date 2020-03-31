@@ -35,6 +35,12 @@ namespace jshGraphics {
 		case JSH_GRAPHICS_PRIMITIVE_DEPTHSTENCIL_STATE:
 			BindDepthStencilState(bindable.ID);
 			return;
+		case JSH_GRAPHICS_PRIMITIVE_TEXTURE:
+			BindTexture(bindable.ID);
+			return;
+		case JSH_GRAPHICS_PRIMITIVE_SAMPLER:
+			BindSampler(bindable.ID);
+			return;
 		case JSH_GRAPHICS_PRIMITIVE_INVALID:
 			return;
 		default:
@@ -133,6 +139,16 @@ namespace jshGraphics {
 		jshGraphics_dx11::BindPixelShader(ps);
 	}
 
+	/////////////////////////TEXTURE////////////////////////
+	Texture CreateTexture(void* data, uint32 pitch, uint32 width, uint32 height, uint32 slot, JSH_FORMAT format, JSH_SHADER_TYPE shaderType, jsh::Sampler sampler)
+	{
+		return jshGraphics_dx11::CreateTexture(data, pitch, width, height, slot, format, shaderType, sampler);
+	}
+	void BindTexture(Texture texture)
+	{
+		return jshGraphics_dx11::BindTexture(texture);
+	}
+
 	/////////////////////////DEPTHSTENCILSTATE//////////////////////
 	jsh::DepthStencilState CreateDepthStencilState(bool depth, bool stencil)
 	{
@@ -141,6 +157,16 @@ namespace jshGraphics {
 	void BindDepthStencilState(jsh::DepthStencilState state)
 	{
 		jshGraphics_dx11::BindDepthStencilState(state);
+	}
+
+	/////////////////////////SAMPLER////////////////////////
+	jsh::Sampler CreateSampler(JSH_FILTER filter, JSH_TEXTURE_ADDRESS_MODE addressMode, uint32 slot, JSH_SHADER_TYPE shaderType)
+	{
+		return jshGraphics_dx11::CreateSampler(filter, addressMode, slot, shaderType);
+	}
+	void BindSampler(jsh::Sampler sampler)
+	{
+		jshGraphics_dx11::BindSampler(sampler);
 	}
 
 }

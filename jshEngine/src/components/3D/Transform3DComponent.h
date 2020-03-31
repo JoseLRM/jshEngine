@@ -6,8 +6,8 @@ namespace jsh {
 
 	struct Transform3DComponent : jsh::Component<Transform3DComponent> {
 
-		vec3 position;
 		vec3 size;
+		vec3 position;
 		vec3 rotation;
 
 		Transform3DComponent() : position(), size(1.f, 1.f, 1.f), rotation() {}
@@ -18,8 +18,8 @@ namespace jsh {
 		void ShowInfo() override
 		{
 			ImGui::DragFloat3("Position", &position.x, 1.f);
-			ImGui::DragFloat3("Size", &size.x, 1.f);
 			ImGui::DragFloat3("Rotation", &rotation.x, 1.f);
+			ImGui::DragFloat3("Size", &size.x, 1.f);
 		}
 #endif
 	};
