@@ -31,6 +31,11 @@ namespace jshGraphics {
 		simpleTexShader.ps = jshGraphics::CreatePixelShader(L"SimpleTexPixel.cso");
 		jshGraphics::CreateShader("SimpleTexShader", simpleTexShader);
 
+		Shader skyboxShader;
+		skyboxShader.vs = jshGraphics::CreateVertexShader(L"SkyboxVertex.cso");
+		skyboxShader.ps = jshGraphics::CreatePixelShader(L"SkyboxPixel.cso");
+		jshGraphics::CreateShader("SkyboxShader", skyboxShader);
+
 		jshRenderer::Initialize();
 
 		return result;

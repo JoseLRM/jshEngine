@@ -81,6 +81,9 @@
     <ClCompile Include="src\utils\stb_lib.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\Skybox.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common.h">
@@ -206,11 +209,16 @@
     <ClInclude Include="src\utils\stb_lib.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\graphics\Skybox.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\SolidPixel.hlsl" />
     <FxCompile Include="shaders\SolidVertex.hlsl" />
     <FxCompile Include="shaders\SimpleTexVertex.hlsl" />
     <FxCompile Include="shaders\SimpleTexPixel.hlsl" />
+    <FxCompile Include="shaders\SkyboxVertex.hlsl" />
+    <FxCompile Include="shaders\SkyboxPixel.hlsl" />
   </ItemGroup>
 </Project>

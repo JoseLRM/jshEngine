@@ -5,7 +5,7 @@
 namespace jsh {
 
 	CameraComponent::CameraComponent() : m_ProjectionMatrix(), m_ViewMatrix(), 
-		m_Position(), m_Rotation(),
+		m_Position(), m_Pitch(0.f), m_Yaw(0.f),
 		m_Width(100.f), m_Height(100.f), m_Fov(70.f), m_Near(5.f), m_Far(2000.f) {
 		SetPerspectiveMatrix(m_Fov, m_Near, m_Far);
 	}
@@ -36,8 +36,17 @@ namespace jsh {
 		}
 		else {
 			SetPerspectiveMatrix(m_Fov, m_Near, m_Far);
+
+			XMVECTOR direction = XMVectorSet(0.f, 0.f, 1.f, 0.f);
+
+			if (abs(m_Pitch) >= 90.f) m_Pitch = (m_Pitch > 0.f ? 1.f : -1.f) * 89.9f;
+
+			direction = XMVector3Transform(direction, XMMatrixRotationRollPitchYaw(ToRadians(m_Pitch), ToRadians(m_Yaw), ToRadians(0.f)));
+
+			const auto target = XMVECTOR(m_Position) + direction;
+			m_ViewMatrix = XMMatrixTranspose(XMMatrixLookAtLH(m_Position, target, XMVectorSet(0.f, 1.f, 0.f, 0.f)));
+
 		}
-		m_ViewMatrix = XMMatrixTranspose(XMMatrixTranslation(-m_Position.x, -m_Position.y, -m_Position.z)*XMMatrixRotationX(ToRadians(-m_Rotation.x)) * XMMatrixRotationY(ToRadians(-m_Rotation.y)) * XMMatrixRotationZ(ToRadians(-m_Rotation.z)) );
 	}
 
 }

@@ -15,13 +15,13 @@ namespace jshGraphics {
 		switch (bindable.primitiveType)
 		{
 		case JSH_GRAPHICS_PRIMITIVE_VERTEX_BUFFER:
-			BindVertexBuffer(bindable.ID);
+			BindVertexBuffer(bindable.ID, bindable.param0);
 			return;
 		case JSH_GRAPHICS_PRIMITIVE_INDEX_BUFFER:
 			BindIndexBuffer(bindable.ID);
 			return;
 		case JSH_GRAPHICS_PRIMITIVE_CONSTANT_BUFFER:
-			BindConstantBuffer(bindable.ID);
+			BindConstantBuffer(bindable.ID, bindable.param0, (JSH_SHADER_TYPE) bindable.param1);
 			return;
 		case JSH_GRAPHICS_PRIMITIVE_VERTEX_SHADER:
 			BindVertexShader(bindable.ID);
@@ -32,14 +32,11 @@ namespace jshGraphics {
 		case JSH_GRAPHICS_PRIMITIVE_INPUT_LAYOUT:
 			BindInputLayout(bindable.ID);
 			return;
-		case JSH_GRAPHICS_PRIMITIVE_DEPTHSTENCIL_STATE:
-			BindDepthStencilState(bindable.ID);
+		case JSH_GRAPHICS_PRIMITIVE_FRAME_BUFFER:
+			BindFrameBuffer(bindable.ID);
 			return;
 		case JSH_GRAPHICS_PRIMITIVE_TEXTURE:
-			BindTexture(bindable.ID);
-			return;
-		case JSH_GRAPHICS_PRIMITIVE_SAMPLER:
-			BindSampler(bindable.ID);
+			BindTexture(bindable.ID, bindable.param0, (JSH_SHADER_TYPE) bindable.param1);
 			return;
 		case JSH_GRAPHICS_PRIMITIVE_INVALID:
 			return;
@@ -51,12 +48,12 @@ namespace jshGraphics {
 	}
 
 	/////////////////////////BUFFER//////////////////////
-	jsh::Buffer CreateBuffer(void* data, uint32 size, uint32 stride, JSH_USAGE usage, uint32 slot, JSH_BUFFER_TYPE bufferType, JSH_SHADER_TYPE constShaderType)
+	jsh::Buffer CreateBuffer(void* data, uint32 size, uint32 stride, JSH_USAGE usage, JSH_BUFFER_TYPE bufferType)
 	{
 		switch (jshGraphics::GetAPI()) {
 
 		case JSH_GRAPHCS_API_DIRECTX11:
-			return jshGraphics_dx11::CreateBuffer(data, size, stride, usage, slot, bufferType, constShaderType);
+			return jshGraphics_dx11::CreateBuffer(data, size, stride, usage, bufferType);
 
 		case JSH_GRAPHCS_API_NULL:
 		default:
@@ -66,13 +63,13 @@ namespace jshGraphics {
 		}
 	}
 
-	void BindVertexBuffer(jsh::Buffer buffer)
+	void BindVertexBuffer(jsh::Buffer buffer, uint32 slot)
 	{
 		switch (jshGraphics::GetAPI())
 		{
 
 		case JSH_GRAPHCS_API_DIRECTX11:
-			jshGraphics_dx11::BindVertexBuffer(buffer);
+			jshGraphics_dx11::BindVertexBuffer(buffer, slot);
 			return;
 		case JSH_GRAPHCS_API_NULL:
 		default:
@@ -95,13 +92,13 @@ namespace jshGraphics {
 			return;
 		}
 	}
-	void BindConstantBuffer(jsh::Buffer buffer)
+	void BindConstantBuffer(jsh::Buffer buffer, uint32 slot, JSH_SHADER_TYPE shaderType)
 	{
 		switch (jshGraphics::GetAPI())
 		{
 
 		case JSH_GRAPHCS_API_DIRECTX11:
-			jshGraphics_dx11::BindConstantBuffer(buffer);
+			jshGraphics_dx11::BindConstantBuffer(buffer, slot, shaderType);
 			return;
 		case JSH_GRAPHCS_API_NULL:
 		default:
@@ -140,33 +137,35 @@ namespace jshGraphics {
 	}
 
 	/////////////////////////TEXTURE////////////////////////
-	Texture CreateTexture(void* data, uint32 pitch, uint32 width, uint32 height, uint32 slot, JSH_FORMAT format, JSH_SHADER_TYPE shaderType, jsh::Sampler sampler)
+	Texture CreateTexture(void* data, uint32 pitch, uint32 width, uint32 height, JSH_FORMAT format)
 	{
-		return jshGraphics_dx11::CreateTexture(data, pitch, width, height, slot, format, shaderType, sampler);
+		return jshGraphics_dx11::CreateTexture(data, pitch, width, height, format);
 	}
-	void BindTexture(Texture texture)
+	void BindTexture(Texture texture, uint32 slot, JSH_SHADER_TYPE shaderType)
 	{
-		return jshGraphics_dx11::BindTexture(texture);
+		return jshGraphics_dx11::BindTexture(texture, slot, shaderType);
 	}
-
-	/////////////////////////DEPTHSTENCILSTATE//////////////////////
-	jsh::DepthStencilState CreateDepthStencilState(bool depth, bool stencil)
+	void SetSamplerState(jsh::Texture texture, JSH_FILTER filter, JSH_TEXTURE_ADDRESS_MODE addressMode)
 	{
-		return jshGraphics_dx11::CreateDepthStencilState(depth, stencil);
-	}
-	void BindDepthStencilState(jsh::DepthStencilState state)
-	{
-		jshGraphics_dx11::BindDepthStencilState(state);
+		jshGraphics_dx11::SetSamplerState(texture, filter, addressMode);
 	}
 
-	/////////////////////////SAMPLER////////////////////////
-	jsh::Sampler CreateSampler(JSH_FILTER filter, JSH_TEXTURE_ADDRESS_MODE addressMode, uint32 slot, JSH_SHADER_TYPE shaderType)
+	/////////////////////////FRAME BUFFER//////////////////////
+	jsh::FrameBuffer CreateFrameBuffer(uint32 width, uint32 height)
 	{
-		return jshGraphics_dx11::CreateSampler(filter, addressMode, slot, shaderType);
+		return jshGraphics_dx11::CreateFrameBuffer(width, height);
 	}
-	void BindSampler(jsh::Sampler sampler)
+	void BindFrameBuffer(jsh::FrameBuffer fb)
 	{
-		jshGraphics_dx11::BindSampler(sampler);
+		jshGraphics_dx11::BindFrameBuffer(fb);
+	}
+	void SetDepthState(bool enable, jsh::FrameBuffer fb)
+	{
+		jshGraphics_dx11::SetDepthState(enable, fb);
+	}
+	void SetStencilState(bool enable, jsh::FrameBuffer fb)
+	{
+		jshGraphics_dx11::SetStencilState(enable, fb);
 	}
 
 }

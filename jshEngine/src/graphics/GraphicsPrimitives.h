@@ -13,19 +13,19 @@ namespace jsh {
 
 	typedef uint16 Viewport;
 
-	typedef uint16 DepthStencilState;
-	typedef uint16 Sampler;
+	typedef uint16 FrameBuffer;
 
 	constexpr Buffer INVALID_BUFFER = 0u;
 	constexpr InputLayout INVALID_INPUT_LAYOUT = 0u;
 	constexpr Texture INVALID_TEXTURE = 0u;
 	constexpr uint16 INVALID_SHADER = 0u;
 	constexpr Viewport INVALID_VIEWPORT = 0u;
-	constexpr DepthStencilState INVALID_DEPTHSTENCIL_STATE = 0u;
-	constexpr Sampler INVALID_SAMPLER = 0u;
+	constexpr FrameBuffer INVALID_FRAME_BUFFER = 0u;
 
 	struct Bindable {
 		uint16 ID = 0u;
+		uint32 param0 = 0u;
+		uint8 param1 = 0u;
 		JSH_GRAPHICS_PRIMITIVE primitiveType = JSH_GRAPHICS_PRIMITIVE_INVALID;
 	};
 
@@ -36,10 +36,10 @@ namespace jshGraphics {
 	void Bind(const jsh::Bindable& bindable);
 
 	/////////////////////////BUFFER//////////////////////
-	jsh::Buffer CreateBuffer(void* data, uint32 size, uint32 stride, JSH_USAGE usage, uint32 slot, JSH_BUFFER_TYPE bufferType, JSH_SHADER_TYPE constShaderType = JSH_SHADER_TYPE_VERTEX);
-	void BindVertexBuffer(jsh::Buffer buffer);
+	jsh::Buffer CreateBuffer(void* data, uint32 size, uint32 stride, JSH_USAGE usage, JSH_BUFFER_TYPE bufferType);
+	void BindVertexBuffer(jsh::Buffer buffer, uint32 slot);
 	void BindIndexBuffer(jsh::Buffer buffer);
-	void BindConstantBuffer(jsh::Buffer buffer);
+	void BindConstantBuffer(jsh::Buffer buffer, uint32 slot, JSH_SHADER_TYPE constShaderType);
 
 
 	/////////////////////////INPUTLAYOUT////////////////////////
@@ -53,18 +53,19 @@ namespace jshGraphics {
 	void BindPixelShader(jsh::PixelShader);
 
 	/////////////////////////TEXTURE////////////////////////
-	jsh::Texture CreateTexture(void* data, uint32 pitch, uint32 width, uint32 height, uint32 slot, JSH_FORMAT format, JSH_SHADER_TYPE shaderType, jsh::Sampler sampler);
-	void BindTexture(jsh::Texture texture);
+	jsh::Texture CreateTexture(void* data, uint32 pitch, uint32 width, uint32 height, JSH_FORMAT format);
+	void BindTexture(jsh::Texture texture, uint32 slot, JSH_SHADER_TYPE shaderType);
+
+	void SetSamplerState(jsh::Texture texture, JSH_FILTER filter, JSH_TEXTURE_ADDRESS_MODE addressMode);
 
 	/////////////////////////VIEWPORT////////////////////////
 
 
-	/////////////////////////DEPTHSTENCILSTATE////////////////////////
-	jsh::DepthStencilState CreateDepthStencilState(bool depth, bool stencil);
-	void BindDepthStencilState(jsh::DepthStencilState state);
+	/////////////////////////FRAME BUFFER////////////////////////
+	jsh::FrameBuffer CreateFrameBuffer(uint32 width, uint32 height);
+	void BindFrameBuffer(jsh::FrameBuffer fb);
 
-	/////////////////////////SAMPLER////////////////////////
-	jsh::Sampler CreateSampler(JSH_FILTER filter, JSH_TEXTURE_ADDRESS_MODE addressMode, uint32 slot, JSH_SHADER_TYPE shaderType);
-	void BindSampler(jsh::Sampler sampler);
+	void SetDepthState(bool enable, jsh::FrameBuffer fb = jsh::INVALID_FRAME_BUFFER);
+	void SetStencilState(bool enable, jsh::FrameBuffer fb = jsh::INVALID_FRAME_BUFFER);
 
 }

@@ -18,5 +18,5 @@ float4 main(float3 normal : FragNormal, float3 fragPos : FragPosition) : SV_TARG
 	diffuse = intensity * diffuse * (1.f / (quadraticAtt * distance * distance + linearAtt * distance + constantAtt));
 	diffuse = max(0.2f, diffuse);
 
-	return diffuse * float4(0.0f, 1.0f, 0.0f, 1.0f);
+	return diffuse * float4(1.0f, 1.0f, 1.0f, 1.0f);
 }

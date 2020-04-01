@@ -5,15 +5,17 @@
 #include "..//Debug.h"
 #include "..//graphics/Graphics.h"
 #include "AssetLoader.h"
+#include <sstream>
 
 #include "stb_lib.h"
 
 namespace jshLoader
 {
 
-	jsh::Mesh* LoadMesh(const aiMesh* aimesh, aiMaterial** const materials)
+	jsh::Mesh LoadMesh(const aiMesh* aimesh, aiMaterial** const materials, const std::string& name)
 	{
-		jsh::Mesh* mesh = new jsh::Mesh();
+		jsh::Mesh mesh;
+		mesh.rawData = jshGraphics::CreateRawData(name.c_str());
 
 		// vertex buffer
 		aiVector3D* vertices = aimesh->mVertices;
@@ -50,17 +52,17 @@ namespace jshLoader
 		}
 
 		// mesh creation
-		if (textureCoords) mesh->SetTextureCoords(textureCoords);
-		mesh->SetIndices(iData, indexCount);
-		mesh->SetPositionsAndNormals((float*)vertices, (float*)normals, aimesh->mNumVertices);
-		mesh->Create();
+		if (textureCoords) mesh.rawData->SetTextureCoords(textureCoords);
+		mesh.rawData->SetIndices(iData, indexCount);
+		mesh.rawData->SetPositionsAndNormals((float*)vertices, (float*)normals, aimesh->mNumVertices);
+		mesh.rawData->Create();
 
 		if (textureCoords) delete[] textureCoords;
 
 		return mesh;
 	}
 
-	jsh::Model* LoadModel(const char* path)
+	jsh::Model* LoadModel(const char* path, const char* name)
 	{
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
@@ -71,7 +73,7 @@ namespace jshLoader
 		}
 
 		uint32 numOfMeshes = scene->mNumMeshes;
-		jsh::Model* model = new jsh::Model();
+		jsh::Model* model = jshGraphics::CreateModel(name);
 		model->meshes.reserve(numOfMeshes);
 
 		for (uint32 i = 0; i < numOfMeshes; ++i) {
@@ -81,21 +83,25 @@ namespace jshLoader
 				jshLogE("Invalid mesh, %s[%u]", path, i);
 				continue;
 			}
-
-			model->meshes.push_back_nr(LoadMesh(mesh, scene->mMaterials));
+			std::stringstream ssName;
+			ssName << name;
+			ssName << '[';
+			ssName << i;
+			ssName << ']';
+			model->meshes.push_back_nr(LoadMesh(mesh, scene->mMaterials, ssName.str()));
 		}
 
 		return model;
 	}
 
-	jsh::Texture LoadTexture(const char* path, jsh::Sampler sampler)
+	jsh::Texture LoadTexture(const char* path)
 	{
 		int width, height, bits;
 		byte* data = stbi_load(path, &width, &height, &bits, 4);
 
 		uint32 pitch = width * 4u;
 
-		return jshGraphics::CreateTexture(data, pitch, width, height, 0u, JSH_FORMAT_R8G8B8A8_UNORM, JSH_SHADER_TYPE_PIXEL, sampler);
+		return jshGraphics::CreateTexture(data, pitch, width, height, JSH_FORMAT_R8G8B8A8_UNORM);
 	}
 
 }

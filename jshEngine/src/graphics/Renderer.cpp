@@ -4,6 +4,7 @@
 #include "..//components/Components.h"
 #include "Graphics.h"
 #include "..//utils/AssetLoader.h"
+#include "..//Input.h"
 
 using namespace jsh;
 
@@ -21,7 +22,7 @@ namespace jshRenderer {
 		{
 			Transform3DComponent* transform = (Transform3DComponent*) components[0];
 			MeshComponent* mesh = (MeshComponent*) components[1];
-			Draw(*mesh->mesh, transform);
+			Draw(mesh->mesh, transform);
 		}
 	};
 	MeshRendererSystem meshRendererSystem;
@@ -37,7 +38,7 @@ namespace jshRenderer {
 			ModelComponent* modelComp = (ModelComponent*)components[1];
 			Model& model = *modelComp->model;
 			for (uint32 i = 0; i < model.meshes.size(); ++i) {
-				Draw(*model.meshes[i], transform);
+				Draw(model.meshes[i], transform);
 			}
 		}
 	};
@@ -63,12 +64,13 @@ namespace jshRenderer {
 	} cpData;
 
 	CameraComponent* g_MainCamera = nullptr;
-	jsh::Texture texture;
+	jsh::FrameBuffer fb;
+	jsh::Skybox g_Skybox;
 
 	bool Initialize()
 	{
 		cvData.pm = XMMatrixTranspose(XMMatrixPerspectiveFovLH(70, 1080.f / 720.f, 5.f, 2000.f));
-		cvBuffer = jshGraphics::CreateBuffer(&cvData, sizeof(cvData), 0, JSH_USAGE_DEFAULT, 0u, JSH_BUFFER_TYPE_CONSTANT, JSH_SHADER_TYPE_VERTEX);
+		cvBuffer = jshGraphics::CreateBuffer(&cvData, sizeof(cvData), 0, JSH_USAGE_DEFAULT, JSH_BUFFER_TYPE_CONSTANT);
 
 		cpData.color.x = 1.f;
 		cpData.color.y = 1.f;
@@ -80,9 +82,11 @@ namespace jshRenderer {
 		cpData.att.constant = 1.f;
 		cpData.att.linear = 0.3f;
 		cpData.att.quadratic = 0.016f;
-		cpBuffer = jshGraphics::CreateBuffer(&cpData, sizeof(cpData), 0, JSH_USAGE_DEFAULT, 0u, JSH_BUFFER_TYPE_CONSTANT, JSH_SHADER_TYPE_PIXEL);
+		cpBuffer = jshGraphics::CreateBuffer(&cpData, sizeof(cpData), 0, JSH_USAGE_DEFAULT, JSH_BUFFER_TYPE_CONSTANT);
 
-		texture = jshLoader::LoadTexture("res/models/pene.jpg");
+		fb = jshGraphics::CreateFrameBuffer(1080, 720);
+
+		Skybox::Initialize();
 
 		return true;
 	}
@@ -96,6 +100,10 @@ namespace jshRenderer {
 	{
 		Scene& scene = *pScene;
 
+		jshGraphics::SetDepthState(false);
+		g_Skybox.Render(g_MainCamera);
+		jshGraphics::SetDepthState(true);
+
 		g_MainCamera->UpdateMatrices();
 		cvData.vm = g_MainCamera->GetViewMatrix();
 		cvData.pm = g_MainCamera->GetProjectionMatrix();
@@ -105,7 +113,7 @@ namespace jshRenderer {
 			&modelRendererSystem,
 		};
 		pScene->UpdateSystems(systems, 2, 0.f);
-
+		jshGraphics::BindFrameBuffer(0);
 	}
 
 	void Draw(jsh::Mesh& mesh, jsh::Transform3DComponent* transform)
@@ -114,18 +122,22 @@ namespace jshRenderer {
 			* XMMatrixTranslation(transform->position.x, transform->position.y, transform->position.z));
 		jshGraphics::UpdateConstantBuffer(cvBuffer, &cvData);
 
-		jshGraphics::BindConstantBuffer(cvBuffer);
-		jshGraphics::BindConstantBuffer(cpBuffer);
+		jshGraphics::BindConstantBuffer(cvBuffer,0u, JSH_SHADER_TYPE_VERTEX);
+		jshGraphics::BindConstantBuffer(cpBuffer,0u, JSH_SHADER_TYPE_PIXEL);
 
 		mesh.Bind();
-		jshGraphics::BindTexture(texture);
-		jshGraphics::DrawIndexed(mesh.GetIndexCount());
+		jshGraphics::DrawIndexed(mesh.rawData->GetIndexCount());
 	}
 
 	void SetCamera(jsh::CameraComponent* camera)
 	{
 		camera->UpdateMatrices();
 		g_MainCamera = camera;
+	}
+
+	void SetSkybox(const Skybox& skybox)
+	{
+		g_Skybox = skybox;
 	}
 
 }

@@ -10,7 +10,8 @@ namespace jsh {
 		XMMATRIX m_ViewMatrix;
 
 		vec3 m_Position;
-		vec3 m_Rotation;
+		float m_Pitch;
+		float m_Yaw;
 
 		bool m_IsOrthographic = false;
 
@@ -45,7 +46,8 @@ namespace jsh {
 		void ShowInfo() override
 		{
 			ImGui::DragFloat3("Position", &m_Position.x, 1.f);
-			ImGui::DragFloat3("Rotation", &m_Rotation.x, 1.f);
+			ImGui::DragFloat("Pitch", &m_Pitch, 0.25f);
+			ImGui::DragFloat("Yaw", &m_Yaw, 0.75f);
 			if (m_IsOrthographic) {
 				ImGui::DragFloat("Width", &m_Width, 1.f, 0.01f, FLT_MAX);
 				ImGui::DragFloat("Height", &m_Height, 1.f, 0.01f, FLT_MAX);

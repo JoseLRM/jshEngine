@@ -15,10 +15,10 @@ namespace jsh {
 	jshDefineComponent(ModelComponent);
 	struct MeshComponent : public Component<MeshComponent> {
 
-		Mesh* mesh;
+		Mesh mesh;
 
 		MeshComponent() : mesh() {}
-		MeshComponent(Mesh* model) : mesh(model) {}
+		MeshComponent(const Mesh& mesh) : mesh(mesh) {}
 	};
 	jshDefineComponent(MeshComponent);
 

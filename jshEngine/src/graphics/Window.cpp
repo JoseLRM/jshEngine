@@ -97,10 +97,20 @@ namespace jshWindow {
 		RegisterClassW(&windowClass);
 
 		// create class
+		DWORD style = WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+
+		RECT rect;
+		rect.left = screenX;
+		rect.right = screenX + screenW;
+		rect.top = screenY;
+		rect.bottom = screenY + screenH;
+
+		AdjustWindowRect(&rect, style, false);
+
 	 	windowHandle = CreateWindowExW(
 			NULL, L"jshWindow", L"jshWindow", 
-			WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, 
-			screenX, screenY, screenW, screenH, NULL, NULL, NULL, NULL
+			style,
+			screenX, screenY, rect.right - rect.left, rect.bottom - rect.top, NULL, NULL, NULL, NULL
 		);
 		if (windowHandle == NULL) return false;
 		// show window
