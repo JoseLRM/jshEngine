@@ -47,6 +47,16 @@ namespace jshDebug {
 			MessageBox(NULL, description, L"Error!!", MB_ICONERROR | MB_OK);
 	}
 
+	void ShowOkWindow(const wchar* const title, const wchar* const description, uint8 level)
+	{
+		if (level == 0)
+			MessageBox(NULL, description, title, MB_ICONINFORMATION | MB_OK);
+		else if (level == 1)
+			MessageBox(NULL, description, title, MB_ICONWARNING | MB_OK);
+		else
+			MessageBox(NULL, description, title, MB_ICONERROR | MB_OK);
+	}
+
 #ifdef JSH_IMGUI
 	bool g_ShowTaskSystem = false;
 	bool g_ShowState = false;

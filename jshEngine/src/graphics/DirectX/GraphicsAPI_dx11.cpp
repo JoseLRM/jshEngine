@@ -4,7 +4,8 @@
 #include "..//Window.h"
 #include "DirectX11Lib.h"
 
-#include "..//..//utils/dataStructures/memory_pool.h"
+#include "..//..//utils/dataStructures/safe_queue.h"
+#include "..//..//utils/dataStructures/vector.h"
 #include "..//..//Debug.h"
 
 #include "..//..//ImGui/imgui.h"
@@ -15,63 +16,84 @@ namespace jshGraphics_dx11 {
 
 	//////////////////GRAPHICS PRIMITIVES////////////////////
 
-	struct Buffer {
-		ID3D11Buffer* ptr = nullptr;
-		void* dataPtr;
+	struct Buffer_dx11 {
+		ComPtr<ID3D11Buffer> ptr;
 		uint32 structureByteStride;
 	};
 
-	struct VertexShader {
-		ID3D11VertexShader* ptr = nullptr;
-		ID3DBlob* blob;
+	struct InputLayout_dx11 {
+		ComPtr<ID3D11InputLayout> ptr;
 	};
 
-	struct PixelShader {
-		ID3D11PixelShader* ptr = nullptr;
+	struct VertexShader_dx11 {
+		ComPtr<ID3D11VertexShader> ptr;
+		ComPtr<ID3DBlob> blob;
 	};
 
-	struct InputLayout {
-		jsh::vector<D3D11_INPUT_ELEMENT_DESC> inputElements;
-		ID3D11InputLayout* ptr = nullptr;
+	struct PixelShader_dx11 {
+		ComPtr<ID3D11PixelShader> ptr;
 	};
 
-	struct Texture {
-		ID3D11Texture2D* texturePtr;
-		ID3D11ShaderResourceView* viewPtr;
-		ID3D11SamplerState* samplerStatePtr;
+	struct Texture_dx11 {
+		ComPtr<ID3D11Texture2D> texturePtr;
+		ComPtr<ID3D11ShaderResourceView> shaderSrcView;
+		ComPtr<ID3D11DepthStencilView> depthStencilView;
 	};
 
-	struct FrameBuffer {
-		// render target
-		ID3D11RenderTargetView* targetPtr;
-		ID3D11Texture2D* targetTexturePtr;
-		// depthstencil state
-		uint8 state; // 0 -> all disable, 1 -> depth, 2 -> stencil, 3 -> all
-		ID3D11DepthStencilState* dsStatePtr;
-		ID3D11Texture2D* dsTexturePtr;
-		ID3D11DepthStencilView* dsViewPtr;
+	typedef D3D11_VIEWPORT Viewport_dx11;
+
+	struct SamplerState_dx11 {
+		ComPtr<ID3D11SamplerState> ptr;
 	};
+
+	struct BlendState_dx11 {
+		ComPtr<ID3D11BlendState> ptr;
+	};
+
+	struct DepthStencilState_dx11 {
+		ComPtr<ID3D11DepthStencilState> statePtr;
+	};
+
+	struct RasterizerState_dx11 {
+		ComPtr<ID3D11RasterizerState> ptr;
+	};
+
+	struct RenderTargetView_dx11 {
+		ComPtr<ID3D11RenderTargetView> ptr;
+		ComPtr<ID3D11Texture2D> resourcePtr;
+	};
+
+#define jshDefineToInternal(jshFormat, dx11Format) inline dx11Format* ToInternal(const jshFormat& primitive) \
+	{ return (dx11Format*) primitive.internalAllocation.get(); }
+
+	jshDefineToInternal(jsh::Buffer, Buffer_dx11)
+	jshDefineToInternal(jsh::InputLayout, InputLayout_dx11)
+	jshDefineToInternal(jsh::Texture, Texture_dx11)
+	jshDefineToInternal(jsh::VertexShader, VertexShader_dx11)
+	jshDefineToInternal(jsh::PixelShader, PixelShader_dx11)
+	jshDefineToInternal(jsh::Viewport, Viewport_dx11)
+	jshDefineToInternal(jsh::SamplerState, SamplerState_dx11)
+	jshDefineToInternal(jsh::BlendState, BlendState_dx11)
+	jshDefineToInternal(jsh::DepthStencilState, DepthStencilState_dx11)
+	jshDefineToInternal(jsh::RasterizerState, RasterizerState_dx11)
+	jshDefineToInternal(jsh::RenderTargetView, RenderTargetView_dx11)
 
 	////////////////////ALLOCATION//////////////////////////
 
-	jsh::memory_pool<Buffer> g_Buffers;
-	jsh::memory_pool<InputLayout> g_InputLayouts;
+	ComPtr<ID3D11Device> g_Device = nullptr;
+	ComPtr<ID3D11DeviceContext> g_ImmediateContext = nullptr;
+	ComPtr<IDXGISwapChain> g_SwapChain = nullptr;
 
-	jsh::memory_pool<VertexShader> g_VertexShaders;
-	jsh::memory_pool<PixelShader> g_PixelShaders;
+	// deferred rendering
+	ComPtr<ID3D11DeviceContext> g_DeferredContext[JSH_GFX_COMMANDLISTS_COUNT];
+	ComPtr<ID3D11CommandList> g_CommandLists[JSH_GFX_COMMANDLISTS_COUNT];
 
-	jsh::memory_pool<Texture> g_Textures;
-
-	jsh::memory_pool<FrameBuffer> g_FrameBuffers;
-
-	ID3D11Device* device = nullptr;
-	ID3D11DeviceContext* context = nullptr;
-	IDXGISwapChain* swapChain = nullptr;
-	jsh::FrameBuffer g_MainFrameBuffer = jsh::INVALID_FRAME_BUFFER;
+	jsh::safe_queue<jsh::CommandList, JSH_GFX_COMMANDLISTS_COUNT> g_ActiveCommandLists;
+	jsh::safe_queue<jsh::CommandList, JSH_GFX_COMMANDLISTS_COUNT> g_FreeCommandLists;
 
 	///////////////////CONVERSIONS////////////////////
 
-	constexpr D3D11_USAGE ParseUsage(JSH_USAGE usage)
+	constexpr D3D11_USAGE ParseUsage(const JSH_USAGE usage)
 	{
 		switch (usage) {
 		case JSH_USAGE_DEFAULT:
@@ -87,7 +109,7 @@ namespace jshGraphics_dx11 {
 		}
 	}
 
-	constexpr D3D11_PRIMITIVE_TOPOLOGY ParseTopology(JSH_TOPOLOGY topology)
+	constexpr D3D11_PRIMITIVE_TOPOLOGY ParseTopology(const JSH_TOPOLOGY topology)
 	{
 		switch (topology) {
 		case JSH_TOPOLOGY_LINES:
@@ -106,7 +128,7 @@ namespace jshGraphics_dx11 {
 		}
 	}
 
-	constexpr D3D11_BIND_FLAG ParseBindFlag(JSH_BUFFER_TYPE bufferType)
+	constexpr D3D11_BIND_FLAG ParseBindFlag(const JSH_BUFFER_TYPE bufferType)
 	{
 		switch (bufferType) {
 		case JSH_BUFFER_TYPE_VERTEX:
@@ -122,20 +144,20 @@ namespace jshGraphics_dx11 {
 		}
 	}
 
-	constexpr D3D11_FILTER ParseFilter(JSH_FILTER filter)
+	constexpr D3D11_FILTER ParseFilter(const JSH_FILTER filter)
 	{
 		return (D3D11_FILTER)filter;
 	}
-	constexpr D3D11_TEXTURE_ADDRESS_MODE ParseTextureAddress(JSH_TEXTURE_ADDRESS_MODE addressMode)
+	constexpr D3D11_TEXTURE_ADDRESS_MODE ParseTextureAddress(const JSH_TEXTURE_ADDRESS_MODE addressMode)
 	{
 		return (D3D11_TEXTURE_ADDRESS_MODE)addressMode;
 	}
 
-	constexpr DXGI_FORMAT ParseFormat(JSH_FORMAT format) {
+	constexpr DXGI_FORMAT ParseFormat(const JSH_FORMAT format) {
 		return (DXGI_FORMAT) format;
 	}
 
-	D3D11_INPUT_ELEMENT_DESC ParseInputElementDesc(JSH_INPUT_ELEMENT_DESC ied) 
+	D3D11_INPUT_ELEMENT_DESC ParseInputElementDesc(const JSH_INPUT_ELEMENT_DESC& ied) 
 	{
 		D3D11_INPUT_ELEMENT_DESC dxIed;
 		dxIed.AlignedByteOffset = ied.alignedByteOffset;
@@ -148,11 +170,46 @@ namespace jshGraphics_dx11 {
 		return dxIed;
 	}
 
+	constexpr D3D11_COMPARISON_FUNC ParseComparisonFunc(const JSH_COMPARISON_FUNC cf)
+	{
+		return (D3D11_COMPARISON_FUNC)cf;
+	}
+
+	constexpr D3D11_BLEND_OP ParseBlendOp(const JSH_BLEND_OP bo)
+	{
+		return (D3D11_BLEND_OP)bo;
+	}
+	constexpr D3D11_BLEND ParseBlend(const JSH_BLEND b)
+	{
+		return (D3D11_BLEND)b;
+	}
+	constexpr D3D11_STENCIL_OP ParseStencilOp(const JSH_STENCIL_OP so)
+	{
+		return (D3D11_STENCIL_OP)so;
+	}
+	constexpr D3D11_DEPTH_WRITE_MASK ParseDepthWriteMask(const JSH_DEPTH_WRITE_MASK dwm)
+	{
+		return (D3D11_DEPTH_WRITE_MASK)dwm;
+	}
+	constexpr D3D11_CULL_MODE ParseCullMode(const JSH_CULL_MODE cm)
+	{
+		return (D3D11_CULL_MODE)cm;
+	}
+	constexpr D3D11_FILL_MODE ParseFillMode(const JSH_FILL_MODE cm)
+	{
+		return (D3D11_FILL_MODE)cm;
+	}
+	constexpr D3D11_RTV_DIMENSION ParseRTVDimension(const JSH_RTV_DIMENSION rtv)
+	{
+		return (D3D11_RTV_DIMENSION)rtv;
+	}
+
 	bool Initialize() {
 
 		HWND windowHandle = reinterpret_cast<HWND>(jshWindow::GetWindowHandle());
 
-		DXGI_SWAP_CHAIN_DESC swapChainDescriptor = {};
+		DXGI_SWAP_CHAIN_DESC swapChainDescriptor;
+		jshZeroMemory(&swapChainDescriptor, sizeof(DXGI_SWAP_CHAIN_DESC));
 		swapChainDescriptor.BufferCount = 1;
 		swapChainDescriptor.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 		swapChainDescriptor.BufferDesc.Height = 0;
@@ -169,7 +226,7 @@ namespace jshGraphics_dx11 {
 		swapChainDescriptor.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 		swapChainDescriptor.Windowed = TRUE;
 
-		D3D11CreateDeviceAndSwapChain(
+		jshGfx(D3D11CreateDeviceAndSwapChain(
 			NULL,
 			D3D_DRIVER_TYPE_HARDWARE,
 			NULL,
@@ -178,60 +235,11 @@ namespace jshGraphics_dx11 {
 			0,
 			D3D11_SDK_VERSION,
 			&swapChainDescriptor,
-			&swapChain,
-			&device,
+			&g_SwapChain,
+			&g_Device,
 			NULL,
-			&context
-		);
-
-		// getting swap chain back buffer and creating the render target view
-		g_MainFrameBuffer = g_FrameBuffers.push();
-		FrameBuffer& frameBuffer = g_FrameBuffers[g_MainFrameBuffer];
-
-		swapChain->GetBuffer(0, __uuidof(ID3D11Resource), reinterpret_cast<void**>(&frameBuffer.targetTexturePtr));
-
-		D3D11_RENDER_TARGET_VIEW_DESC targetDesc = {};
-		targetDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-		targetDesc.Texture2D.MipSlice = 0u;
-		targetDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-
-		if (frameBuffer.targetTexturePtr) device->CreateRenderTargetView(frameBuffer.targetTexturePtr, &targetDesc, &frameBuffer.targetPtr);
-		else return false;
-
-		frameBuffer.state = 1u;
-
-		// main depthstencil state
-		D3D11_DEPTH_STENCIL_DESC dsDesc = {};
-		dsDesc.DepthEnable = TRUE;
-		dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-		dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
-		dsDesc.StencilEnable = FALSE;
-		device->CreateDepthStencilState(&dsDesc, &frameBuffer.dsStatePtr);
-
-		D3D11_TEXTURE2D_DESC texDesc = {};
-		texDesc.ArraySize = 1u;
-		texDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-		texDesc.CPUAccessFlags = 0u;
-		texDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		texDesc.Width = 1080;
-		texDesc.Height = 720;
-		texDesc.SampleDesc.Count = 1u;
-		texDesc.SampleDesc.Quality = 0u;
-		texDesc.MipLevels = 1u;
-		texDesc.MiscFlags = 0u;
-		texDesc.Usage = D3D11_USAGE_DEFAULT;
-		device->CreateTexture2D(&texDesc, nullptr, &frameBuffer.dsTexturePtr);
-
-		D3D11_DEPTH_STENCIL_VIEW_DESC dsViewDesc = {};
-		dsViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		dsViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-		dsViewDesc.Texture2D.MipSlice = 0u;
-		device->CreateDepthStencilView(frameBuffer.dsTexturePtr, &dsViewDesc, &frameBuffer.dsViewPtr);
-			
-		context->OMSetRenderTargets(1, &frameBuffer.targetPtr, frameBuffer.dsViewPtr);
-
-		// default topology
-		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			&g_ImmediateContext
+		));
 
 		// viewport
 		D3D11_VIEWPORT viewport;
@@ -242,7 +250,7 @@ namespace jshGraphics_dx11 {
 		viewport.TopLeftX = 0;
 		viewport.TopLeftY = 0;
 
-		context->RSSetViewports(1, &viewport);
+		g_ImmediateContext->RSSetViewports(1, &viewport);
 
 		return true;
 	}
@@ -253,374 +261,133 @@ namespace jshGraphics_dx11 {
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		if (!ImGui_ImplWin32_Init(jshWindow::GetWindowHandle())) return false;
-		if (!ImGui_ImplDX11_Init(device, context)) return false;
-
-		jshImGui(ImGui_ImplDX11_NewFrame());
-		jshImGui(ImGui_ImplWin32_NewFrame());
-		jshImGui(ImGui::NewFrame());
-		jshImGui(jshDebug::ShowImGuiWindow());
-
+		if (!ImGui_ImplDX11_Init(g_Device.Get(), g_ImmediateContext.Get())) return false;
 		return true;
 	}
 #endif
 
 	bool Close()
 	{
-
-		//clear buffers
-		while (!g_Buffers.empty()) {
-			Buffer& buffer = g_Buffers.pop();
-			if (!buffer.ptr) continue;
-			buffer.ptr->Release();
-		}
-		g_Buffers.clear();
-
-		// clear shaders
-		while (!g_VertexShaders.empty()) {
-			VertexShader& vs = g_VertexShaders.pop();
-			if (!vs.ptr) continue;
-			vs.ptr->Release();
-			vs.blob->Release();
-		}
-		g_VertexShaders.clear();
-
-		while (!g_PixelShaders.empty()) {
-			PixelShader& ps = g_PixelShaders.pop();
-			if (!ps.ptr) continue;
-			ps.ptr->Release();
-		}
-		g_PixelShaders.clear();
-
-		// clear input layout
-		while (!g_InputLayouts.empty()) {
-			InputLayout& il = g_InputLayouts.pop();
-			if (!il.ptr) continue;
-			il.ptr->Release();
-		}
-		g_InputLayouts.clear();
-
-		// clear depthstencil states
-		while (!g_FrameBuffers.empty()) {
-			FrameBuffer& s = g_FrameBuffers.pop();
-			if (!s.targetPtr) continue;
-			s.dsStatePtr->Release();
-			s.dsTexturePtr->Release();
-			s.dsViewPtr->Release();
-			s.targetPtr->Release();
-			s.targetTexturePtr->Release();
-		}
-		g_FrameBuffers.clear();
-
-		if (device)		device->Release();
-		if (context)	context->Release();
-		if (swapChain)	swapChain->Release();
-
 		return true;
 	}
 
-	void Prepare(float* clearScreenColor)
+	void Begin()
 	{
-		jshImGui(ImGui::Render());
-		jshImGui(ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData()));
+		
+	}
+	void End()
+	{
+		jsh::CommandList cmd;
+		while (g_ActiveCommandLists.pop(cmd)) {
 
-		// main frame buffer
-		FrameBuffer& fb = g_FrameBuffers[g_MainFrameBuffer];
-		swapChain->Present(1u, 0u);
-		context->ClearRenderTargetView(fb.targetPtr, clearScreenColor);
-		context->ClearDepthStencilView(fb.dsViewPtr, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
+			g_DeferredContext[cmd]->FinishCommandList(FALSE, g_CommandLists[cmd].GetAddressOf());
+			g_ImmediateContext->ExecuteCommandList(g_CommandLists[cmd].Get(), FALSE);
 
+			g_FreeCommandLists.push(cmd);
+		}
+	}
+	void Present()
+	{
+		g_SwapChain->Present(1u, 0u);
+	}
+
+#ifdef JSH_IMGUI
+	void BeginImGui()
+	{
 		jshImGui(ImGui_ImplDX11_NewFrame());
 		jshImGui(ImGui_ImplWin32_NewFrame());
 		jshImGui(ImGui::NewFrame());
 		jshImGui(jshDebug::ShowImGuiWindow());
 	}
+	void EndImGui(const jsh::RenderTargetView& rtv)
+	{
+		RenderTargetView_dx11* RTV = ToInternal(rtv);
+		g_ImmediateContext->OMSetRenderTargets(1, RTV->ptr.GetAddressOf(), nullptr);
 
-	void SetTopology(JSH_TOPOLOGY topology) {
-		context->IASetPrimitiveTopology(ParseTopology(topology));
+		jshImGui(ImGui::Render());
+		jshImGui(ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData()));
+	}
+#endif
+
+	jsh::CommandList BeginCommandList()
+	{
+		jsh::CommandList cmd;
+		if (!g_FreeCommandLists.pop(cmd)) {
+
+			cmd = g_ActiveCommandLists.size();
+			assert(cmd < JSH_GFX_COMMANDLISTS_COUNT);
+
+			g_Device->CreateDeferredContext(0u, &g_DeferredContext[cmd]);
+		}
+		g_ActiveCommandLists.push(cmd);
+		
+		return cmd;
 	}
 
-	//////////////////////////////CREATION//////////////////////////////
+	/////////////////////////TOPOLOGY//////////////////////
+	void SetTopology(JSH_TOPOLOGY topology, jsh::CommandList cmd) {
+		g_DeferredContext[cmd]->IASetPrimitiveTopology(ParseTopology(topology));
+	}
 
-	jsh::Buffer CreateBuffer(void* data, uint32 size, uint32 stride, JSH_USAGE usage, JSH_BUFFER_TYPE bufferType)
+	//////////////////////////////BUFFER//////////////////////////////
+	void CreateBuffer(const JSH_BUFFER_DESC* d, JSH_SUBRESOURCE_DATA* s, jsh::Buffer* b)
 	{
-		jsh::Buffer ID = g_Buffers.push();
-		Buffer& buffer = g_Buffers[ID];
+		auto buffer = std::make_shared<Buffer_dx11>();
+		b->internalAllocation = buffer;
 
 		D3D11_BUFFER_DESC desc;
-		desc.BindFlags = ParseBindFlag(bufferType);
-		desc.ByteWidth = size;
-		desc.CPUAccessFlags = (usage == JSH_USAGE_DYNAMIC) ? D3D11_CPU_ACCESS_WRITE : 0;
-		desc.MiscFlags = 0u;
-		desc.StructureByteStride = stride;
-		desc.Usage = ParseUsage(usage);
+		desc.BindFlags = d->BindFlags;
+		desc.ByteWidth = d->ByteWidth;
+		desc.CPUAccessFlags = d->CPUAccessFlags;
+		desc.MiscFlags = d->MiscFlags;
+		desc.StructureByteStride = d->StructureByteStride;
+		desc.Usage = ParseUsage(d->Usage);
 
 		D3D11_SUBRESOURCE_DATA subres;
-		subres.pSysMem = data;
+		subres.pSysMem = s->pSysMem;
 		subres.SysMemPitch = 0u;
 		subres.SysMemSlicePitch = 0u;
 
-		buffer.dataPtr = data;
-		buffer.structureByteStride = stride;
+		buffer->structureByteStride = desc.StructureByteStride;
 
-		device->CreateBuffer(&desc, &subres, &buffer.ptr);
-
-		return ID;
+		jshGfx(g_Device->CreateBuffer(&desc, &subres, buffer->ptr.GetAddressOf()));
 	}
-
-	jsh::InputLayout CreateInputLayout(const JSH_INPUT_ELEMENT_DESC* desc, uint32 cant, jsh::VertexShader shaderID)
+	void BindVertexBuffer(const jsh::Buffer& b, uint32 slot, jsh::CommandList cmd)
 	{
-		jsh::InputLayout ID = g_InputLayouts.push();
-		InputLayout& inputLayout = g_InputLayouts[ID];
+		assert(b.IsValid());
 
-		inputLayout.inputElements.reserve(cant);
-		inputLayout.inputElements.add_pos(cant);
-		for (uint32 i = 0; i < cant; ++i) {
-			inputLayout.inputElements[i] = ParseInputElementDesc(desc[i]);
-		}
+		Buffer_dx11* buffer = ToInternal(b);
 
-		VertexShader& vs = g_VertexShaders[shaderID];
-
-		device->CreateInputLayout(inputLayout.inputElements.data(), cant, vs.blob->GetBufferPointer(), vs.blob->GetBufferSize(), &inputLayout.ptr);
-		return ID;
-	}
-
-	jsh::VertexShader CreateVertexShader(const wchar* path)
-	{
-		jsh::VertexShader ID = g_VertexShaders.push();
-		VertexShader& vs = g_VertexShaders[ID];
-
-		D3DReadFileToBlob(path, &vs.blob);
-		device->CreateVertexShader(vs.blob->GetBufferPointer(), vs.blob->GetBufferSize(), nullptr, &vs.ptr);
-		return ID;
-	}
-
-	jsh::PixelShader CreatePixelShader(const wchar* path)
-	{
-		jsh::PixelShader ID = g_PixelShaders.push();
-		PixelShader& ps = g_PixelShaders[ID];
-
-		ID3DBlob* blob;
-
-		D3DReadFileToBlob(path, &blob);
-		device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &ps.ptr);
-		if(blob) blob->Release();
-		return ID;
-	}
-
-	jsh::FrameBuffer CreateFrameBuffer(uint32 width, uint32 height)
-	{
-		jsh::FrameBuffer ID = g_FrameBuffers.push();
-		FrameBuffer& frameBuffer = g_FrameBuffers[ID];
-
-		// render target
-		CD3D11_TEXTURE2D_DESC targetTex;
-		targetTex.Width = width;
-		targetTex.Height = height;
-		targetTex.ArraySize = 1u;
-		targetTex.BindFlags = D3D11_BIND_RENDER_TARGET;
-		targetTex.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-		targetTex.MipLevels = 1u;
-		targetTex.MiscFlags = 0u;
-		targetTex.SampleDesc.Count = 1u;
-		targetTex.SampleDesc.Quality = 0u;
-		targetTex.CPUAccessFlags = 0u;
-		targetTex.Usage = D3D11_USAGE_DEFAULT;
-
-		device->CreateTexture2D(&targetTex, nullptr, &frameBuffer.targetTexturePtr);
-		
-		D3D11_RENDER_TARGET_VIEW_DESC targetDesc;
-		targetDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-		targetDesc.Texture2D.MipSlice = 0u;
-		targetDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-
-		device->CreateRenderTargetView(frameBuffer.targetTexturePtr, &targetDesc, &frameBuffer.targetPtr);
-
-		// depth stencil state
-		CD3D11_TEXTURE2D_DESC dsTex;
-		dsTex.Width = width;
-		dsTex.Height = height;
-		dsTex.ArraySize = 1u;
-		dsTex.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-		dsTex.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		dsTex.MipLevels = 1u;
-		dsTex.MiscFlags = 0u;
-		dsTex.SampleDesc.Count = 1u;
-		dsTex.SampleDesc.Quality = 0u;
-		dsTex.CPUAccessFlags = 0u;
-		dsTex.Usage = D3D11_USAGE_DEFAULT;
-
-		device->CreateTexture2D(&dsTex, nullptr, &frameBuffer.dsTexturePtr);
-
-		D3D11_DEPTH_STENCIL_DESC stateDesc;
-	
-		stateDesc.DepthEnable = TRUE;
-		stateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-		stateDesc.DepthFunc = D3D11_COMPARISON_LESS;
-		stateDesc.StencilEnable = FALSE;
-
-		device->CreateDepthStencilState(&stateDesc, &frameBuffer.dsStatePtr);
-
-		D3D11_DEPTH_STENCIL_VIEW_DESC viewDesc;
-		viewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		viewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-		viewDesc.Texture2D.MipSlice = 0u;
-		viewDesc.Flags = 0u;
-
-		if(frameBuffer.dsTexturePtr)
-			device->CreateDepthStencilView(frameBuffer.dsTexturePtr, &viewDesc, &frameBuffer.dsViewPtr);
-
-		frameBuffer.state = 1;
-
-		return ID;
-	}
-
-	void SetDepthState(bool enable, jsh::FrameBuffer fb)
-	{
-		if (fb == jsh::INVALID_FRAME_BUFFER) fb = g_MainFrameBuffer;
-		FrameBuffer& frameBuffer = g_FrameBuffers[fb];
-
-		D3D11_DEPTH_STENCIL_DESC stateDesc = {};
-		D3D11_DEPTH_STENCIL_VIEW_DESC viewDesc = {};
-		if (enable) {
-			if (frameBuffer.state == 1 || frameBuffer.state == 3) return;
-
-			frameBuffer.dsStatePtr->Release();
-			frameBuffer.dsViewPtr->Release();
-
-			stateDesc.DepthEnable = TRUE;
-			stateDesc.DepthFunc = D3D11_COMPARISON_LESS;
-			stateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-			if (frameBuffer.state == 2) {
-				jshLogW("Stencil state isn't implemented yet");
-			}
-			else stateDesc.StencilEnable = FALSE;
-
-			frameBuffer.state = frameBuffer.state == 2 ? 3 : 1;
-
-		}
-		else {
-			if (frameBuffer.state == 0 || frameBuffer.state == 2) return;
-
-			frameBuffer.dsStatePtr->Release();
-			frameBuffer.dsViewPtr->Release();
-
-			stateDesc.DepthEnable = FALSE;
-			if (frameBuffer.state == 3) {
-				jshLogW("Stencil state isn't implemented yet");
-			}
-			else stateDesc.StencilEnable = FALSE;
-
-			frameBuffer.state = frameBuffer.state == 3 ? 2 : 0;
-		}
-
-		viewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		viewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-		viewDesc.Texture2D.MipSlice = 0u;
-		viewDesc.Flags = 0u;
-
-		device->CreateDepthStencilState(&stateDesc, &frameBuffer.dsStatePtr);
-		device->CreateDepthStencilView(frameBuffer.dsTexturePtr, &viewDesc, &frameBuffer.dsViewPtr);
-	}
-	void SetStencilState(bool enable, jsh::FrameBuffer fb)
-	{
-		jshLogW("Stencil state isn't implemented yet");
-	}
-
-	jsh::Texture CreateTexture(void* data, uint32 pitch, uint32 width, uint32 height, JSH_FORMAT format)
-	{
-		jsh::Texture ID = g_Textures.push();
-		Texture& texture = g_Textures[ID];
-
-		D3D11_TEXTURE2D_DESC texDesc;
-		texDesc.ArraySize = 1u;
-		texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-		texDesc.CPUAccessFlags = 0u;
-		texDesc.Format = ParseFormat(format);
-		texDesc.Width = width;
-		texDesc.Height = height;
-		texDesc.MipLevels = 1u;
-		texDesc.MiscFlags = 0u;
-		texDesc.SampleDesc.Count = 1u;
-		texDesc.SampleDesc.Quality = 0u;
-		texDesc.Usage = D3D11_USAGE_IMMUTABLE;
-
-		D3D11_SUBRESOURCE_DATA subDesc;
-		subDesc.pSysMem = data;
-		subDesc.SysMemPitch = pitch;
-
-		D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
-		viewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		viewDesc.Format = ParseFormat(format);
-		viewDesc.Texture2D.MipLevels = 1u;
-		viewDesc.Texture2D.MostDetailedMip = 0u;
-		
-		device->CreateTexture2D(&texDesc, &subDesc, &texture.texturePtr);
-		if (texture.texturePtr) device->CreateShaderResourceView(texture.texturePtr, &viewDesc, &texture.viewPtr);
-		
-		D3D11_SAMPLER_DESC desc = {};
-		desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-		desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-
-		device->CreateSamplerState(&desc, &texture.samplerStatePtr);
-
-		return ID;
-	}
-
-	void SetSamplerState(jsh::Texture ID, JSH_FILTER filter, JSH_TEXTURE_ADDRESS_MODE addressMode)
-	{
-		Texture& texture = g_Textures[ID];	
-
-		texture.samplerStatePtr->Release();
-		
-		D3D11_SAMPLER_DESC desc = {};
-		desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-		desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-
-		device->CreateSamplerState(&desc, &texture.samplerStatePtr);
-	}
-
-	/////////////////////////BINDING////////////////////////////////////////
-
-	void BindVertexBuffer(jsh::Buffer ID, uint32 slot)
-	{
-		assert(ID != jsh::INVALID_BUFFER);
-
-		Buffer& buffer = g_Buffers[ID];
-
-		const UINT strides = buffer.structureByteStride;
+		const UINT strides = buffer->structureByteStride;
 		const UINT offset = 0U;
-		context->IASetVertexBuffers(slot, 1, &buffer.ptr, &strides, &offset);
+		g_DeferredContext[cmd]->IASetVertexBuffers(slot, 1, buffer->ptr.GetAddressOf(), &strides, &offset);
 
 		return;
 	}
-	void BindIndexBuffer(jsh::Buffer ID)
+	void BindIndexBuffer(const jsh::Buffer& b, jsh::CommandList cmd)
 	{
-		assert(ID != jsh::INVALID_BUFFER);
+		assert(b.IsValid());
 
-		Buffer& buffer = g_Buffers[ID];
-		context->IASetIndexBuffer(buffer.ptr, DXGI_FORMAT_R32_UINT, 0);
+		Buffer_dx11* buffer = ToInternal(b);
+		g_DeferredContext[cmd]->IASetIndexBuffer(buffer->ptr.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 		return;
 	}
-	void BindConstantBuffer(jsh::Buffer ID, uint32 slot, JSH_SHADER_TYPE shaderType)
+	void BindConstantBuffer(const jsh::Buffer& b, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
 	{
-		assert(ID != jsh::INVALID_BUFFER);
+		assert(b.IsValid());
 
-		Buffer& buffer = g_Buffers[ID];
+		Buffer_dx11* buffer = ToInternal(b);
 
 		switch (shaderType) {
 		case JSH_SHADER_TYPE_VERTEX:
-			context->VSSetConstantBuffers(slot, 1, &buffer.ptr);
+			g_DeferredContext[cmd]->VSSetConstantBuffers(slot, 1, buffer->ptr.GetAddressOf());
 			break;
 		case JSH_SHADER_TYPE_PIXEL:
-			context->PSSetConstantBuffers(slot, 1, &buffer.ptr);
+			g_DeferredContext[cmd]->PSSetConstantBuffers(slot, 1, buffer->ptr.GetAddressOf());
 			break;
 		case JSH_SHADER_TYPE_GEOMETRY:
-			context->GSSetConstantBuffers(slot, 1, &buffer.ptr);
+			g_DeferredContext[cmd]->GSSetConstantBuffers(slot, 1, buffer->ptr.GetAddressOf());
 			break;
 		case JSH_SHADER_TYPE_NULL:
 		default:
@@ -630,80 +397,126 @@ namespace jshGraphics_dx11 {
 
 		return;
 	}
-	void UpdateConstantBuffer(jsh::Buffer ID, void* data)
-	{
-		Buffer& buffer = g_Buffers[ID];
-		context->UpdateSubresource(buffer.ptr, 0, nullptr, data, 0, 0);
-	}
 
-	void BindInputLayout(jsh::InputLayout ID)
+	//////////////////////////////INPUT LAYOUT//////////////////////////////
+	void CreateInputLayout(const JSH_INPUT_ELEMENT_DESC* desc, uint32 cant, jsh::VertexShader& vs, jsh::InputLayout* il)
 	{
-		InputLayout& inputLayout = g_InputLayouts[ID];
-		context->IASetInputLayout(inputLayout.ptr);
-	}
+		auto inputLayout = std::make_shared<InputLayout_dx11>();
+		il->internalAllocation = inputLayout;
 
-	void BindVertexShader(jsh::VertexShader ID)
-	{
-		VertexShader& vs = g_VertexShaders[ID];
-		context->VSSetShader(vs.ptr, nullptr, 0);
-	}
-	void BindPixelShader(jsh::PixelShader ID)
-	{
-		PixelShader& ps = g_PixelShaders[ID];
-		context->PSSetShader(ps.ptr, nullptr, 0);
-	}
-
-	void BindFrameBuffer(jsh::FrameBuffer fb)
-	{
-		if (fb == jsh::INVALID_FRAME_BUFFER) fb = g_MainFrameBuffer;
-		
-		FrameBuffer& frameBuffer = g_FrameBuffers[fb];
-		context->OMSetDepthStencilState(frameBuffer.dsStatePtr, 1u);
-		context->OMSetRenderTargets(1u, &frameBuffer.targetPtr, frameBuffer.dsViewPtr);
-	}
-
-	void BindTexture(jsh::Texture ID, uint32 slot, JSH_SHADER_TYPE shaderType)
-	{
-		// unbind
-		if (ID == jsh::INVALID_TEXTURE) {
-
-			ID3D11SamplerState* s = {nullptr};
-			ID3D11ShaderResourceView* t = {nullptr};
-
-			switch (shaderType)
-			{
-			case JSH_SHADER_TYPE_VERTEX:
-				context->VSSetShaderResources(slot, 1u, &t);
-				break;
-			case JSH_SHADER_TYPE_PIXEL:
-				context->PSSetShaderResources(slot, 1u, &t);
-				break;
-			case JSH_SHADER_TYPE_GEOMETRY:
-				context->GSSetShaderResources(slot, 1u, &t);
-				break;
-			case JSH_SHADER_TYPE_NULL:
-			default:
-				jshLogE("Invalid shader type");
-				break;
-			}
-			return;
+		jsh::vector<D3D11_INPUT_ELEMENT_DESC> elements;
+		elements.reserve(cant);
+		for (uint32 i = 0; i < cant; ++i) {
+			elements[i] = ParseInputElementDesc(desc[i]);
 		}
 
-		Texture& texture = g_Textures[ID];
+		VertexShader_dx11* vertexShader = ToInternal(vs);
+		jshGfx(g_Device->CreateInputLayout(elements.data(), cant, vertexShader->blob->GetBufferPointer(), vertexShader->blob->GetBufferSize(), &inputLayout->ptr));
+	}
+	void BindInputLayout(const jsh::InputLayout& il, jsh::CommandList cmd)
+	{
+		assert(il.IsValid());
+		InputLayout_dx11* inputLayout = ToInternal(il);
+		g_DeferredContext[cmd]->IASetInputLayout(inputLayout->ptr.Get());
+	}
+
+	//////////////////////////////SHADERS//////////////////////////////
+	void CreateVertexShader(const wchar* path, jsh::VertexShader* vs)
+	{
+		auto vertexShader = std::make_shared<VertexShader_dx11>();
+		vs->internalAllocation = vertexShader;
+
+		jshGfx(D3DReadFileToBlob(path, &vertexShader->blob));
+		jshGfx(g_Device->CreateVertexShader(vertexShader->blob->GetBufferPointer(), vertexShader->blob->GetBufferSize(), nullptr, &vertexShader->ptr));
+	}
+	void CreatePixelShader(const wchar* path, jsh::PixelShader* ps)
+	{
+		auto pixelShader = std::make_shared<PixelShader_dx11>();
+		ps->internalAllocation = pixelShader;
+
+		ComPtr<ID3DBlob> blob;
+
+		jshGfx(D3DReadFileToBlob(path, &blob));
+		jshGfx(g_Device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &pixelShader->ptr));
+	}
+	void BindVertexShader(const jsh::VertexShader& vs, jsh::CommandList cmd)
+	{
+		assert(vs.IsValid());
+		VertexShader_dx11* shader = ToInternal(vs);
+		g_DeferredContext[cmd]->VSSetShader(shader->ptr.Get(), nullptr, 0);
+	}
+	void BindPixelShader(const jsh::PixelShader& ps, jsh::CommandList cmd)
+	{
+		assert(ps.IsValid());
+		PixelShader_dx11* shader = ToInternal(ps);
+		g_DeferredContext[cmd]->PSSetShader(shader->ptr.Get(), nullptr, 0);
+	}
+
+	//////////////////////////////TEXUTRE//////////////////////////////
+	void CreateTexture(const JSH_TEXTURE2D_DESC* d, JSH_SUBRESOURCE_DATA* s, jsh::Texture* t)
+	{
+		auto texture = std::make_shared<Texture_dx11>();
+		t->internalAllocation = texture;
+
+		D3D11_TEXTURE2D_DESC texDesc;
+		texDesc.ArraySize = d->ArraySize;
+		texDesc.BindFlags = d->BindFlags;
+		texDesc.CPUAccessFlags = d->CPUAccessFlags;
+		texDesc.Format = ParseFormat(d->Format);
+		texDesc.Width = d->Width;
+		texDesc.Height = d->Height;
+		texDesc.MipLevels = d->MipLevels;
+		texDesc.MiscFlags = d->MiscFlags;
+		texDesc.SampleDesc.Count = d->SampleDesc.Count;
+		texDesc.SampleDesc.Quality = d->SampleDesc.Quality;
+		texDesc.Usage = ParseUsage(d->Usage);
+
+		if (s) {
+			D3D11_SUBRESOURCE_DATA subDesc = {};
+			subDesc.pSysMem = s->pSysMem;
+			subDesc.SysMemPitch = s->SysMemPitch;
+			subDesc.SysMemSlicePitch = s->SysMemSlicePitch;
+			jshGfx(g_Device->CreateTexture2D(&texDesc, &subDesc, &texture->texturePtr));
+		}
+		else {
+			jshGfx(g_Device->CreateTexture2D(&texDesc, nullptr, &texture->texturePtr));
+		}
+
+		// create views
+		if (texDesc.BindFlags & D3D11_BIND_SHADER_RESOURCE) {
+			D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
+			viewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+			viewDesc.Format = ParseFormat(d->Format);
+			viewDesc.Texture2D.MipLevels = 1u;
+			viewDesc.Texture2D.MostDetailedMip = 0u;
+
+			jshGfx(g_Device->CreateShaderResourceView(texture->texturePtr.Get(), &viewDesc, &texture->shaderSrcView));
+		}
+		if (texDesc.BindFlags & D3D11_BIND_DEPTH_STENCIL) {
+			D3D11_DEPTH_STENCIL_VIEW_DESC viewDesc;
+			jshZeroMemory(&viewDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+			viewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+			viewDesc.Texture2D.MipSlice = 0u;
+			viewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+
+			jshGfx(g_Device->CreateDepthStencilView(texture->texturePtr.Get(), &viewDesc, &texture->depthStencilView));
+		}
+	}
+	void BindTexture(const jsh::Texture& t, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
+	{
+		assert(t.IsValid());
+		Texture_dx11* texture = ToInternal(t);
 
 		switch (shaderType)
 		{
 		case JSH_SHADER_TYPE_VERTEX:
-			context->VSSetShaderResources(slot, 1u, &texture.viewPtr);
-			context->VSSetSamplers(slot, 1u, &texture.samplerStatePtr);
+			g_DeferredContext[cmd]->VSSetShaderResources(slot, 1u, texture->shaderSrcView.GetAddressOf());
 			break;
 		case JSH_SHADER_TYPE_PIXEL:
-			context->PSSetShaderResources(slot, 1u, &texture.viewPtr);
-			context->PSSetSamplers(slot, 1u, &texture.samplerStatePtr);
+			g_DeferredContext[cmd]->PSSetShaderResources(slot, 1u, texture->shaderSrcView.GetAddressOf());
 			break;
 		case JSH_SHADER_TYPE_GEOMETRY:
-			context->GSSetShaderResources(slot, 1u, &texture.viewPtr);
-			context->GSSetSamplers(slot, 1u, &texture.samplerStatePtr);
+			g_DeferredContext[cmd]->GSSetShaderResources(slot, 1u, texture->shaderSrcView.GetAddressOf());
 			break;
 		case JSH_SHADER_TYPE_NULL:
 		default:
@@ -712,10 +525,237 @@ namespace jshGraphics_dx11 {
 		}
 	}
 
-	///////////////////////////RENDER CALLS/////////////////////////
-	void DrawIndexed(uint32 indicesCount)
+	/////////////////////////VIEWPORT////////////////////////////////////////
+	void CreateViewport(float x, float y, float width, float height, jsh::Viewport* vp)
 	{
-		context->DrawIndexed(indicesCount, 0, 0);
+		auto viewport = std::make_shared<Viewport_dx11>();
+		vp->internalAllocation = viewport;
+
+		viewport->Width = width;
+		viewport->Height = height;
+		viewport->MaxDepth = 1.f;
+		viewport->MinDepth = 0.f;
+		viewport->TopLeftX = x;
+		viewport->TopLeftY = y;
+	}
+	void BindViewport(const jsh::Viewport& vp, uint32 slot, jsh::CommandList cmd)
+	{
+		assert(vp.IsValid());
+		Viewport_dx11* viewport = ToInternal(vp);
+		g_DeferredContext[cmd]->RSSetViewports(1, viewport);
+	}
+
+	/////////////////////////SAMPLER STATE////////////////////////////////////////
+	void CreateSamplerState(const JSH_SAMPLER_DESC* d, jsh::SamplerState* ss)
+	{
+		auto samplerState = std::make_shared<SamplerState_dx11>();
+		ss->internalAllocation = samplerState;
+
+		D3D11_SAMPLER_DESC desc;
+		desc.AddressU = ParseTextureAddress(d->AddressU);
+		desc.AddressV = ParseTextureAddress(d->AddressV);
+		desc.AddressW = ParseTextureAddress(d->AddressW);
+		desc.BorderColor[0] = d->BorderColor[0];
+		desc.BorderColor[1] = d->BorderColor[1];
+		desc.BorderColor[2] = d->BorderColor[2];
+		desc.BorderColor[3] = d->BorderColor[3];
+		desc.ComparisonFunc = ParseComparisonFunc(d->ComparisonFunc);
+		desc.Filter = ParseFilter(d->Filter);
+		desc.MaxAnisotropy = d->MaxAnisotropy;
+		desc.MaxLOD = d->MaxLOD;
+		desc.MinLOD = d->MinLOD;
+		desc.MipLODBias = d->MipLODBias;
+
+		jshGfx(g_Device->CreateSamplerState(&desc, &samplerState->ptr));
+	}
+	void BindSamplerState(const jsh::SamplerState& ss, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
+	{
+		assert(ss.IsValid());
+		SamplerState_dx11* samplerState = ToInternal(ss);
+		switch (shaderType) {
+		case JSH_SHADER_TYPE_VERTEX:
+			g_DeferredContext[cmd]->VSSetSamplers(slot, 1, samplerState->ptr.GetAddressOf());
+			return;
+		case JSH_SHADER_TYPE_PIXEL:
+			g_DeferredContext[cmd]->PSSetSamplers(slot, 1, samplerState->ptr.GetAddressOf());
+			return;
+		case JSH_SHADER_TYPE_GEOMETRY:
+			g_DeferredContext[cmd]->GSSetSamplers(slot, 1, samplerState->ptr.GetAddressOf());
+			return;
+		}
+	}
+
+	/////////////////////////BLEND STATE////////////////////////////////////////
+	void CreateBlendState(const JSH_BLEND_DESC* d, jsh::BlendState* bs)
+	{
+		auto blendState = std::make_shared<BlendState_dx11>();
+		bs->internalAllocation = blendState;
+
+		D3D11_BLEND_DESC desc;
+		desc.AlphaToCoverageEnable = d->AlphaToCoverageEnable;
+		desc.IndependentBlendEnable = d->IndependentBlendEnable;
+		for (uint8 i = 0; i < 8; ++i) {
+			desc.RenderTarget[i].BlendEnable = d->RenderTarget[i].BlendEnable;
+			desc.RenderTarget[i].BlendOp = ParseBlendOp(d->RenderTarget[i].BlendOp);
+			desc.RenderTarget[i].BlendOpAlpha = ParseBlendOp(d->RenderTarget[i].BlendOpAlpha);
+			desc.RenderTarget[i].DestBlend = ParseBlend(d->RenderTarget[i].DestBlend);
+			desc.RenderTarget[i].DestBlendAlpha = ParseBlend(d->RenderTarget[i].DestBlendAlpha);
+			desc.RenderTarget[i].RenderTargetWriteMask = d->RenderTarget[i].RenderTargetWriteMask;
+			desc.RenderTarget[i].SrcBlend = ParseBlend(d->RenderTarget[i].SrcBlend);
+			desc.RenderTarget[i].SrcBlendAlpha = ParseBlend(d->RenderTarget[i].SrcBlendAlpha);
+		}
+
+		jshGfx(g_Device->CreateBlendState(&desc, &blendState->ptr));
+	}
+	void BindBlendState(const jsh::BlendState& bs, jsh::CommandList cmd)
+	{
+		assert(bs.IsValid());
+		BlendState_dx11* blendState = ToInternal(bs);
+		g_DeferredContext[cmd]->OMSetBlendState(blendState->ptr.Get(), nullptr, 0xffffffff);
+	}
+
+	/////////////////////////DEPTHSTENCIL STATE////////////////////////////////////////
+	void CreateDepthStencilState(const JSH_DEPTH_STENCIL_DESC* d, jsh::DepthStencilState* dss)
+	{
+		auto depthStencilState = std::make_shared<DepthStencilState_dx11>();
+		dss->internalAllocation = depthStencilState;
+
+		D3D11_DEPTH_STENCIL_DESC desc;
+		desc.BackFace.StencilDepthFailOp = ParseStencilOp(d->BackFace.StencilDepthFailOp);
+		desc.BackFace.StencilFailOp = ParseStencilOp(d->BackFace.StencilFailOp);
+		desc.BackFace.StencilFunc = ParseComparisonFunc(d->BackFace.StencilFunc);
+		desc.BackFace.StencilPassOp = ParseStencilOp(d->BackFace.StencilPassOp);
+		desc.DepthEnable = d->DepthEnable;
+		desc.DepthFunc = ParseComparisonFunc(d->DepthFunc);
+		desc.DepthWriteMask = ParseDepthWriteMask(d->DepthWriteMask);
+		desc.FrontFace.StencilDepthFailOp = ParseStencilOp(d->BackFace.StencilDepthFailOp);
+		desc.FrontFace.StencilFailOp = ParseStencilOp(d->BackFace.StencilFailOp);
+		desc.FrontFace.StencilFunc = ParseComparisonFunc(d->BackFace.StencilFunc);
+		desc.FrontFace.StencilPassOp = ParseStencilOp(d->BackFace.StencilPassOp);
+		desc.StencilEnable = d->StencilEnable;
+		desc.StencilReadMask = d->StencilReadMask;
+		desc.StencilWriteMask = d->StencilWriteMask;
+
+		jshGfx(g_Device->CreateDepthStencilState(&desc, &depthStencilState->statePtr));
+	}
+	void BindDepthStencilState(const jsh::DepthStencilState& ds, jsh::CommandList cmd)
+	{
+		assert(ds.IsValid());
+		DepthStencilState_dx11* dsState = ToInternal(ds);
+		g_DeferredContext[cmd]->OMSetDepthStencilState(dsState->statePtr.Get(), 1u);
+	}
+	void ClearDepthStencilView(const jsh::Texture& tex, jsh::CommandList cmd)
+	{
+		Texture_dx11* texture = ToInternal(tex);
+		assert(texture->depthStencilView.Get() != nullptr);
+		g_DeferredContext[cmd]->ClearDepthStencilView(texture->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
+	}
+
+	/////////////////////////RASTERIZER STATE////////////////////////////////////////
+	void CreateRasterizerState(const JSH_RASTERIZER_DESC* d, jsh::RasterizerState* rs)
+	{
+		auto rasterizerState = std::make_shared<RasterizerState_dx11>();
+		rs->internalAllocation = rasterizerState;
+
+		D3D11_RASTERIZER_DESC desc;
+		desc.AntialiasedLineEnable = d->AntialiasedLineEnable;
+		desc.CullMode = ParseCullMode(d->CullMode);
+		desc.DepthBias = d->DepthBias;
+		desc.DepthBiasClamp = d->DepthBiasClamp;
+		desc.DepthClipEnable = d->DepthClipEnable;
+		desc.FillMode = ParseFillMode(d->FillMode);
+		desc.FrontCounterClockwise = d->FrontCounterClockwise;
+		desc.MultisampleEnable = d->MultisampleEnable;
+		desc.ScissorEnable = d->ScissorEnable;
+		desc.SlopeScaledDepthBias = d->SlopeScaledDepthBias;
+
+		jshGfx(g_Device->CreateRasterizerState(&desc, &rasterizerState->ptr));
+	}
+	void BindRasterizerState(const jsh::RasterizerState& rs, jsh::CommandList cmd)
+	{
+		assert(rs.IsValid());
+		RasterizerState_dx11* rasterizerState = ToInternal(rs);
+		g_DeferredContext[cmd]->RSSetState(rasterizerState->ptr.Get());
+	}
+
+	/////////////////////////RENDER TARGET VIEW////////////////////////
+	void CreateRenderTargetView(const JSH_RENDER_TARGET_VIEW_DESC* d, const JSH_TEXTURE2D_DESC* td, jsh::RenderTargetView* rtv)
+	{
+		auto RTV = std::make_shared<RenderTargetView_dx11>();
+		rtv->internalAllocation = RTV;
+
+		// resource
+		D3D11_TEXTURE2D_DESC texDesc;
+		texDesc.ArraySize = td->ArraySize;
+		texDesc.BindFlags = td->BindFlags;
+		texDesc.CPUAccessFlags = td->CPUAccessFlags;
+		texDesc.Format = ParseFormat(td->Format);
+		texDesc.Width = td->Width;
+		texDesc.Height = td->Height;
+		texDesc.MipLevels = td->MipLevels;
+		texDesc.MiscFlags = td->MiscFlags;
+		texDesc.SampleDesc.Count = td->SampleDesc.Count;
+		texDesc.SampleDesc.Quality = td->SampleDesc.Quality;
+		texDesc.Usage = ParseUsage(td->Usage);
+
+		// RTV
+		D3D11_RENDER_TARGET_VIEW_DESC desc;
+		desc.Format = ParseFormat(d->Format);
+		desc.ViewDimension = ParseRTVDimension(d->ViewDimension);
+		desc.Texture2D.MipSlice = d->Texture2D.MipSlice;
+
+		jshGfx(g_Device->CreateTexture2D(&texDesc, nullptr, &RTV->resourcePtr));
+		jshGfx(g_Device->CreateRenderTargetView(RTV->resourcePtr.Get(), &desc, &RTV->ptr));
+	}
+	void CreateRenderTargetViewFromBackBuffer(jsh::RenderTargetView* rtv)
+	{
+		auto RTV = std::make_shared<RenderTargetView_dx11>();
+		rtv->internalAllocation = RTV;
+
+		// resource
+		jshGfx(g_SwapChain->GetBuffer(0u, __uuidof(ID3D11Resource), &RTV->resourcePtr));
+
+		// RTV
+		D3D11_RENDER_TARGET_VIEW_DESC desc;
+		jshZeroMemory(&desc, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
+		desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		desc.Texture2D.MipSlice = 0u;
+
+		jshGfx(g_Device->CreateRenderTargetView(RTV->resourcePtr.Get(), &desc, &RTV->ptr));
+	}
+	void BindRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd)
+	{
+		assert(rtv.IsValid());
+		RenderTargetView_dx11* RTV = ToInternal(rtv);
+		g_DeferredContext[cmd]->OMSetRenderTargets(1u, RTV->ptr.GetAddressOf(), nullptr);
+	}
+	void BindRenderTargetView(const jsh::RenderTargetView& rtv, const jsh::Texture& tex, jsh::CommandList cmd)
+	{
+		assert(rtv.IsValid() && tex.IsValid());
+		RenderTargetView_dx11* RTV = ToInternal(rtv);
+		Texture_dx11* texture = ToInternal(tex);
+		assert(texture->depthStencilView.Get() != nullptr);
+		g_DeferredContext[cmd]->OMSetRenderTargets(1u, RTV->ptr.GetAddressOf(), texture->depthStencilView.Get());
+	}
+	void ClearRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd)
+	{
+		RenderTargetView_dx11* renderTargetView = ToInternal(rtv);
+		const float clearColor[] = { 0.f,0.f,1.f,1.f };
+		g_DeferredContext[cmd]->ClearRenderTargetView(renderTargetView->ptr.Get(), clearColor);
+	}
+
+	/////////////////////////METHODS////////////////////////////////////////
+
+	void UpdateConstantBuffer(jsh::Buffer& b, void* data, jsh::CommandList cmd)
+	{
+		Buffer_dx11* buffer = ToInternal(b);
+		g_DeferredContext[cmd]->UpdateSubresource(buffer->ptr.Get(), 0, nullptr, data, 0, 0);
+	}
+	///////////////////////////RENDER CALLS/////////////////////////
+	void DrawIndexed(uint32 indicesCount, jsh::CommandList cmd)
+	{
+		g_DeferredContext[cmd]->DrawIndexed(indicesCount, 0, 0);
 	}
 
 }

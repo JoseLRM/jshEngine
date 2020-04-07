@@ -4,6 +4,7 @@
 #include "TaskSystem.h"
 #include "Timer.h"
 #include "graphics/Graphics.h"
+#include "graphics/Renderer.h"
 #include "Debug.h"
 #include "State.h"
 
@@ -33,38 +34,52 @@ namespace jshApplication {
 	{
 		if (g_Initialized) return false;
 
-		jshTimer::Initialize();
+		try {
+			jshTimer::Initialize();
 
-		if (!jshTask::Initialize()) {
-			jshLogE("Can't initialize jshTaskSystem");
+			if (!jshTask::Initialize()) {
+				jshLogE("Can't initialize jshTaskSystem");
+				return false;
+			}
+
+			if (!jshWindow::Initialize()) {
+				jshLogE("Can't initialize jshWindow");
+				return false;
+			}
+
+			if (!jshGraphics::Initialize()) {
+				jshLogE("Can't initialize jshGraphics");
+				return false;
+			}
+
+			if (!jshDebug::Initialize()) return false;
+
+			//im gui initialize
+			jshImGui(if (!jshGraphics::InitializeImGui()) {
+				jshLogE("Cant't initialize ImGui");
+				return false;
+			});
+
+			if (initialState) {
+				g_CurrentState = initialState;
+				initialState->Initialize();
+			}
+
+			jshLogI("jshEngine initialized");
+			g_Initialized = true;
+		}
+		catch (jsh::Exception e) {
+			e.what();
 			return false;
 		}
-
-		if (!jshWindow::Initialize()) {
-			jshLogE("Can't initialize jshWindow");
+		catch (std::exception e) {
+			jshLogE(e.what());
 			return false;
 		}
-
-		if (!jshGraphics::Initialize()) {
-			jshLogE("Can't initialize jshGraphics");
+		catch (...) {
+			jshLogE("Unknown error");
 			return false;
 		}
-
-		if (!jshDebug::Initialize()) return false;
-
-		//im gui initialize
-		jshImGui(if (!jshGraphics::InitializeImGui()) {
-			jshLogE("Cant't initialize ImGui");
-			return false;
-		});
-
-		if (initialState) {
-			g_CurrentState = initialState;
-			initialState->Initialize();
-		}
-
-		jshLogI("jshEngine initialized");
-		g_Initialized = true;
 		return true;
 	}
 
@@ -72,51 +87,78 @@ namespace jshApplication {
 	{
 		Initialize();
 
-		Time lastTime = jshTimer::Now();
-		Time deltaTime = lastTime;
-		Time actualTime = 0.f;
+		try {
 
-		float fixedUpdateCount = 0.f;
+			Time lastTime = jshTimer::Now();
+			Time deltaTime = lastTime;
+			Time actualTime = 0.f;
 
-		while (jshWindow::UpdateInput()) {
-			actualTime = jshTimer::Now();
+			float fixedUpdateCount = 0.f;
 
-			deltaTime = actualTime - lastTime;
-			lastTime = actualTime;
+			while (jshWindow::UpdateInput()) {
+				actualTime = jshTimer::Now();
 
-			fixedUpdateCount += deltaTime;
+				deltaTime = actualTime - lastTime;
+				lastTime = actualTime;
 
-			if (g_CurrentState) {
-				// update
-				g_CurrentState->Update(deltaTime);
+				fixedUpdateCount += deltaTime;
 
-				if (fixedUpdateCount >= 0.01666666f) {
-					fixedUpdateCount -= 0.01666666f;
-					g_CurrentState->FixedUpdate();
+				if (g_CurrentState) {
+					// update
+					g_CurrentState->Update(deltaTime);
+
+					if (fixedUpdateCount >= 0.01666666f) {
+						fixedUpdateCount -= 0.01666666f;
+						g_CurrentState->FixedUpdate();
+					}
+
+					// render
+					jshRenderer::BeginFrame();
+					g_CurrentState->Render();
+					jshRenderer::EndFrame();
+
 				}
 
-				// render
-				jshGraphics::Prepare();
-
-				g_CurrentState->Render();
-
 			}
-
 		}
+		catch (jsh::Exception e) {
+			e.what();
+		}
+		catch (std::exception e) {
+			jshLogE(e.what());
+		}
+		catch (...) {
+			jshLogE("Unknown error");
+		}
+
 	}
 
 	bool Close()
 	{
-		if (g_Closed) return false;
-		CloseState();
+		try {
+			if (g_Closed) return false;
+			CloseState();
 
-		if (!jshTask::Close()) return false;
-		
-		if (!jshWindow::Close()) return false;
+			if (!jshTask::Close()) return false;
 
-		if (!jshGraphics::Close()) return false;
+			if (!jshWindow::Close()) return false;
 
-		g_Closed = true;
+			if (!jshGraphics::Close()) return false;
+
+			g_Closed = true;
+		}
+		catch (jsh::Exception e) {
+			e.what();
+			return false;
+		}
+		catch (std::exception e) {
+			jshLogE(e.what());
+			return false;
+		}
+		catch (...) {
+			jshLogE("Unknown error");
+			return false;
+		}
 		return true;
 	}
 

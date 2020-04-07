@@ -4,68 +4,87 @@
 
 namespace jsh {
 
-	typedef uint16 Buffer;
-	typedef uint16 InputLayout;
-	typedef uint16 Texture;
+	typedef uint32 CommandList;
 
-	typedef uint16 VertexShader;
-	typedef uint16 PixelShader;
-
-	typedef uint16 Viewport;
-
-	typedef uint16 FrameBuffer;
-
-	constexpr Buffer INVALID_BUFFER = 0u;
-	constexpr InputLayout INVALID_INPUT_LAYOUT = 0u;
-	constexpr Texture INVALID_TEXTURE = 0u;
-	constexpr uint16 INVALID_SHADER = 0u;
-	constexpr Viewport INVALID_VIEWPORT = 0u;
-	constexpr FrameBuffer INVALID_FRAME_BUFFER = 0u;
-
-	struct Bindable {
-		uint16 ID = 0u;
-		uint32 param0 = 0u;
-		uint8 param1 = 0u;
-		JSH_GRAPHICS_PRIMITIVE primitiveType = JSH_GRAPHICS_PRIMITIVE_INVALID;
+	struct GraphicsPrimitive {
+		std::shared_ptr<void> internalAllocation;
+		inline bool IsValid() const noexcept { return internalAllocation.get() != nullptr; }
 	};
+
+	struct Buffer : public GraphicsPrimitive {};
+	struct Texture : public GraphicsPrimitive {};
+	struct InputLayout : public GraphicsPrimitive {};
+
+	struct VertexShader : public GraphicsPrimitive {};
+	struct PixelShader : public GraphicsPrimitive {};
+	struct GeometryShader : public GraphicsPrimitive {};
+	struct HullShader : public GraphicsPrimitive {};
+	struct DomainShader : public GraphicsPrimitive {};
+	struct ConstantShader : public GraphicsPrimitive {};
+
+	struct Viewport : public GraphicsPrimitive {};
+
+	struct RenderTargetView : public GraphicsPrimitive {};
+	struct DepthStencilState : public GraphicsPrimitive {};
+	struct SamplerState : public GraphicsPrimitive {};
+	struct BlendState : public GraphicsPrimitive {};
+	struct RasterizerState : public GraphicsPrimitive {};
 
 }
 
 namespace jshGraphics {
 
-	void Bind(const jsh::Bindable& bindable);
+	jsh::CommandList BeginCommandList();
 
 	/////////////////////////BUFFER//////////////////////
-	jsh::Buffer CreateBuffer(void* data, uint32 size, uint32 stride, JSH_USAGE usage, JSH_BUFFER_TYPE bufferType);
-	void BindVertexBuffer(jsh::Buffer buffer, uint32 slot);
-	void BindIndexBuffer(jsh::Buffer buffer);
-	void BindConstantBuffer(jsh::Buffer buffer, uint32 slot, JSH_SHADER_TYPE constShaderType);
+	void CreateBuffer(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Buffer* buffer);
 
+	void BindVertexBuffer(const jsh::Buffer& buffer, uint32 slot, jsh::CommandList cmd);
+	void BindIndexBuffer(const jsh::Buffer& buffer, jsh::CommandList cmd);
+	void BindConstantBuffer(const jsh::Buffer& buffer, uint32 slot, JSH_SHADER_TYPE constShaderType, jsh::CommandList cmd);
 
 	/////////////////////////INPUTLAYOUT////////////////////////
-	jsh::InputLayout CreateInputLayout(const JSH_INPUT_ELEMENT_DESC* descriptors, uint32 cant, jsh::VertexShader);
-	void BindInputLayout(jsh::InputLayout inputLayout);
+	void CreateInputLayout(const JSH_INPUT_ELEMENT_DESC* descriptors, uint32 cant, jsh::VertexShader& vs, jsh::InputLayout* il);
+	void BindInputLayout(const jsh::InputLayout& inputLayout, jsh::CommandList cmd);
 
 	/////////////////////////SHADER////////////////////////
-	jsh::VertexShader CreateVertexShader(const wchar* path);
-	jsh::VertexShader CreatePixelShader(const wchar* path);
-	void BindVertexShader(jsh::VertexShader);
-	void BindPixelShader(jsh::PixelShader);
+	void CreateVertexShader(const wchar* path, jsh::VertexShader* vs);
+	void CreatePixelShader(const wchar* path, jsh::PixelShader* ps);
+	void BindVertexShader(const jsh::VertexShader& vs, jsh::CommandList cmd);
+	void BindPixelShader(const jsh::PixelShader& ps, jsh::CommandList cmd);
 
 	/////////////////////////TEXTURE////////////////////////
-	jsh::Texture CreateTexture(void* data, uint32 pitch, uint32 width, uint32 height, JSH_FORMAT format);
-	void BindTexture(jsh::Texture texture, uint32 slot, JSH_SHADER_TYPE shaderType);
-
-	void SetSamplerState(jsh::Texture texture, JSH_FILTER filter, JSH_TEXTURE_ADDRESS_MODE addressMode);
+	void CreateTexture(const JSH_TEXTURE2D_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Texture* tex);
+	void BindTexture(const jsh::Texture& texture, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 
 	/////////////////////////VIEWPORT////////////////////////
+	void CreateViewport(float x, float y, float width, float height, jsh::Viewport* vp);
+	void BindViewport(const jsh::Viewport& viewport, uint32 slot, jsh::CommandList cmd);
 
+	/////////////////////////SAMPLER STATE////////////////////////
+	void CreateSamplerState(const JSH_SAMPLER_DESC* desc, jsh::SamplerState* ss);
+	void BindSamplerState(const jsh::SamplerState& ss, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 
-	/////////////////////////FRAME BUFFER////////////////////////
-	jsh::FrameBuffer CreateFrameBuffer(uint32 width, uint32 height);
-	void BindFrameBuffer(jsh::FrameBuffer fb);
+	/////////////////////////BLEND STATE////////////////////////
+	void CreateBlendState(const JSH_BLEND_DESC* desc, jsh::BlendState* bs);
+	void BindBlendState(const jsh::BlendState& blendState, jsh::CommandList cmd);
 
-	void SetDepthState(bool enable, jsh::FrameBuffer fb = jsh::INVALID_FRAME_BUFFER);
-	void SetStencilState(bool enable, jsh::FrameBuffer fb = jsh::INVALID_FRAME_BUFFER);
+	/////////////////////////DEPTHSTENCIL STATE////////////////////////
+	void CreateDepthStencilState(const JSH_DEPTH_STENCIL_DESC* desc, jsh::DepthStencilState* dss);
+	void BindDepthStencilState(const jsh::DepthStencilState& dsState, jsh::CommandList cmd);
+	void ClearDepthStencilView(const jsh::Texture& tex, jsh::CommandList cmd);
+
+	/////////////////////////RASTERIZER STATE////////////////////////
+	void CreateRasterizerState(const JSH_RASTERIZER_DESC* desc, jsh::RasterizerState* rs);
+	void BindRasterizerState(const jsh::RasterizerState& rasterizerState, jsh::CommandList cmd);
+
+	/////////////////////////RENDER TARGET VIEW////////////////////////
+	void CreateRenderTargetView(const JSH_RENDER_TARGET_VIEW_DESC* desc, const JSH_TEXTURE2D_DESC* texDesc, jsh::RenderTargetView* rtv);
+	void CreateRenderTargetViewFromBackBuffer(jsh::RenderTargetView* rtv);
+	void BindRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd);
+	void BindRenderTargetView(const jsh::RenderTargetView& rtv, const jsh::Texture& tex, jsh::CommandList cmd);
+	void ClearRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd);
+
+	jsh::RenderTargetView& GetRenderTargetView();
 
 }

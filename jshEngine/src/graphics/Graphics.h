@@ -7,32 +7,30 @@ namespace jshGraphics {
 
 #ifdef JSH_ENGINE
 	bool Initialize();
+	bool Close();
 
 #ifdef JSH_IMGUI
 	bool InitializeImGui();
 #endif
-
-	bool Close();
-	void Prepare();
-
 #endif
 
 	JSH_GRAPHICS_API GetAPI();
-
-	void SetClearScreenColor(float c = 0.f);
-	void SetClearScreenColor(float r, float g, float b);
-
-	void SetTopology(JSH_TOPOLOGY topology);
-
-}
-
-
-// Abstracted methods
-namespace jshGraphics {
 	
-	void UpdateConstantBuffer(jsh::Buffer buffer, void* data);
+	void SetTopology(JSH_TOPOLOGY topology, jsh::CommandList cmd);
 
+	void Begin();
+	void End();
+	void Present();
+
+#ifdef JSH_IMGUI
+	void BeginImGui();
+	void EndImGui(const jsh::RenderTargetView& rtv);
+#endif
+
+	jsh::CommandList BeginCommandList();
+
+	void UpdateConstantBuffer(jsh::Buffer buffer, void* data, jsh::CommandList cmd);
 	//////////////////DRAW CALLS//////////////////
-	void DrawIndexed(uint32 indicesCount);
+	void DrawIndexed(uint32 indicesCount, jsh::CommandList cmd);
 
 }

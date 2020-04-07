@@ -6,9 +6,9 @@
 
 namespace jsh {
 
-	template<typename T, size_t size>
+	template<typename T, size_t SIZE>
 	class safe_queue {
-		T m_Data[size];
+		T m_Data[SIZE];
 
 		size_t m_Head = 0u;
 		size_t m_Tail = 0u;
@@ -23,7 +23,7 @@ namespace jsh {
 			bool result = false;
 			m_Mutex.lock();
 
-			size_t nextHead = (m_Head + 1) % size;
+			size_t nextHead = (m_Head + 1) % SIZE;
 
 			if (nextHead != m_Tail) {
 				m_Data[m_Head] = obj;
@@ -41,12 +41,16 @@ namespace jsh {
 
 			if (m_Tail != m_Head) {
 				obj = m_Data[m_Tail];
-				m_Tail = (m_Tail + 1) % size;
+				m_Tail = (m_Tail + 1) % SIZE;
 				result = true;
 			}
 
 			m_Mutex.unlock();
 			return result;
+		}
+		size_t size()
+		{
+			return (m_Head >= m_Tail) ? (m_Head - m_Tail) : (SIZE - (m_Tail - m_Head));
 		}
 
 	};

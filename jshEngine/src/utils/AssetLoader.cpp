@@ -12,11 +12,9 @@
 namespace jshLoader
 {
 
-	jsh::Mesh LoadMesh(const aiMesh* aimesh, aiMaterial** const materials, const std::string& name)
+	void LoadMesh(const aiMesh* aimesh, aiMaterial** const materials, jsh::Mesh* mesh)
 	{
-		jsh::Mesh mesh;
-		mesh.rawData = jshGraphics::CreateRawData(name.c_str());
-
+		mesh->rawData = new jsh::RawData();
 		// vertex buffer
 		aiVector3D* vertices = aimesh->mVertices;
 		aiVector3D* normals = aimesh->mNormals;
@@ -48,21 +46,20 @@ namespace jshLoader
 		if (material->GetTextureCount(aiTextureType_DIFFUSE) != 0) {
 			aiString path;
 			material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
-			jsh::Texture diffuseMap = jshLoader::LoadTexture(path.C_Str());
+			jsh::Texture diffuseMap;
+			jshLoader::LoadTexture(path.C_Str(), &diffuseMap);
 		}
 
 		// mesh creation
-		if (textureCoords) mesh.rawData->SetTextureCoords(textureCoords);
-		mesh.rawData->SetIndices(iData, indexCount);
-		mesh.rawData->SetPositionsAndNormals((float*)vertices, (float*)normals, aimesh->mNumVertices);
-		mesh.rawData->Create();
+		if (textureCoords) mesh->rawData->SetTextureCoords(textureCoords);
+		mesh->rawData->SetIndices(iData, indexCount);
+		mesh->rawData->SetPositionsAndNormals((float*)vertices, (float*)normals, aimesh->mNumVertices);
+		mesh->rawData->Create();
 
 		if (textureCoords) delete[] textureCoords;
-
-		return mesh;
 	}
 
-	jsh::Model* LoadModel(const char* path, const char* name)
+	bool LoadModel(const char* path, jsh::Model* model)
 	{
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
@@ -73,7 +70,6 @@ namespace jshLoader
 		}
 
 		uint32 numOfMeshes = scene->mNumMeshes;
-		jsh::Model* model = jshGraphics::CreateModel(name);
 		model->meshes.reserve(numOfMeshes);
 
 		for (uint32 i = 0; i < numOfMeshes; ++i) {
@@ -83,25 +79,44 @@ namespace jshLoader
 				jshLogE("Invalid mesh, %s[%u]", path, i);
 				continue;
 			}
-			std::stringstream ssName;
-			ssName << name;
-			ssName << '[';
-			ssName << i;
-			ssName << ']';
-			model->meshes.push_back_nr(LoadMesh(mesh, scene->mMaterials, ssName.str()));
+
+			jsh::Mesh m;
+			LoadMesh(mesh, scene->mMaterials, &m);
+			model->meshes.push_back_nr(m);
 		}
 
-		return model;
+		return true;
 	}
 
-	jsh::Texture LoadTexture(const char* path)
+	bool LoadTexture(const char* path, jsh::Texture* texture)
 	{
 		int width, height, bits;
 		byte* data = stbi_load(path, &width, &height, &bits, 4);
+		if (!data) {
+			jshLogE("Texture not found '%s'", path);
+			return false;
+		}
 
 		uint32 pitch = width * 4u;
 
-		return jshGraphics::CreateTexture(data, pitch, width, height, JSH_FORMAT_R8G8B8A8_UNORM);
+		JSH_TEXTURE2D_DESC desc;
+		desc.ArraySize = 1u;
+		desc.BindFlags = JSH_BIND_SHADER_RESOURCE;
+		desc.CPUAccessFlags = 0u;
+		desc.Format = JSH_FORMAT_R8G8B8A8_UNORM;
+		desc.Width = width;
+		desc.Height = height;
+		desc.MipLevels = 1u;
+		desc.MiscFlags = 0u;
+		desc.SampleDesc.Count = 1u;
+		desc.SampleDesc.Quality = 0u;
+		desc.Usage = JSH_USAGE_DEFAULT;
+		JSH_SUBRESOURCE_DATA sData;
+		sData.pSysMem = data;
+		sData.SysMemPitch = width * 4;
+
+		jshGraphics::CreateTexture(&desc, &sData, texture);
+		return true;
 	}
 
 }

@@ -16,16 +16,16 @@ namespace jshDebug {
 #ifdef JSH_CONSOLE
 	#include <stdio.h>
 	#ifdef JSH_ENGINE
-		#define jshLogE(x, ...) printf("[JSH][ERROR] "x"\n", __VA_ARGS__)
-		#define jshLogI(x, ...) printf("[JSH][INFO] "x"\n", __VA_ARGS__) 
-		#define jshLogW(x, ...) printf("[JSH][WARNING] "x"\n", __VA_ARGS__)
+		#define jshLogE(x, ...) printf("\n[JSH][ERROR] "); printf(x, __VA_ARGS__)
+		#define jshLogI(x, ...) printf("\n[JSH][INFO] "); printf(x, __VA_ARGS__)	
+		#define jshLogW(x, ...) printf("\n[JSH][WARNING] "); printf(x, __VA_ARGS__)
 	#else
-		#define jshLogE(x, ...) printf("[ERROR] "x"\n", __VA_ARGS__)
-		#define jshLogI(x, ...) printf("[INFO] "x"\n", __VA_ARGS__) 
-		#define jshLogW(x, ...) printf("[WARNING] "x"\n", __VA_ARGS__)
+		#define jshLogE(x, ...) printf("\n[ERROR] "); printf(x, __VA_ARGS__)
+		#define jshLogI(x, ...) printf("\n[INFO] "); printf(x, __VA_ARGS__)
+		#define jshLogW(x, ...) printf("\n[WARNING] "); printf(x, __VA_ARGS__)
 	#endif
-	#define jshLog(x, ...) printf(x, __VA_ARGS__)
-	#define jshLogln(x, ...) printf(x"\n", __VA_ARGS__)
+	#define jshLog(x, ...)	 printf(x, __VA_ARGS__)
+	#define jshLogln(x, ...) printf("\n"); printf(x, __VA_ARGS__)
 #else
 	#define jshLog(x, ...) 
 	#define jshLogln(x, ...)
@@ -35,6 +35,7 @@ namespace jshDebug {
 #endif 
 
 	void ShowOkWindow(const wchar* const description, uint8 level = 0);
+	void ShowOkWindow(const wchar* const title, const wchar* const description, uint8 level = 0);
 
 #ifdef JSH_IMGUI
 	void ShowImGuiWindow();

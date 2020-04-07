@@ -4,7 +4,7 @@
 
 namespace jshLoader {
 
-	jsh::Model* LoadModel(const char* path, const char* name);
-	jsh::Texture LoadTexture(const char* path);
+	bool LoadModel(const char* path, jsh::Model* model);
+	bool LoadTexture(const char* path, jsh::Texture* texture);
 
 }

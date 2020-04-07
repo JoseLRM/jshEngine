@@ -30,6 +30,7 @@
 #endif 
 
 #define BIT(x) 1 << x
+#define jshZeroMemory(dest, size) memset(dest, 0u, size)
 
 // platform macros
 #ifndef JSH_PLATFORM_WINDOWS
@@ -39,6 +40,4 @@
 // includes
 #include "utils/Math.h"
 #include <string>
-
-constexpr const wchar* JSH_FILEPATH_ASSET = L"..//assets/";
-constexpr const wchar* JSH_FILEPATH_RES = L"..//res/";
+#include <memory>

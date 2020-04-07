@@ -1,25 +1,33 @@
 #pragma once
 
 #include "..//common.h"
+#include "..//Exception.h"
+
+#define jshGfxException jsh::Exception(L"Graphics Exception")
+#define jshGfx(x) if(x != 0) throw jshGfxException
+#define jshGfxNullAPIException jsh::Exception(L"Invalid GraphicsAPI");
+
+// config
+#define JSH_GFX_COMMANDLISTS_COUNT 32
 
 enum JSH_GRAPHICS_API : uint8 {
 	JSH_GRAPHCS_API_NULL, 
 	JSH_GRAPHCS_API_DIRECTX11
 };
 
-enum JSH_GRAPHICS_PRIMITIVE : uint8 {
-	JSH_GRAPHICS_PRIMITIVE_INVALID,
-	JSH_GRAPHICS_PRIMITIVE_VERTEX_BUFFER,
-	JSH_GRAPHICS_PRIMITIVE_INDEX_BUFFER,
-	JSH_GRAPHICS_PRIMITIVE_CONSTANT_BUFFER,
-	JSH_GRAPHICS_PRIMITIVE_VERTEX_SHADER,
-	JSH_GRAPHICS_PRIMITIVE_PIXEL_SHADER,
-	JSH_GRAPHICS_PRIMITIVE_GEOMETRY_SHADER,
-	JSH_GRAPHICS_PRIMITIVE_INPUT_LAYOUT,
-	JSH_GRAPHICS_PRIMITIVE_FRAME_BUFFER,
-	JSH_GRAPHICS_PRIMITIVE_TEXTURE,
+enum JSH_BIND_FLAG
+{
+	JSH_BIND_VERTEX_BUFFER = 0x1L,
+	JSH_BIND_INDEX_BUFFER = 0x2L,
+	JSH_BIND_CONSTANT_BUFFER = 0x4L,
+	JSH_BIND_SHADER_RESOURCE = 0x8L,
+	JSH_BIND_STREAM_OUTPUT = 0x10L,
+	JSH_BIND_RENDER_TARGET = 0x20L,
+	JSH_BIND_DEPTH_STENCIL = 0x40L,
+	JSH_BIND_UNORDERED_ACCESS = 0x80L,
+	JSH_BIND_DECODER = 0x200L,
+	JSH_BIND_VIDEO_ENCODER = 0x400L
 };
-
 enum JSH_TOPOLOGY {
 
 	JSH_TOPOLOGY_TRIANGLES,
@@ -224,7 +232,47 @@ enum JSH_FILTER
 	JSH_FILTER_MAXIMUM_ANISOTROPIC = 0x1d5
 };
 
+///////////////////////////DESCRIPTORS//////////////////////////
 
+// RESOURCES
+struct JSH_BUFFER_DESC
+{
+	uint32 ByteWidth;
+	JSH_USAGE Usage;
+	uint32 BindFlags;
+	uint32 CPUAccessFlags;
+	uint32 MiscFlags;
+	uint32 StructureByteStride;
+};
+
+struct JSH_SAMPLE_DESC
+{
+	uint32 Count;
+	uint32 Quality;
+};
+
+struct JSH_TEXTURE2D_DESC
+{
+	uint32 Width;
+	uint32 Height;
+	uint32 MipLevels;
+	uint32 ArraySize;
+	JSH_FORMAT Format;
+	JSH_SAMPLE_DESC SampleDesc;
+	JSH_USAGE Usage;
+	uint32 BindFlags;
+	uint32 CPUAccessFlags;
+	uint32 MiscFlags;
+};
+
+struct JSH_SUBRESOURCE_DATA
+{
+	const void* pSysMem;
+	uint32 SysMemPitch;
+	uint32 SysMemSlicePitch;
+};
+
+// INPUT LAYOUT
 struct JSH_INPUT_ELEMENT_DESC {
 	const char* semanticName;
 	uint32 semanticIndex;
@@ -233,4 +281,167 @@ struct JSH_INPUT_ELEMENT_DESC {
 	bool perVertexData;
 	uint32 alignedByteOffset;
 	uint32 instanceDataStepRate;
+};
+
+// SAMPLER
+enum JSH_COMPARISON_FUNC
+{
+	JSH_COMPARISON_NEVER = 1,
+	JSH_COMPARISON_LESS = 2,
+	JSH_COMPARISON_EQUAL = 3,
+	JSH_COMPARISON_LESS_EQUAL = 4,
+	JSH_COMPARISON_GREATER = 5,
+	JSH_COMPARISON_NOT_EQUAL = 6,
+	JSH_COMPARISON_GREATER_EQUAL = 7,
+	JSH_COMPARISON_ALWAYS = 8
+};
+
+struct JSH_SAMPLER_DESC
+{
+	JSH_FILTER Filter;
+	JSH_TEXTURE_ADDRESS_MODE AddressU;
+	JSH_TEXTURE_ADDRESS_MODE AddressV;
+	JSH_TEXTURE_ADDRESS_MODE AddressW;
+	float MipLODBias;
+	uint32 MaxAnisotropy;
+	JSH_COMPARISON_FUNC ComparisonFunc;
+	float BorderColor[4];
+	float MinLOD;
+	float MaxLOD;
+};
+
+// BLEND
+enum JSH_BLEND
+{
+	JSH_BLEND_ZERO = 1,
+	JSH_BLEND_ONE = 2,
+	JSH_BLEND_SRC_COLOR = 3,
+	JSH_BLEND_INV_SRC_COLOR = 4,
+	JSH_BLEND_SRC_ALPHA = 5,
+	JSH_BLEND_INV_SRC_ALPHA = 6,
+	JSH_BLEND_DEST_ALPHA = 7,
+	JSH_BLEND_INV_DEST_ALPHA = 8,
+	JSH_BLEND_DEST_COLOR = 9,
+	JSH_BLEND_INV_DEST_COLOR = 10,
+	JSH_BLEND_SRC_ALPHA_SAT = 11,
+	JSH_BLEND_BLEND_FACTOR = 14,
+	JSH_BLEND_INV_BLEND_FACTOR = 15,
+	JSH_BLEND_SRC1_COLOR = 16,
+	JSH_BLEND_INV_SRC1_COLOR = 17,
+	JSH_BLEND_SRC1_ALPHA = 18,
+	JSH_BLEND_INV_SRC1_ALPHA = 19
+};
+
+enum JSH_BLEND_OP
+{
+	JSH_BLEND_OP_ADD = 1,
+	JSH_BLEND_OP_SUBTRACT = 2,
+	JSH_BLEND_OP_REV_SUBTRACT = 3,
+	JSH_BLEND_OP_MIN = 4,
+	JSH_BLEND_OP_MAX = 5
+};
+
+struct JSH_RENDER_TARGET_BLEND_DESC
+{
+	bool BlendEnable;
+	JSH_BLEND SrcBlend;
+	JSH_BLEND DestBlend;
+	JSH_BLEND_OP BlendOp;
+	JSH_BLEND SrcBlendAlpha;
+	JSH_BLEND DestBlendAlpha;
+	JSH_BLEND_OP BlendOpAlpha;
+	uint8 RenderTargetWriteMask;
+};
+
+struct JSH_BLEND_DESC
+{
+	bool AlphaToCoverageEnable;
+	bool IndependentBlendEnable;
+	JSH_RENDER_TARGET_BLEND_DESC RenderTarget[8];
+};
+
+// DEPTHSTENCIL
+enum JSH_DEPTH_WRITE_MASK
+{
+	JSH_DEPTH_WRITE_MASK_ZERO = 0,
+	JSH_DEPTH_WRITE_MASK_ALL = 1
+};
+enum JSH_STENCIL_OP
+{
+	JSH_STENCIL_OP_KEEP = 1,
+	JSH_STENCIL_OP_ZERO = 2,
+	JSH_STENCIL_OP_REPLACE = 3,
+	JSH_STENCIL_OP_INCR_SAT = 4,
+	JSH_STENCIL_OP_DECR_SAT = 5,
+	JSH_STENCIL_OP_INVERT = 6,
+	JSH_STENCIL_OP_INCR = 7,
+	JSH_STENCIL_OP_DECR = 8
+};
+struct JSH_DEPTH_STENCILOP_DESC
+{
+	JSH_STENCIL_OP StencilFailOp;
+	JSH_STENCIL_OP StencilDepthFailOp;
+	JSH_STENCIL_OP StencilPassOp;
+	JSH_COMPARISON_FUNC StencilFunc;
+};
+struct JSH_DEPTH_STENCIL_DESC
+{
+	bool DepthEnable;
+	JSH_DEPTH_WRITE_MASK DepthWriteMask;
+	JSH_COMPARISON_FUNC DepthFunc;
+	bool StencilEnable;
+	uint8 StencilReadMask;
+	uint8 StencilWriteMask;
+	JSH_DEPTH_STENCILOP_DESC FrontFace;
+	JSH_DEPTH_STENCILOP_DESC BackFace;
+};
+
+// RASTERIZER
+enum JSH_FILL_MODE
+{
+	JSH_FILL_WIREFRAME = 2,
+	JSH_FILL_SOLID = 3
+};
+enum JSH_CULL_MODE
+{
+	JSH_CULL_NONE = 1,
+	JSH_CULL_FRONT = 2,
+	JSH_CULL_BACK = 3
+};
+struct JSH_RASTERIZER_DESC
+{
+	JSH_FILL_MODE FillMode;
+	JSH_CULL_MODE CullMode;
+	bool FrontCounterClockwise;
+	int32 DepthBias;
+	float DepthBiasClamp;
+	float SlopeScaledDepthBias;
+	bool DepthClipEnable;
+	bool ScissorEnable;
+	bool MultisampleEnable;
+	bool AntialiasedLineEnable;
+};
+
+// RENDER TARGET
+enum JSH_RTV_DIMENSION
+{
+	JSH_RTV_DIMENSION_UNKNOWN = 0,
+	JSH_RTV_DIMENSION_BUFFER = 1,
+	JSH_RTV_DIMENSION_TEXTURE1D = 2,
+	JSH_RTV_DIMENSION_TEXTURE1DARRAY = 3,
+	JSH_RTV_DIMENSION_TEXTURE2D = 4,
+	JSH_RTV_DIMENSION_TEXTURE2DARRAY = 5,
+	JSH_RTV_DIMENSION_TEXTURE2DMS = 6,
+	JSH_RTV_DIMENSION_TEXTURE2DMSARRAY = 7,
+	JSH_RTV_DIMENSION_TEXTURE3D = 8
+};
+struct JSH_TEX2D_RTV
+{
+	uint32 MipSlice;
+};
+struct JSH_RENDER_TARGET_VIEW_DESC
+{
+	JSH_FORMAT Format;
+	JSH_RTV_DIMENSION ViewDimension;
+	JSH_TEX2D_RTV Texture2D;
 };

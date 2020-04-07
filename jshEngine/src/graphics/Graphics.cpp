@@ -12,8 +12,6 @@ using namespace jsh;
 
 namespace jshGraphics {
 
-	float g_ClearScreenColor[] = {0.f, 0.f, 0.f, 1.f};
-
 	bool Initialize()
 	{
 		g_GraphicsAPI = JSH_GRAPHCS_API_DIRECTX11;
@@ -21,20 +19,17 @@ namespace jshGraphics {
 		bool result = jshGraphics_dx11::Initialize();
 
 		// default shaders
-		Shader solidShader;
-		solidShader.vs = jshGraphics::CreateVertexShader(L"SolidVertex.cso");
-		solidShader.ps = jshGraphics::CreatePixelShader(L"SolidPixel.cso");
-		jshGraphics::CreateShader("SolidShader", solidShader);
+		std::shared_ptr<Shader> solidShader = std::make_shared<Shader>();
+		jshGraphics::CreateVertexShader(L"SolidVertex.cso", &solidShader->vs);
+		jshGraphics::CreatePixelShader(L"SolidPixel.cso", &solidShader->ps);
+		jshGraphics::Save("SolidShader", solidShader);
 
-		Shader simpleTexShader;
-		simpleTexShader.vs = jshGraphics::CreateVertexShader(L"SimpleTexVertex.cso");
-		simpleTexShader.ps = jshGraphics::CreatePixelShader(L"SimpleTexPixel.cso");
-		jshGraphics::CreateShader("SimpleTexShader", simpleTexShader);
+		std::shared_ptr<Shader> simpleTexShader = std::make_shared<Shader>();
+		jshGraphics::CreateVertexShader(L"SimpleTexVertex.cso", &simpleTexShader->vs);
+		jshGraphics::CreatePixelShader(L"SimpleTexPixel.cso", &simpleTexShader->ps);
+		jshGraphics::Save("SimpleTexShader", simpleTexShader);
 
-		Shader skyboxShader;
-		skyboxShader.vs = jshGraphics::CreateVertexShader(L"SkyboxVertex.cso");
-		skyboxShader.ps = jshGraphics::CreatePixelShader(L"SkyboxPixel.cso");
-		jshGraphics::CreateShader("SkyboxShader", skyboxShader);
+		FrameBuffer::Initialize();
 
 		jshRenderer::Initialize();
 
@@ -53,9 +48,33 @@ namespace jshGraphics {
 		return jshGraphics_dx11::Close();
 	}
 
-	void Prepare()
+	void Begin()
 	{
-		jshGraphics_dx11::Prepare(g_ClearScreenColor);
+		jshGraphics_dx11::Begin();
+	}
+	void End()
+	{
+		jshGraphics_dx11::End();
+	}
+	void Present()
+	{
+		jshGraphics_dx11::Present();
+	}
+
+#ifdef JSH_IMGUI
+	void BeginImGui()
+	{
+		jshGraphics_dx11::BeginImGui();
+	}
+	void EndImGui(const RenderTargetView& rtv)
+	{
+		jshGraphics_dx11::EndImGui(rtv);
+	}
+#endif
+
+	CommandList BeginCommandList()
+	{
+		return jshGraphics_dx11::BeginCommandList();
 	}
 
 	JSH_GRAPHICS_API GetAPI()
@@ -63,35 +82,21 @@ namespace jshGraphics {
 		return g_GraphicsAPI;
 	}
 
-	void SetTopology(JSH_TOPOLOGY topology) {
-		jshGraphics_dx11::SetTopology(topology);
-	}
-
-	void SetClearScreenColor(float c)
-	{
-		g_ClearScreenColor[0] = c;
-		g_ClearScreenColor[1] = c;
-		g_ClearScreenColor[2] = c;
-	}
-
-	void SetClearScreenColor(float r, float g, float b)
-	{
-		g_ClearScreenColor[0] = r;
-		g_ClearScreenColor[1] = g;
-		g_ClearScreenColor[2] = b;
+	void SetTopology(JSH_TOPOLOGY topology, jsh::CommandList cmd) {
+		jshGraphics_dx11::SetTopology(topology, cmd);
 	}
 
 	///////////////GRAPHICS API//////////////////////////////////////
 
-	void UpdateConstantBuffer(jsh::Buffer buffer, void* data)
+	void UpdateConstantBuffer(jsh::Buffer buffer, void* data, CommandList cmd)
 	{
-		jshGraphics_dx11::UpdateConstantBuffer(buffer, data);
+		jshGraphics_dx11::UpdateConstantBuffer(buffer, data, cmd);
 	}
 
 	//////////////////DRAW CALLS//////////////////
-	void DrawIndexed(uint32 indicesCount)
+	void DrawIndexed(uint32 indicesCount, CommandList cmd)
 	{
-		jshGraphics_dx11::DrawIndexed(indicesCount);
+		jshGraphics_dx11::DrawIndexed(indicesCount, cmd);
 	}
 
 }

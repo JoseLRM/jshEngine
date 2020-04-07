@@ -36,7 +36,9 @@ namespace jshWindow {
 		{
 			// input
 			uint8 keyCode = (uint8)wParam;
-			if (keyCode > 255) jshLogW("Unknown keycode: %u", keyCode);
+			if (keyCode > 255) {
+				jshLogW("Unknown keycode: %u", keyCode);
+			}
 			else if (~lParam & (1 << 30)) jshInput::KeyDown(keyCode);
 
 			break;
@@ -46,7 +48,9 @@ namespace jshWindow {
 		{
 			// input
 			uint8 keyCode = (uint8)wParam;
-			if (keyCode > 255) jshLogW("Unknown keycode: %u", keyCode);
+			if (keyCode > 255) {
+				jshLogW("Unknown keycode: %u", keyCode);
+			}
 			else jshInput::KeyUp(keyCode);
 
 			break;
