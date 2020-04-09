@@ -6,9 +6,6 @@
 namespace jsh {
 
 	class State {
-	protected:
-		Scene m_Scene;
-
 	public:
 		State() = default;
 		virtual ~State() = default;
@@ -30,6 +27,7 @@ namespace jsh {
 #endif
 		bool ShowImGuiWindow()
 		{
+			// TODO: TEMPORAL
 			bool result = true;
 			if (ImGui::Begin("State", 0, ImGuiWindowFlags_MenuBar)) {
 
@@ -47,10 +45,10 @@ namespace jsh {
 				switch (m_ShowIndex)
 				{
 				case 1:
-					m_Scene.ShowEntityWindow();
+					jshEngine::GetScene().ShowEntityWindow();
 					break;
 				case 2:
-					m_Scene.ShowSystemsWindow();
+					jshEngine::GetScene().ShowSystemsWindow();
 					break;
 				}
 

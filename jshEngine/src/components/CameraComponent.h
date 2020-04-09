@@ -9,10 +9,6 @@ namespace jsh {
 		XMMATRIX m_ProjectionMatrix;
 		XMMATRIX m_ViewMatrix;
 
-		vec3 m_Position;
-		float m_Pitch;
-		float m_Yaw;
-
 		bool m_IsOrthographic = false;
 
 		// orthographic projection
@@ -23,6 +19,11 @@ namespace jsh {
 		float m_Fov;
 		float m_Near;
 		float m_Far;
+
+	public:
+		vec3 position;
+		float pitch;
+		float yaw;
 
 	public:
 		CameraComponent();
@@ -45,9 +46,9 @@ namespace jsh {
 	public:
 		void ShowInfo() override
 		{
-			ImGui::DragFloat3("Position", &m_Position.x, 1.f);
-			ImGui::DragFloat("Pitch", &m_Pitch, 0.25f);
-			ImGui::DragFloat("Yaw", &m_Yaw, 0.75f);
+			ImGui::DragFloat3("Position", &position.x, 1.f);
+			ImGui::DragFloat("Pitch", &pitch, 0.25f);
+			ImGui::DragFloat("Yaw", &yaw, 0.75f);
 			if (m_IsOrthographic) {
 				ImGui::DragFloat("Width", &m_Width, 1.f, 0.01f, FLT_MAX);
 				ImGui::DragFloat("Height", &m_Height, 1.f, 0.01f, FLT_MAX);

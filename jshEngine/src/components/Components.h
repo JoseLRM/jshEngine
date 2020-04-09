@@ -1,8 +1,6 @@
 #pragma once
 
-#include "2D/Transform2DComponent.h"
-
-#include "3D/Transform3DComponent.h"
-#include "3D/ModelComponent.h"
-
+#include "TransformComponent.h"
+#include "MeshComponent.h"
 #include "CameraComponent.h"
+#include "LightComponent.h"

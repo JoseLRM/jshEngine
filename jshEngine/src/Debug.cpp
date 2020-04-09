@@ -3,7 +3,7 @@
 #include "graphics/WinLib.h"
 
 #include "TaskSystem.h"
-#include "Application.h"
+#include "Engine.h"
 #include "State.h"
 
 namespace jshDebug {
@@ -90,8 +90,8 @@ namespace jshDebug {
 			g_ShowTaskSystem = jshTask::ShowImGuiWindow();
 		}
 		if (g_ShowState) {
-			jsh::State* state = jshApplication::GetCurrentState();
-			if (state) g_ShowState = jshApplication::GetCurrentState()->ShowImGuiWindow();
+			jsh::State* state = jshEngine::GetCurrentState();
+			if (state) g_ShowState = jshEngine::GetCurrentState()->ShowImGuiWindow();
 			else g_ShowState = false;
 		}
 		if(g_ShowImGuiDemo) ImGui::ShowDemoWindow(&g_ShowImGuiDemo);

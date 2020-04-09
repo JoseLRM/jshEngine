@@ -29,6 +29,11 @@ namespace jshGraphics {
 		jshGraphics::CreatePixelShader(L"SimpleTexPixel.cso", &simpleTexShader->ps);
 		jshGraphics::Save("SimpleTexShader", simpleTexShader);
 
+		std::shared_ptr<Shader> simpleColShader = std::make_shared<Shader>();
+		jshGraphics::CreateVertexShader(L"SimpleColVertex.cso", &simpleColShader->vs);
+		jshGraphics::CreatePixelShader(L"SimpleColPixel.cso", &simpleColShader->ps);
+		jshGraphics::Save("SimpleColShader", simpleColShader);
+
 		FrameBuffer::Initialize();
 
 		jshRenderer::Initialize();

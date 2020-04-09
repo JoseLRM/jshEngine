@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Application.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="src\Debug.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -84,12 +81,24 @@
     <ClCompile Include="src\Exception.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\components\TransformComponent.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\renderPasses\RenderPass.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\renderPasses\LambertianRenderPass.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\RenderGraph.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Application.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="include\jshEngine.h">
@@ -194,15 +203,6 @@
     <ClInclude Include="src\graphics\Renderer.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\components\2D\Transform2DComponent.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\components\3D\Transform3DComponent.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\components\3D\ModelComponent.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="src\components\CameraComponent.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -212,11 +212,39 @@
     <ClInclude Include="src\Exception.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\components\TransformComponent.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\renderPasses\RenderPass.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\renderPasses\LambertianRenderPass.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\components\MeshComponent.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\RenderGraph.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\components\LightComponent.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\SolidPixel.hlsl" />
     <FxCompile Include="shaders\SolidVertex.hlsl" />
     <FxCompile Include="shaders\SimpleTexVertex.hlsl" />
     <FxCompile Include="shaders\SimpleTexPixel.hlsl" />
+    <FxCompile Include="shaders\PostProcessVertex.hlsl" />
+    <FxCompile Include="shaders\SimpleColVertex.hlsl" />
+    <FxCompile Include="shaders\SimpleColPixel.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\Light.hlsli" />
+    <None Include="shaders\common.hlsli" />
   </ItemGroup>
 </Project>

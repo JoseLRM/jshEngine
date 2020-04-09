@@ -28,6 +28,11 @@ namespace jsh {
 			return;
 		}
 
+		if (m_DataFlags & JSH_RAW_DATA_COLORS) {
+			CreateSimpleCol();
+			return;
+		}
+
 		CreateSolid();
 	}
 
@@ -57,6 +62,12 @@ namespace jsh {
 		m_pIndexData = data;
 		m_IndexCount = indices;
 		if (data) m_DataFlags |= JSH_RAW_DATA_INDICES;
+	}
+
+	void RawData::SetColors(uint8* col)
+	{
+		m_pColorData = col;
+		if (col) m_DataFlags |= JSH_RAW_DATA_COLORS;
 	}
 
 	void RawData::SetTextureCoords(float* coords)
@@ -164,6 +175,68 @@ namespace jsh {
 				{"Position", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 0u, 0u},
 				{"Normal", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 3 * sizeof(float), 0u},
 				{"TexCoord", 0, JSH_FORMAT_R32G32_FLOAT, 0, true, 6 * sizeof(float), 0u}
+		};
+
+		m_VS = shader.vs;
+		m_PS = shader.ps;
+
+		jshGraphics::CreateInputLayout(desc, 3, m_VS, &m_InputLayout);
+
+		delete[] vData;
+	}
+
+	void RawData::CreateSimpleCol()
+	{
+		struct Vertex {
+			vec3 position;
+			vec3 normal;
+			uint8 color[4];
+		};
+		Vertex* vData = new Vertex[m_VertexCount];
+		for (uint32 i = 0; i < m_VertexCount; i++) {
+			vData[i].position.x = m_pPosData[i * 3u + 0];
+			vData[i].position.y = m_pPosData[i * 3u + 1];
+			vData[i].position.z = m_pPosData[i * 3u + 2];
+			vData[i].normal.x = m_pNorData[i * 3u + 0];
+			vData[i].normal.y = m_pNorData[i * 3u + 1];
+			vData[i].normal.z = m_pNorData[i * 3u + 2];
+			vData[i].color[0] = m_pColorData[i * 4u + 0];
+			vData[i].color[1] = m_pColorData[i * 4u + 1];
+			vData[i].color[2] = m_pColorData[i * 4u + 2];
+			vData[i].color[3] = m_pColorData[i * 4u + 3];
+		}
+
+		JSH_BUFFER_DESC vertexDesc;
+		vertexDesc.BindFlags = JSH_BIND_VERTEX_BUFFER;
+		vertexDesc.ByteWidth = m_VertexCount * sizeof(Vertex);
+		vertexDesc.CPUAccessFlags = 0u;
+		vertexDesc.MiscFlags = 0u;
+		vertexDesc.StructureByteStride = sizeof(Vertex);
+		vertexDesc.Usage = JSH_USAGE_IMMUTABLE;
+		JSH_SUBRESOURCE_DATA vertexSData;
+		vertexSData.pSysMem = vData;
+		jshGraphics::CreateBuffer(&vertexDesc, &vertexSData, &m_VertexBuffer);
+
+		JSH_BUFFER_DESC indexDesc;
+		indexDesc.BindFlags = JSH_BIND_INDEX_BUFFER;
+		indexDesc.ByteWidth = m_IndexCount * sizeof(uint32);
+		indexDesc.CPUAccessFlags = 0u;
+		indexDesc.MiscFlags = 0u;
+		indexDesc.StructureByteStride = sizeof(uint32);
+		indexDesc.Usage = JSH_USAGE_IMMUTABLE;
+		JSH_SUBRESOURCE_DATA indexSData;
+		indexSData.pSysMem = m_pIndexData;
+		jshGraphics::CreateBuffer(&indexDesc, &indexSData, &m_IndexBuffer);
+
+		assert(m_VertexBuffer.IsValid());
+		assert(m_IndexBuffer.IsValid());
+
+		const Shader& shader = *(Shader*)jshGraphics::Get("SimpleColShader");
+
+		const JSH_INPUT_ELEMENT_DESC desc[] = {
+				{"Position", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 0u, 0u},
+				{"Normal", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 3 * sizeof(float), 0u},
+				{"Color", 0, JSH_FORMAT_R8G8B8A8_UNORM, 0, true, 6 * sizeof(float), 0u}
 		};
 
 		m_VS = shader.vs;

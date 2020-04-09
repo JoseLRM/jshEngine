@@ -18,7 +18,7 @@ namespace jshRenderer {
 	void EndFrame();
 #endif
 
-	void DrawScene(jsh::Scene* pScene);
 	void SetCamera(jsh::CameraComponent* camera);
+	jsh::CameraComponent* GetMainCamera();
 
 }

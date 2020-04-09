@@ -139,9 +139,11 @@ namespace jshTask {
 	void Execute(TaskList* taskList)
 	{
 		g_ExecuteMutex.lock();
-		g_DoingTasks += uint32(taskList->tasks.size());
+		uint32 size = uint32(taskList->tasks.size());
+		g_DoingTasks += size;
 		g_TaskLists.push(taskList);
-		g_ConditionVariable.notify_all();
+		if (size == 1) g_ConditionVariable.notify_one();
+		else g_ConditionVariable.notify_all();
 		g_ExecuteMutex.unlock();
 	}
 

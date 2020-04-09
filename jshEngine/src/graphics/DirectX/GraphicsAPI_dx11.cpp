@@ -282,6 +282,7 @@ namespace jshGraphics_dx11 {
 
 			g_DeferredContext[cmd]->FinishCommandList(FALSE, g_CommandLists[cmd].GetAddressOf());
 			g_ImmediateContext->ExecuteCommandList(g_CommandLists[cmd].Get(), FALSE);
+			g_CommandLists[cmd].Reset();
 
 			g_FreeCommandLists.push(cmd);
 		}

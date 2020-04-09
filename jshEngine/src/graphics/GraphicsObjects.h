@@ -22,6 +22,7 @@ namespace jsh {
 	#define JSH_RAW_DATA_NORMALS		BIT(1)
 	#define JSH_RAW_DATA_TEX_COORDS		BIT(2)
 	#define JSH_RAW_DATA_INDICES		BIT(3)
+	#define JSH_RAW_DATA_COLORS			BIT(4)
 
 	class RawData {
 		JSH_RAW_DATA m_DataFlags;
@@ -31,6 +32,8 @@ namespace jsh {
 		uint32 m_VertexCount = 0u;
 
 		float* m_pTexCoordsData = nullptr;
+
+		uint8* m_pColorData = nullptr;
 
 		uint32* m_pIndexData = nullptr;
 		uint32 m_IndexCount = 0u;
@@ -52,6 +55,7 @@ namespace jsh {
 
 		// setters
 		void SetPositionsAndNormals(float* pos, float* nor, uint32 vertices);
+		void SetColors(uint8* col);
 		void SetIndices(uint32* data, uint32 indices);
 		void SetTextureCoords(float* coords);
 
@@ -67,6 +71,7 @@ namespace jsh {
 	private:
 		void CreateSolid();
 		void CreateSimpleTex();
+		void CreateSimpleCol();
 
 	};	
 
