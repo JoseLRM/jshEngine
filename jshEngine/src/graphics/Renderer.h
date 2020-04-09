@@ -4,7 +4,6 @@
 #include "GraphicsObjects.h"
 
 namespace jsh {
-	class Scene;
 	class CameraComponent;
 }
 

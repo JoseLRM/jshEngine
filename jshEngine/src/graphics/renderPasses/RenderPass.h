@@ -4,11 +4,14 @@
 
 namespace jsh {
 
+	class RenderGraph;
+
 	class RenderPass {
 	protected:
 		jsh::CommandList cmd;
 
 	public:
+		friend RenderGraph;
 		RenderPass();
 
 		virtual void Create() = 0;

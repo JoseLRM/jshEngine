@@ -15,7 +15,6 @@ namespace jshEngine {
 	bool g_Initialized = false;
 	bool g_Closed = false;
 	State* g_CurrentState = nullptr;
-	Scene g_Scene;
 
 #ifdef JSH_CONSOLE
 	namespace _DontTouchItxD {
@@ -59,7 +58,7 @@ namespace jshEngine {
 				return false;
 			});
 
-			GetScene().Create();
+			jshScene::Initialize();
 
 			if (initialState) {
 				g_CurrentState = initialState;
@@ -140,6 +139,8 @@ namespace jshEngine {
 			if (g_Closed) return false;
 			CloseState();
 
+			jshScene::Close();
+
 			if (!jshTask::Close()) return false;
 
 			if (!jshWindow::Close()) return false;
@@ -187,11 +188,6 @@ namespace jshEngine {
 	State* GetCurrentState()
 	{
 		return g_CurrentState;
-	}
-
-	Scene& GetScene()
-	{
-		return g_Scene;
 	}
 
 }

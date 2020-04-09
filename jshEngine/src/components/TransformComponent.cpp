@@ -102,13 +102,12 @@ namespace jsh {
 	void TransformComponent::UpdateWorldMatrix()
 	{
 		m_Modified = false;
-		Scene& scene = jshEngine::GetScene();
-		Entity parent = scene.GetEntityParent(entityID);
+		Entity parent = jshScene::GetEntityParent(entityID);
 
 		XMMATRIX m = GetLocalMatrix();
 
 		if (parent != INVALID_ENTITY) {
-			TransformComponent* parentComp = scene.GetComponent<TransformComponent>(scene.GetEntityParent(entityID));
+			TransformComponent* parentComp = jshScene::GetComponent<TransformComponent>(jshScene::GetEntityParent(entityID));
 			
 			if (parentComp) {
 				XMMATRIX mp = parentComp->GetWorldMatrix();

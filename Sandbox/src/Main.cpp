@@ -97,14 +97,12 @@ void State::Initialize()
 
 	mesh.diffuseMap = texture;
 
-	jsh::Scene& scene = jshEngine::GetScene();
+	jshScene::CreateEntity(jsh::NameComponent("Dragon"), jsh::TransformComponent(-5.f, -5.f, 20.f), jsh::MeshComponent(mesh));
+	jshScene::CreateSEntity(1, jsh::NameComponent("Pene"), jsh::TransformComponent(5.f, -5.f, 20.f), jsh::MeshComponent(terrain));
+	jsh::Entity cameraEntity = jshScene::CreateEntity(jsh::NameComponent("Camera"), jsh::CameraComponent(), jsh::LightComponent());
+	jshScene::CreateEntities(2, nullptr, jsh::NameComponent("Light"), jsh::TransformComponent(), jsh::LightComponent(), jsh::MeshComponent(peneModel.meshes[0]));
 
-	scene.CreateEntity(jsh::NameComponent("Dragon"), jsh::TransformComponent(-5.f, -5.f, 20.f), jsh::MeshComponent(mesh));
-	scene.CreateSEntity(1, jsh::NameComponent("Pene"), jsh::TransformComponent(5.f, -5.f, 20.f), jsh::MeshComponent(terrain));
-	jsh::Entity cameraEntity = scene.CreateEntity(jsh::NameComponent("Camera"), jsh::CameraComponent(), jsh::LightComponent());
-	scene.CreateEntities(2, nullptr, jsh::NameComponent("Light"), jsh::TransformComponent(), jsh::LightComponent(), jsh::MeshComponent(peneModel.meshes[0]));
-
-	jsh::CameraComponent* camera = scene.GetComponent<jsh::CameraComponent>(cameraEntity);
+	jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(cameraEntity);
 	camera->SetPerspectiveMatrix(70.f, 5.f, 2000.f);
 	jshRenderer::SetCamera(camera);
 

@@ -54,8 +54,8 @@ namespace jsh {
 		CameraComponent* camera = jshRenderer::GetMainCamera();
 		if (!camera) return;
 
-		jshEngine::GetScene().UpdateSystem(&m_MeshSystem, 0.f);
-		jshEngine::GetScene().UpdateSystem(&m_LightSystem, 0.f);
+		jshScene::UpdateSystem(&m_MeshSystem, 0.f);
+		jshScene::UpdateSystem(&m_LightSystem, 0.f);
 
 		FrameBuffer* fb = (FrameBuffer*)jshGraphics::Get("MainFrameBuffer");
 		fb->Bind(cmd);
@@ -94,7 +94,7 @@ namespace jsh {
 		m_LightSystem.Clear();
 	}
 
-	void MeshSystem::UpdateEntity(Scene& scene, Entity e, BaseComponent** comp, float dt)
+	void MeshSystem::UpdateEntity(Entity e, BaseComponent** comp, float dt)
 	{
 		TransformComponent* transform = (TransformComponent*) comp[0];
 		MeshComponent* meshComp = (MeshComponent*) comp[1];
@@ -102,7 +102,7 @@ namespace jsh {
 		pList->push_back({ meshComp->mesh, transform }, 10);
 	}
 
-	void LightSystem::UpdateEntity(Scene& scene, Entity e, BaseComponent** comp, float dt)
+	void LightSystem::UpdateEntity(Entity e, BaseComponent** comp, float dt)
 	{
 		TransformComponent* transform = (TransformComponent*)comp[0];
 		LightComponent* lightComp = (LightComponent*)comp[1];

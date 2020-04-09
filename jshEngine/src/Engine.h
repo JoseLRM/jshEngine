@@ -18,6 +18,4 @@ namespace jshEngine {
 	void LoadState(jsh::State* state);
 	jsh::State* GetCurrentState();
 
-	jsh::Scene& GetScene();
-
 }

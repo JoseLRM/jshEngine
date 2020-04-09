@@ -30,7 +30,7 @@ namespace jsh {
 
 		jsh::vector<MeshInstance>* pList;
 
-		void UpdateEntity(Scene& scene, Entity e, BaseComponent** comp, float dt) override;
+		void UpdateEntity(Entity e, BaseComponent** comp, float dt) override;
 	};
 	class LightSystem : public System {
 	public:
@@ -38,7 +38,7 @@ namespace jsh {
 		uint32 count = 0u;
 		LightData* pLightData;
 
-		void UpdateEntity(Scene& scene, Entity e, BaseComponent** comp, float dt) override;
+		void UpdateEntity(Entity e, BaseComponent** comp, float dt) override;
 		void Clear();
 	};
 

@@ -45,10 +45,10 @@ namespace jsh {
 				switch (m_ShowIndex)
 				{
 				case 1:
-					jshEngine::GetScene().ShowEntityWindow();
+					jshScene::ShowEntityWindow();
 					break;
 				case 2:
-					jshEngine::GetScene().ShowSystemsWindow();
+					jshScene::ShowSystemsWindow();
 					break;
 				}
 

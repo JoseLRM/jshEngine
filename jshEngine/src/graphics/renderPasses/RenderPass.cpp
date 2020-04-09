@@ -6,9 +6,7 @@ namespace jsh {
 
 	void RenderPass::Run()
 	{
-		cmd = jshGraphics::BeginCommandList();
 		Render();
-		cmd = 0u;
 	}
 
 }

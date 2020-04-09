@@ -11,9 +11,10 @@
 
 namespace jsh {
 
-	class Scene;
-
 	class System {
+#ifdef JSH_ENGINE
+	public:
+#endif
 		static uint32 s_SystemCount;
 
 		jsh::vector<uint16> m_RequestedComponents;
@@ -32,7 +33,6 @@ namespace jsh {
 		uint32 m_UpdatesCount = 0u;
 
 	public:
-		friend Scene;
 		System() {
 			m_SystemID = s_SystemCount++;
 			m_Name = "System " + std::to_string(m_SystemID);
@@ -43,8 +43,8 @@ namespace jsh {
 			m_Name = name;
 		}
 
-		virtual void UpdateEntity(Scene& scene, Entity entity, BaseComponent** components, float deltaTime) {}
-		virtual void UpdateEntities(Scene& scene, jsh::vector<BaseComponent**>& components, float deltaTime) {}
+		virtual void UpdateEntity(Entity entity, BaseComponent** components, float deltaTime) {}
+		virtual void UpdateEntities(jsh::vector<BaseComponent**>& components, float deltaTime) {}
 
 		inline bool IsIndividualSystem() const noexcept { return m_IndividualSystem; }
 		inline bool IsCollectiveSystem() const noexcept { return !m_IndividualSystem; }
