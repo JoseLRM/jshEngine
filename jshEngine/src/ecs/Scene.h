@@ -12,6 +12,10 @@ namespace jshScene {
 
 	namespace _internal {
 
+		jsh::vector<jsh::Entity>& GetEntitiesList();
+		std::vector<jsh::EntityData>& GetEntityDataList();
+		jsh::vector<jsh::vector<byte>>& GetComponentsList();
+
 		void AddComponent(jsh::Entity entity, jsh::BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept;
 		void AddComponents(jsh::vector<jsh::Entity>& entities, jsh::BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept;
 
@@ -104,7 +108,7 @@ namespace jshScene {
 		bool notAlloc = !entities;
 		if (notAlloc) entities = new jsh::vector<jsh::Entity>();
 		CreateSEntities(parent, cant, entities);
-		AddComponents(*entities, component, args...);
+		_internal::AddComponents(*entities, component, args...);
 		if (notAlloc) delete entities;
 	}
 
@@ -122,8 +126,8 @@ namespace jshScene {
 	namespace _internal {
 		void ImGuiAddEntity(jsh::Entity entity);
 	}
-	void ShowEntityWindow();
-	void ShowSystemsWindow();
+	bool ShowImGuiEntityWindow();
+	bool ShowImGuiSystemsWindow();
 #endif
 
 }

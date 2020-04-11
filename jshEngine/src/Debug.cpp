@@ -59,7 +59,8 @@ namespace jshDebug {
 
 #ifdef JSH_IMGUI
 	bool g_ShowTaskSystem = false;
-	bool g_ShowState = false;
+	bool g_ShowEntities = false;
+	bool g_ShowSystems = false;
 	bool g_ShowImGuiDemo = false;
 
 	void ShowImGuiWindow()
@@ -67,33 +68,24 @@ namespace jshDebug {
 		// MAIN MENU BAR
 		if (ImGui::BeginMainMenuBar()) {
 
-			if (ImGui::BeginMenu("Debug")) {
+			if (ImGui::Button("Task System")) g_ShowTaskSystem = !g_ShowTaskSystem;
+			if (ImGui::Button("Entities")) g_ShowEntities = !g_ShowEntities;
+			if (ImGui::Button("Systems")) g_ShowSystems = !g_ShowSystems;
 
-				if (ImGui::Button("Task System")) g_ShowTaskSystem = true;
-				if (ImGui::Button("State")) g_ShowState = true;
+			if (ImGui::Button("ImGui Demo")) g_ShowImGuiDemo = !g_ShowImGuiDemo;
 
-				ImGui::EndMenu();
-			}
-
-			if (ImGui::BeginMenu("ImGui Demo")) {
-
-				g_ShowImGuiDemo = true;
-
-				ImGui::EndMenu();
-			}
+			uint32 FPS = jshEngine::GetFPS();
+			ImVec4 col = { 0.f, 1.f, 0.f, 1.f };
+			if (FPS < 50u) col = { 1.f, 0.f, 0.f, 1.f };
+			ImGui::TextColored(col, ("FPS: " + std::to_string(jshEngine::GetFPS())).c_str());
 
 			ImGui::EndMainMenuBar();
 		}
 
 		// Systems
-		if (g_ShowTaskSystem) {
-			g_ShowTaskSystem = jshTask::ShowImGuiWindow();
-		}
-		if (g_ShowState) {
-			jsh::State* state = jshEngine::GetCurrentState();
-			if (state) g_ShowState = jshEngine::GetCurrentState()->ShowImGuiWindow();
-			else g_ShowState = false;
-		}
+		if (g_ShowTaskSystem) g_ShowTaskSystem = jshTask::ShowImGuiWindow();
+		if (g_ShowEntities) g_ShowEntities = jshScene::ShowImGuiEntityWindow();
+		if (g_ShowSystems) g_ShowSystems = jshScene::ShowImGuiSystemsWindow();
 		if(g_ShowImGuiDemo) ImGui::ShowDemoWindow(&g_ShowImGuiDemo);
 	}
 

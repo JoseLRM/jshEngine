@@ -60,7 +60,7 @@ float3 LoadLightColor(float3 position, float3 normal, float3 toCamera, float sIn
 	return LoadDiffuseColor(position, normal) + LoadSpecularColor(position, normal, toCamera, sIntensity, sShiny);
 }
 */
-float3 LoadLightColor(float3 position, float3 normal, float3 toCamera, float sIntensity, float sShiny)
+inline float3 LoadLightColor(float3 position, float3 normal, float3 toCamera, float sIntensity, float sShiny)
 {
 	float3 count = 0.f;
 	uint32 i = 0u;

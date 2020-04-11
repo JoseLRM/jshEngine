@@ -289,7 +289,7 @@ namespace jshGraphics_dx11 {
 	}
 	void Present()
 	{
-		g_SwapChain->Present(1u, 0u);
+		g_SwapChain->Present(0u, 0u);
 	}
 
 #ifdef JSH_IMGUI

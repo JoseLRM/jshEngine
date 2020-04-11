@@ -30,11 +30,20 @@ namespace jsh {
 	struct BlendState : public GraphicsPrimitive {};
 	struct RasterizerState : public GraphicsPrimitive {};
 
+	struct Bindable {
+		std::shared_ptr<GraphicsPrimitive> primitive;
+		JSH_PRIMITIVE_TYPE type = JSH_PRIMITIVE_INVALID;
+		uint32 param0;
+		uint8 param1;
+	};
+
 }
 
 namespace jshGraphics {
 
 	jsh::CommandList BeginCommandList();
+
+	void Bind(const jsh::Bindable& bindable, jsh::CommandList cmd);
 
 	/////////////////////////BUFFER//////////////////////
 	void CreateBuffer(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Buffer* buffer);

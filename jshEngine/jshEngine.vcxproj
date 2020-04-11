@@ -122,9 +122,9 @@
   <ItemGroup>
     <ClInclude Include="include\jshEngine.h" />
     <ClInclude Include="src\components\LightComponent.h" />
+    <ClInclude Include="src\components\MeshComponent.h" />
     <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\common.h" />
-    <ClInclude Include="src\components\MeshComponent.h" />
     <ClInclude Include="src\components\CameraComponent.h" />
     <ClInclude Include="src\components\Components.h" />
     <ClInclude Include="src\components\TransformComponent.h" />
@@ -144,6 +144,7 @@
     <ClInclude Include="src\graphics\GraphicsPrimitives.h" />
     <ClInclude Include="src\graphics\RenderGraph.h" />
     <ClInclude Include="src\graphics\renderPasses\LambertianRenderPass.h" />
+    <ClInclude Include="src\graphics\renderPasses\PostProcessingRenderPass.h" />
     <ClInclude Include="src\graphics\renderPasses\RenderPass.h" />
     <ClInclude Include="src\ImGui\imconfig.h" />
     <ClInclude Include="src\ImGui\imgui.h" />
@@ -174,6 +175,12 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.1</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.1</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="shaders\postProcess\PostProcessBlackAndWhite.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="shaders\SimpleColPixel.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

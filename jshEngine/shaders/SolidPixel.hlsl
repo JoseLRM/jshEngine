@@ -1,22 +1,8 @@
-cbuffer light {
+#include "Light.hlsli"
 
-	float4 lightPos;
-	float quadraticAtt;
-	float linearAtt;
-	float constantAtt;
-	float intensity;
-	float4 lightColor;
-
-};
-
-float4 main(float3 normal : FragNormal, float3 fragPos : FragPosition) : SV_TARGET
+float4 main(float3 normal : FragNormal, float3 fragPos : FragPosition, float3 toCamera : FragToCamera) : SV_TARGET
 {
-	float3 toLight = lightPos.xyz - fragPos;
-	float distance = length(toLight);
-	float diffuse = dot(normalize(toLight), normal);
+	float3 lightColor = LoadLightColor(fragPos, normal, toCamera, 2, 20);
 
-	diffuse = intensity * diffuse * (1.f / (quadraticAtt * distance * distance + linearAtt * distance + constantAtt));
-	diffuse = max(0.2f, diffuse);
-
-	return diffuse * float4(1.0f, 1.0f, 1.0f, 1.0f);
+	return float4(lightColor, 1.f);
 }

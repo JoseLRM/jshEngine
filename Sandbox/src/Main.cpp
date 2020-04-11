@@ -2,9 +2,6 @@
 
 struct State : public jsh::State {
 
-	jsh::Model peneModel;
-	jsh::Texture texture;
-
 	void Initialize() override;
 	void Update(float dt) override;
 	void Render() override;
@@ -22,10 +19,12 @@ int main()
 	return 0;
 }
 
-void CreateTerrain(jsh::Mesh* mesh) {
+jsh::Mesh* CreateTerrain() {
 
-	constexpr uint32 resolution = 100;
-	constexpr uint32 size = 1000;
+	jsh::Mesh* mesh = jshGraphics::CreateMesh("Terrain");
+
+	constexpr uint32 resolution = 10;
+	constexpr uint32 size = 100;
 	constexpr uint32 cantOfVertices = resolution * resolution;
 	constexpr uint32 cantOfIndices = (resolution-1) * (resolution-1) * 6;
 
@@ -46,7 +45,7 @@ void CreateTerrain(jsh::Mesh* mesh) {
 			jsh::vec3 normal;
 			Color color;
 			position.x = (float)x * offset - (float)size / 2.f;
-			position.y = sin((float)x) + cos((float)z);
+			position.y = sin((float)x/10) + cos((float)z/10);
 			position.z = (float)z * offset - (float)size / 2.f;
 			normal.x = 0.f;
 			normal.y = 1.f;
@@ -73,34 +72,30 @@ void CreateTerrain(jsh::Mesh* mesh) {
 		}
 	}
 
-	mesh->rawData = new jsh::RawData();
+	mesh->rawData = jshGraphics::CreateRawData("Terrain");
 	mesh->rawData->SetPositionsAndNormals((float*)positions, (float*)normals, cantOfVertices);
 	mesh->rawData->SetColors((uint8*)colors);
 	mesh->rawData->SetIndices(indices, cantOfIndices);
 	mesh->rawData->Create();
 
+	return mesh;
 }
 
 void State::Initialize()
 {
-	jshLoader::LoadModel("res/models/jose.obj", &peneModel);
-
-	std::shared_ptr<jsh::Model> dragonModel = std::make_shared<jsh::Model>();
-	jshLoader::LoadModel("res/models/fighter/fighter.obj", dragonModel.get());
+	CreateTerrain();
+	std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/", "jose.obj");
 	jshGraphics::Save("DragonModel", dragonModel);
 
-	jsh::Mesh mesh = ((jsh::Model*)jshGraphics::Get("DragonModel"))->meshes[0];
-	jsh::Mesh terrain;
-	CreateTerrain(&terrain);
-
+	jsh::Texture texture;
 	jshLoader::LoadTexture("res/models/pene.jpg", &texture);
 
-	mesh.diffuseMap = texture;
+	//dragonModel.mesh->SetDiffuseMap(texture);
 
-	jshScene::CreateEntity(jsh::NameComponent("Dragon"), jsh::TransformComponent(-5.f, -5.f, 20.f), jsh::MeshComponent(mesh));
-	jshScene::CreateSEntity(1, jsh::NameComponent("Pene"), jsh::TransformComponent(5.f, -5.f, 20.f), jsh::MeshComponent(terrain));
+	dragonModel->CreateEntity(jshScene::CreateEntity(jsh::NameComponent("Dragon"), jsh::TransformComponent(-5.f, -5.f, 20.f)));
+	jshScene::CreateEntity(jsh::NameComponent("Pene"), jsh::TransformComponent(5.f, -5.f, 20.f), jsh::MeshComponent("Terrain"));
 	jsh::Entity cameraEntity = jshScene::CreateEntity(jsh::NameComponent("Camera"), jsh::CameraComponent(), jsh::LightComponent());
-	jshScene::CreateEntities(2, nullptr, jsh::NameComponent("Light"), jsh::TransformComponent(), jsh::LightComponent(), jsh::MeshComponent(peneModel.meshes[0]));
+	jshScene::CreateEntity(jsh::TransformComponent(), jsh::LightComponent());
 
 	jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(cameraEntity);
 	camera->SetPerspectiveMatrix(70.f, 5.f, 2000.f);
@@ -113,25 +108,42 @@ void State::Update(float dt)
 {
 	jsh::CameraComponent* camera = jshRenderer::GetMainCamera();
 
-	float dir = 0.f;
+	uint8 front = 0u;
+	uint8 right = 0u;
 	float direction = camera->yaw;
 
 	if (jshInput::IsKey('W')) {
-		dir = direction;
+		front = 1;
 	}
 	if (jshInput::IsKey('S')) {
-		dir = direction + 180;
+		if (front) front = 0;
+		else front = 2;
 	}
 	if (jshInput::IsKey('D')) {
-		dir = direction + 90;
+		right = 1;
 	}
 	if (jshInput::IsKey('A')) {
-		dir = direction - 90;
+		if (right) right = 0;
+		else right = 2;
 	}
 
-	if (dir != 0.f) {
+	if (front || right) {
+		if (front == 1) {
+			if (right == 1) direction += 45u;
+			else if (right == 2) direction -= 45u;
+		}
+		else if (front == 2) {
+			if (right == 1) direction += 135u;
+			else if (right == 2) direction -= 135u;
+			else direction += 180u;
+		}
+		else {
+			if (right == 1) direction += 90u;
+			else direction -= 90u;
+		}
+
 		constexpr float force = 15.f;
-		jsh::vec2 forward(sin(ToRadians(dir)), cos(ToRadians(dir)));
+		jsh::vec2 forward(sin(ToRadians(direction)), cos(ToRadians(direction)));
 		forward.Normalize();
 		forward *= force * dt;
 		camera->position.x += forward.x;
@@ -140,10 +152,10 @@ void State::Update(float dt)
 
 	static bool actived = false;
 	if (jshInput::IsKeyPressed('C')) actived = !actived;
-	jshEvent::Register<jsh::MouseDraggedEvent>(JSH_EVENT_LAYER_DEFAULT, [this, camera](jsh::MouseDraggedEvent& e) {
+	jshEvent::Register<jsh::MouseDraggedEvent>(JSH_EVENT_LAYER_DEFAULT, [this, camera, dt](jsh::MouseDraggedEvent& e) {
 		if (actived) {
-			camera->yaw += (e.draggedX / (float)jshWindow::GetWidth()) * 360.f;
-			camera->pitch += (e.draggedY / (float)jshWindow::GetHeight()) * 200.f;
+			camera->yaw += ((float)e.draggedX / (float)jshWindow::GetWidth()) * 25000.f * dt;
+			camera->pitch += ((float)e.draggedY / (float)jshWindow::GetHeight()) * 16000.f * dt;
 		}
 
 		return false;
@@ -153,6 +165,7 @@ void State::Update(float dt)
 
 void State::Render()
 {
+	jsh::MeshComponent* meshComp = jshScene::GetComponent<jsh::MeshComponent>(1);
 }
 
 void State::Close()

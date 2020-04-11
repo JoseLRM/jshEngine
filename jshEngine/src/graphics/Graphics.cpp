@@ -34,6 +34,16 @@ namespace jshGraphics {
 		jshGraphics::CreatePixelShader(L"SimpleColPixel.cso", &simpleColShader->ps);
 		jshGraphics::Save("SimpleColShader", simpleColShader);
 
+		// post processing effects
+		std::shared_ptr<VertexShader> ppVertex = std::make_shared<VertexShader>();
+		jshGraphics::CreateVertexShader(L"PostProcessVertex.cso", ppVertex.get());
+		jshGraphics::Save("PostProcessVertex", ppVertex);
+
+		std::shared_ptr<PixelShader> bandwPP = std::make_shared<PixelShader>();
+		jshGraphics::CreatePixelShader(L"PostProcessBlackAndWhite.cso", bandwPP.get());
+		jshGraphics::Save("BlackAndWhitePP", bandwPP);
+
+
 		FrameBuffer::Initialize();
 
 		jshRenderer::Initialize();

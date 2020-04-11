@@ -7,10 +7,31 @@ namespace jsh {
 
 	struct MeshComponent : public Component<MeshComponent> {
 
-		Mesh mesh;
+		Mesh* mesh;
 
-		MeshComponent() : mesh() {}
-		MeshComponent(const Mesh& mesh) : mesh(mesh) {}
+		MeshComponent() {}
+		MeshComponent(Mesh* mesh) : mesh(mesh) {}
+		MeshComponent(const char* meshName) : mesh(jshGraphics::GetMesh(meshName)) {}
+
+#ifdef JSH_IMGUI
+	private:
+		bool diffuse = false;
+		bool normal = false;
+	public:
+		void ShowInfo() override
+		{
+			if (!mesh) return;
+			if (mesh->HasDiffuseMap()) {
+				ImGui::Checkbox("DiffuseMapping", &diffuse);
+				mesh->EnableDiffuseMap(diffuse);
+			}
+			if (mesh->HasNormalMap()) {
+				ImGui::Checkbox("NormalMapping", &normal);
+				mesh->EnableNormalMap(normal);
+			}
+		}
+#endif
+	
 	};
 	jshDefineComponent(MeshComponent);
 

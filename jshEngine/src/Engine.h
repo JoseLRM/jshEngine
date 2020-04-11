@@ -18,4 +18,10 @@ namespace jshEngine {
 	void LoadState(jsh::State* state);
 	jsh::State* GetCurrentState();
 
+	uint32 GetFPS();
+
+	// fixedUpdate methods
+	void SetFixedUpdateFrameRate(uint32 frameRate);
+	float GetFixedUpdateDeltaTime();
+
 }

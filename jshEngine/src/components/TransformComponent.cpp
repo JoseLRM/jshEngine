@@ -8,21 +8,10 @@ namespace jsh {
 	TransformComponent::TransformComponent() {}
 	TransformComponent::TransformComponent(float x, float y, float z) : m_LocalPosition(x, y, z) {}
 
-	vec3 TransformComponent::GetLocalRotationDXVE() const noexcept
-	{
-		XMVECTOR rot;
-		float r;
-		XMQuaternionToAxisAngle(&rot, &r, GetLocalRotationDXV());
-		return rot;
-	}
-	vec3 TransformComponent::GetLocalRotationE() const noexcept
-	{
-		return *(vec3*)&GetLocalRotationDXVE();
-	}
-
 	XMMATRIX TransformComponent::GetLocalMatrix() const noexcept
 	{
-		return XMMatrixScalingFromVector(GetLocalScaleDXV()) * XMMatrixRotationQuaternion(GetLocalRotationDXV())
+		XMVECTOR radRotation = XMVectorSet(ToRadians(m_LocalRotation.x), ToRadians(m_LocalRotation.y), ToRadians(m_LocalRotation.z), 1.f);
+		return XMMatrixScalingFromVector(GetLocalScaleDXV()) * XMMatrixRotationRollPitchYawFromVector(radRotation)
 			* XMMatrixTranslationFromVector(GetLocalPositionDXV());
 	}
 
@@ -31,10 +20,10 @@ namespace jsh {
 		if (m_Modified) UpdateWorldMatrix();
 		return *(vec3*)&m_WorldMatrix._41;
 	}
-	vec4 TransformComponent::GetWorldRotation() noexcept 
+	vec3 TransformComponent::GetWorldRotation() noexcept 
 	{ 
 		if (m_Modified) UpdateWorldMatrix();
-		return *(vec4*)&GetWorldRotationDXV(); 
+		return *(vec3*)&GetWorldRotationDXV(); 
 	}
 	vec3 TransformComponent::GetWorldScale() noexcept 
 	{ 
@@ -43,6 +32,7 @@ namespace jsh {
 	}
 	XMVECTOR TransformComponent::GetWorldPositionDXV() noexcept
 	{
+		if (m_Modified) UpdateWorldMatrix();
 		XMVECTOR scale;
 		XMVECTOR rotation;
 		XMVECTOR position;
@@ -53,16 +43,21 @@ namespace jsh {
 	}
 	XMVECTOR TransformComponent::GetWorldRotationDXV() noexcept
 	{
+		if (m_Modified) UpdateWorldMatrix();
 		XMVECTOR scale;
+		XMVECTOR quatRotation;
 		XMVECTOR rotation;
+		float angle;
 		XMVECTOR position;
 
-		XMMatrixDecompose(&scale, &rotation, &position, XMLoadFloat4x4(&m_WorldMatrix));
+		XMMatrixDecompose(&scale, &quatRotation, &position, XMLoadFloat4x4(&m_WorldMatrix));
+		XMQuaternionToAxisAngle(&rotation, &angle, quatRotation);
 
 		return rotation;
 	}
 	XMVECTOR TransformComponent::GetWorldScaleDXV() noexcept
 	{
+		if (m_Modified) UpdateWorldMatrix();
 		XMVECTOR scale;
 		XMVECTOR rotation;
 		XMVECTOR position;
@@ -83,15 +78,10 @@ namespace jsh {
 		m_Modified = true;
 		m_LocalPosition = *(XMFLOAT3*)&position;
 	}
-	void TransformComponent::SetRotation(const vec4& rotation) noexcept
+	void TransformComponent::SetRotation(const vec3& rotation) noexcept
 	{
 		m_Modified = true;
-		m_LocalRotation = *(XMFLOAT4*)&rotation;
-	}
-	void TransformComponent::SetRotationE(const vec3& rotation) noexcept
-	{
-		m_Modified = true;
-		m_LocalRotation = *(XMFLOAT4*)&XMQuaternionRotationRollPitchYawFromVector(XMVectorSet(rotation.x, rotation.y, rotation.z, 1.f));
+		m_LocalRotation = *(XMFLOAT3*)&rotation;
 	}
 	void TransformComponent::SetScale(const vec3& scale) noexcept
 	{
@@ -115,18 +105,32 @@ namespace jsh {
 			}
 		}
 		XMStoreFloat4x4(&m_WorldMatrix, m);
+
+		// Set all the sons modified
+		EntityData& entityData = jshScene::_internal::GetEntityDataList()[entityID];
+		if (entityData.sonsCount == 0) return;
+
+		auto& entities = jshScene::_internal::GetEntitiesList();
+		for (uint32 i = 0; i < entityData.sonsCount; ++i) {
+			TransformComponent* transform = jshScene::GetComponent<TransformComponent>(entities[entityData.handleIndex + 1 + i]);
+			if (transform) transform->m_Modified = true;
+		}
+
 	}
 
 #ifdef JSH_IMGUI
 	void TransformComponent::ShowInfo()
 	{
-		m_Modified = true;
 		ImGui::DragFloat3("Position", &m_LocalPosition.x, 0.75f);
-		vec3 rotation = GetLocalRotationE();
-		ImGui::DragFloat3("Rotation", &rotation.x, 0.25f);
+		ImGui::DragFloat3("Rotation", &m_LocalRotation.x, 0.25f);
 		ImGui::DragFloat3("Scale", &m_LocalScale.x, 0.25f);
 
-		SetRotationE(rotation);
+		if (ImGui::Button("Reset")) {
+			m_LocalRotation = { 0.f, 0.f, 0.f };
+			m_LocalScale = { 1.f, 1.f, 1.f };
+		}
+
+		UpdateWorldMatrix();
 	}
 #endif
 

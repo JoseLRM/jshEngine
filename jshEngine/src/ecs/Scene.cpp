@@ -19,6 +19,19 @@ namespace jshScene {
 	std::mutex g_UpdatedSystemsMutex;
 
 	namespace _internal {
+		jsh::vector<jsh::Entity>& GetEntitiesList()
+		{
+			return g_Entities;
+		}
+		std::vector<jsh::EntityData>& GetEntityDataList()
+		{
+			return g_EntityData;
+		}
+		jsh::vector<jsh::vector<byte>>& GetComponentsList()
+		{
+			return g_Components;
+		}
+
 		BaseComponent* GetComponent(jsh::Entity e, uint16 componentID) noexcept
 		{
 			jsh::EntityData& entity = g_EntityData[e];
@@ -741,65 +754,74 @@ namespace jshScene {
 		}
 	}
 
-	void ShowEntityWindow()
+	bool ShowImGuiEntityWindow()
 	{
-		ImGui::Columns(2);
+		bool result = true;
+		if (ImGui::Begin("Entities")) {
+			ImGui::Columns(2);
 
-		for (size_t i = 1; i < g_Entities.size(); ++i) {
+			for (size_t i = 1; i < g_Entities.size(); ++i) {
 
-			Entity entity = g_Entities[i];
-			EntityData& entityData = g_EntityData[entity];
+				Entity entity = g_Entities[i];
+				EntityData& entityData = g_EntityData[entity];
 
-			if (entityData.parent == INVALID_ENTITY) {
-				ImGuiAddEntity(entity);
-				i += entityData.sonsCount;
+				if (entityData.parent == INVALID_ENTITY) {
+					ImGuiAddEntity(entity);
+					i += entityData.sonsCount;
+				}
+
 			}
 
+			if (m_SelectedEntity < 0 || m_SelectedEntity >= g_Entities.size()) m_SelectedEntity = INVALID_ENTITY;
+
+			ImGui::NextColumn();
+
+			if (m_SelectedEntity != INVALID_ENTITY) {
+
+				NameComponent* nameComponent = (NameComponent*)GetComponent(m_SelectedEntity, NameComponent::ID);
+				if (nameComponent) {
+					ImGui::Text(nameComponent->name);
+				}
+				else {
+					ImGui::Text(("Entity " + std::to_string(m_SelectedEntity)).c_str());
+				}
+
+
+				EntityData& entityData = g_EntityData[m_SelectedEntity];
+
+				for (auto& it : entityData.m_Indices) {
+
+					uint16 compID = it.first;
+					size_t index = it.second;
+
+					BaseComponent* comp = (BaseComponent*)(&(g_Components[compID][index]));
+					comp->ShowInfo();
+
+				}
+			}
+
+			ImGui::NextColumn();
+			if (ImGui::Button("Close")) result = false;
 		}
-
-		if (m_SelectedEntity < 0 || m_SelectedEntity >= g_Entities.size()) m_SelectedEntity = INVALID_ENTITY;
-
-		ImGui::NextColumn();
-
-		if (m_SelectedEntity != INVALID_ENTITY) {
-
-			NameComponent* nameComponent = (NameComponent*)GetComponent(m_SelectedEntity, NameComponent::ID);
-			if (nameComponent) {
-				ImGui::Text(nameComponent->name);
-			}
-			else {
-				ImGui::Text(("Entity " + std::to_string(m_SelectedEntity)).c_str());
-			}
-
-
-			EntityData& entityData = g_EntityData[m_SelectedEntity];
-
-			for (auto& it : entityData.m_Indices) {
-
-				uint16 compID = it.first;
-				size_t index = it.second;
-
-				BaseComponent* comp = (BaseComponent*)(&(g_Components[compID][index]));
-				comp->ShowInfo();
-
-			}
-		}
-
-		ImGui::NextColumn();
-
+		ImGui::End();
+		return result;
 	}
 
-	void ShowSystemsWindow()
+	bool ShowImGuiSystemsWindow()
 	{
+		bool result = true;
+		if (ImGui::Begin("Systems")) {
+			for (uint32 i = 0; i < g_UpdatedSystems.size(); ++i) {
+				System* system = g_UpdatedSystems[i];
 
-		for (uint32 i = 0; i < g_UpdatedSystems.size(); ++i) {
-			System* system = g_UpdatedSystems[i];
+				ImGui::Text(("[" + std::string(system->GetName()) + "] -> " +
+					std::to_string(system->m_TimeCount / system->m_UpdatesCount)).c_str());
 
-			ImGui::Text(("[" + std::string(system->GetName()) + "] -> " +
-				std::to_string(system->m_TimeCount / system->m_UpdatesCount)).c_str());
-
+			}
+			if (ImGui::Button("Close")) result = false;
 		}
-
+		ImGui::End();
+		return result;
 	}
 
 #endif

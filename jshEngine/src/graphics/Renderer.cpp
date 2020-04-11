@@ -7,6 +7,7 @@
 #include "..//Engine.h"
 
 #include "renderPasses/LambertianRenderPass.h"
+#include "renderPasses/PostProcessingRenderPass.h"
 #include "RenderGraph.h"
 
 using namespace jsh;
@@ -21,7 +22,11 @@ namespace jshRenderer {
 			LambertianRenderPass* lambertianPass = new LambertianRenderPass();
 			lambertianPass->Create();
 
+			PostProcessingRenderPass* ppPass = new PostProcessingRenderPass();
+			ppPass->Create();
+
 			AddPass(lambertianPass);
+			AddPass(ppPass);
 		}
 	};
 

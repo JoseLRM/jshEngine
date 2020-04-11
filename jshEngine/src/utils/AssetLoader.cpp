@@ -12,9 +12,9 @@
 namespace jshLoader
 {
 
-	void LoadMesh(const aiMesh* aimesh, aiMaterial** const materials, jsh::Mesh* mesh)
+	void LoadMesh(const aiMesh* aimesh, aiMaterial** const materials, jsh::Mesh* mesh, const char* path, const char* meshName)
 	{
-		mesh->rawData = new jsh::RawData();
+		mesh->rawData = jshGraphics::CreateRawData(meshName);
 		// vertex buffer
 		aiVector3D* vertices = aimesh->mVertices;
 		aiVector3D* normals = aimesh->mNormals;
@@ -44,10 +44,11 @@ namespace jshLoader
 
 		const aiMaterial* material = materials[aimesh->mMaterialIndex];
 		if (material->GetTextureCount(aiTextureType_DIFFUSE) != 0) {
-			aiString path;
-			material->GetTexture(aiTextureType_DIFFUSE, 0, &path);
+			aiString path0;
+			material->GetTexture(aiTextureType_DIFFUSE, 0, &path0);
 			jsh::Texture diffuseMap;
-			jshLoader::LoadTexture(path.C_Str(), &diffuseMap);
+			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &diffuseMap);
+			mesh->SetDiffuseMap(diffuseMap);
 		}
 
 		// mesh creation
@@ -59,10 +60,11 @@ namespace jshLoader
 		if (textureCoords) delete[] textureCoords;
 	}
 
-	bool LoadModel(const char* path, jsh::Model* model)
+	std::shared_ptr<jsh::Model> LoadModel(const char* path, const char* name)
 	{
+		auto model = std::make_shared<jsh::Model>();
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate);
+		const aiScene* scene = importer.ReadFile((std::string(path) + name).c_str(), aiProcess_Triangulate);
 
 		if (!scene || !scene->HasMeshes()) {
 			jshLogE("Empty model %s", path);
@@ -70,7 +72,7 @@ namespace jshLoader
 		}
 
 		uint32 numOfMeshes = scene->mNumMeshes;
-		model->meshes.reserve(numOfMeshes);
+		model->sons.reserve(numOfMeshes-1);
 
 		for (uint32 i = 0; i < numOfMeshes; ++i) {
 			const aiMesh* mesh = scene->mMeshes[i];
@@ -80,12 +82,24 @@ namespace jshLoader
 				continue;
 			}
 
-			jsh::Mesh m;
-			LoadMesh(mesh, scene->mMaterials, &m);
-			model->meshes.push_back_nr(m);
+			if (i == 0) {
+				std::string meshName;
+				if (numOfMeshes == 1) meshName = name;
+				else meshName = std::string(name) + "[0]";
+
+				model->mesh = jshGraphics::CreateMesh(meshName.c_str());
+				LoadMesh(mesh, scene->mMaterials, model->mesh, path, meshName.c_str());
+				continue;
+			}
+			jsh::MeshNode node;
+			std::stringstream meshName;
+			meshName << name << "[" << std::to_string(i) << "]";
+			node.mesh = jshGraphics::CreateMesh(meshName.str().c_str());
+			LoadMesh(mesh, scene->mMaterials, node.mesh, path, meshName.str().c_str());
+			model->sons.push_back_nr(node);
 		}
 
-		return true;
+		return model;
 	}
 
 	bool LoadTexture(const char* path, jsh::Texture* texture)

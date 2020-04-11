@@ -21,7 +21,7 @@ namespace jsh {
 	};
 
 	struct MeshInstance {
-		Mesh mesh;
+		Mesh* mesh;
 		TransformComponent* pTransform;
 	};
 

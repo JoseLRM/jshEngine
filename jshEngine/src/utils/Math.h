@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <cmath>
 #include <DirectXMath.h>
 
 using namespace DirectX;

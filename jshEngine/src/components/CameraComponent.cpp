@@ -6,7 +6,7 @@ namespace jsh {
 
 	CameraComponent::CameraComponent() : m_ProjectionMatrix(), m_ViewMatrix(), 
 		position(), pitch(0.f), yaw(0.f),
-		m_Width(100.f), m_Height(100.f), m_Fov(70.f), m_Near(5.f), m_Far(2000.f) {
+		m_Width(100.f), m_Height(100.f), m_Fov(70.f), m_Near(0.1f), m_Far(2000.f) {
 		SetPerspectiveMatrix(m_Fov, m_Near, m_Far);
 	}
 

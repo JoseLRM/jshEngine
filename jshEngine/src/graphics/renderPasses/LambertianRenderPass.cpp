@@ -83,11 +83,11 @@ namespace jsh {
 
 		for (uint32 i = 0; i < m_Instances.size(); ++i) {
 			MeshInstance& instance = m_Instances[i];
-			instance.mesh.Bind(cmd);
+			instance.mesh->Bind(cmd);
 			m_MatrixData.tm = XMMatrixTranspose(instance.pTransform->GetWorldMatrix());
 
 			jshGraphics::UpdateConstantBuffer(m_MatrixBuffer, &m_MatrixData, cmd);
-			jshGraphics::DrawIndexed(instance.mesh.rawData->GetIndexCount(), cmd);
+			jshGraphics::DrawIndexed(instance.mesh->rawData->GetIndexCount(), cmd);
 		}
 
 		m_Instances.clear(false);
@@ -99,6 +99,7 @@ namespace jsh {
 		TransformComponent* transform = (TransformComponent*) comp[0];
 		MeshComponent* meshComp = (MeshComponent*) comp[1];
 
+		meshComp->mesh->UpdatePrimitives();
 		pList->push_back({ meshComp->mesh, transform }, 10);
 	}
 

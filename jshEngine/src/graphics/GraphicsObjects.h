@@ -4,6 +4,8 @@
 #include "..//utils/dataStructures/vector.h"
 
 namespace jsh {
+
+	typedef uint32 Entity;
 		
 	// TODO: Material
 	// TODO: Light
@@ -14,7 +16,7 @@ namespace jsh {
 		PixelShader ps;
 	};
 
-	// Mesh
+	////////////////////////////RAWDATA//////////////////////////////
 	typedef uint16 JSH_RAW_DATA;
 
 	#define JSH_RAW_DATA_NONE			0
@@ -26,6 +28,7 @@ namespace jsh {
 
 	class RawData {
 		JSH_RAW_DATA m_DataFlags;
+		uint8 m_CreationType = 0u;
 
 		float* m_pPosData = nullptr;
 		float* m_pNorData = nullptr;
@@ -43,12 +46,12 @@ namespace jsh {
 		// graphics primitives
 		jsh::Buffer m_VertexBuffer;
 		jsh::Buffer m_IndexBuffer;
-		jsh::InputLayout m_InputLayout;
-		jsh::VertexShader m_VS;
-		jsh::PixelShader m_PS;
 
+#ifdef JSH_ENGINE
 	public:
+#endif
 		RawData();
+	public:
 		void Create();
 
 		void Bind(jsh::CommandList cmd);
@@ -65,6 +68,8 @@ namespace jsh {
 			return IsCreated() ? true : m_DataFlags != JSH_RAW_DATA_NONE &&
 				(m_DataFlags & JSH_RAW_DATA_POSITIONS && m_DataFlags & JSH_RAW_DATA_NORMALS && m_DataFlags & JSH_RAW_DATA_INDICES);
 		}
+		inline JSH_RAW_DATA GetFlags() const noexcept { return m_DataFlags; }
+		bool CreateInputLayout(jsh::InputLayout* il, jsh::VertexShader& vs) const noexcept;
 
 		inline uint32 GetIndexCount() const noexcept { return m_IndexCount; }
 
@@ -75,26 +80,62 @@ namespace jsh {
 
 	};	
 
+	////////////////////////////MESH//////////////////////////////
 	class Mesh {
+		Texture m_DiffuseMap;
+		SamplerState m_DiffuseSamplerState;
+		Texture m_NormalMap;
+		SamplerState m_NormalSamplerState;
+
+		InputLayout m_InputLayout;
+		VertexShader m_VShader;
+		PixelShader m_PShader;
+
+		bool m_EnabledDiffuseMap = false;
+		bool m_EnabledNormalMap = false;
+
+		bool m_Modified = true;
+
+#ifdef JSH_ENGINE
+	public:
+#endif
+		Mesh();
 	public:
 		RawData* rawData;
-		Texture diffuseMap;
 
-	public:
-		Mesh();
-		Mesh(RawData* rawData);
-		Mesh(RawData* rawData, Texture diffuseMap);
+		inline void UpdatePrimitives() noexcept { if (m_Modified) Update(); }
+		void Bind(jsh::CommandList cmd);
 
-		void Bind(jsh::CommandList cmd) noexcept;
+		void SetDiffuseMap(Texture tex, SamplerState* state = nullptr) noexcept;
+		void SetNormalMap(Texture tex, SamplerState* state = nullptr) noexcept;
 
+		void EnableDiffuseMap(bool enable) noexcept;
+		void EnableNormalMap(bool enable) noexcept;
+
+		bool HasDiffuseMap() const noexcept { return m_DiffuseMap.IsValid(); }
+		bool HasNormalMap() const noexcept { return m_NormalMap.IsValid(); }
+
+	private:
+		void Update() noexcept;
 	};
 
-	class Model {
+	////////////////////////////MODEL//////////////////////////////
+	struct MeshNode {
+		Mesh* mesh;
+		jsh::vector<MeshNode> sons;
+	};
+
+	class Model : public MeshNode {
 	public:
+
 		Model();
-		jsh::vector<Mesh> meshes;
+		void CreateEntity(jsh::Entity entity) noexcept;
+
+	private:
+		void AddNode(jsh::Entity parent, MeshNode* node) noexcept;
 	};
 
+	////////////////////////////FRAMEBUFFER//////////////////////////////
 	class FrameBuffer {
 		static jsh::DepthStencilState s_NullDST;
 		static jsh::DepthStencilState s_DepthDST;
@@ -149,6 +190,13 @@ namespace jshGraphics {
 
 	void Save(const char* name, std::shared_ptr<void> data);
 	void* Get(const char* name);
+
+	jsh::Mesh* CreateMesh(const char* name);
+	jsh::RawData* CreateRawData(const char* name);
+	jsh::Mesh* GetMesh(const char* name);
+	jsh::RawData* GetRawData(const char* name);
+	void RemoveMesh(const char* name);
+	void RemoveRawData(const char* name);
 
 }
 

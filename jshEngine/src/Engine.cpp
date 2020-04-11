@@ -12,10 +12,6 @@ using namespace jsh;
 
 namespace jshEngine {
 
-	bool g_Initialized = false;
-	bool g_Closed = false;
-	State* g_CurrentState = nullptr;
-
 #ifdef JSH_CONSOLE
 	namespace _DontTouchItxD {
 		struct ConsoleController {
@@ -28,6 +24,13 @@ namespace jshEngine {
 	}
 #endif 
 
+	bool g_Initialized = false;
+	bool g_Closed = false;
+	State* g_CurrentState = nullptr;
+	uint32 g_FPS = 0u;
+	uint32 g_FixedUpdateFrameRate;
+	float g_FixedUpdateDeltaTime;
+
 	bool Initialize(State* initialState)
 	{
 		if (g_Initialized) return false;
@@ -39,6 +42,8 @@ namespace jshEngine {
 				jshLogE("Can't initialize jshTaskSystem");
 				return false;
 			}
+
+			SetFixedUpdateFrameRate(60u);
 
 			if (!jshWindow::Initialize()) {
 				jshLogE("Can't initialize jshWindow");
@@ -64,7 +69,6 @@ namespace jshEngine {
 				g_CurrentState = initialState;
 				initialState->Initialize();
 			}
-
 			jshLogI("jshEngine initialized");
 			g_Initialized = true;
 		}
@@ -93,6 +97,10 @@ namespace jshEngine {
 			Time deltaTime = lastTime;
 			Time actualTime = 0.f;
 
+			const float SHOW_FPS_RATE = 0.1f;
+			float dtCount = 0.f;
+			uint32 fpsCount = 0u;
+
 			float fixedUpdateCount = 0.f;
 
 			while (jshWindow::UpdateInput()) {
@@ -119,6 +127,14 @@ namespace jshEngine {
 
 				}
 
+				// FPS count
+				dtCount += deltaTime;
+				fpsCount++;
+				if (dtCount >= SHOW_FPS_RATE) {
+					g_FPS = (float)fpsCount / (float)SHOW_FPS_RATE;
+					fpsCount = 0u;
+					dtCount -= SHOW_FPS_RATE;
+				}
 			}
 		}
 		catch (jsh::Exception e) {
@@ -188,6 +204,21 @@ namespace jshEngine {
 	State* GetCurrentState()
 	{
 		return g_CurrentState;
+	}
+
+	uint32 GetFPS()
+	{
+		return g_FPS;
+	}
+
+	void SetFixedUpdateFrameRate(uint32 frameRate)
+	{
+		g_FixedUpdateFrameRate = frameRate;
+		g_FixedUpdateDeltaTime = 1.f / (float)frameRate;
+	}
+	float GetFixedUpdateDeltaTime()
+	{
+		return g_FixedUpdateDeltaTime;
 	}
 
 }
