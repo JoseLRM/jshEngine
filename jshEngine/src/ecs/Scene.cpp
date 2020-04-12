@@ -35,15 +35,15 @@ namespace jshScene {
 		BaseComponent* GetComponent(jsh::Entity e, uint16 componentID) noexcept
 		{
 			jsh::EntityData& entity = g_EntityData[e];
-			auto it = entity.m_Indices.find(componentID);
-			if (it != entity.m_Indices.end()) return (BaseComponent*)(&(g_Components[componentID][it->second]));
+			auto it = entity.indices.find(componentID);
+			if (it != entity.indices.end()) return (BaseComponent*)(&(g_Components[componentID][it->second]));
 
 			return nullptr;
 		}
 		BaseComponent* GetComponent(const jsh::EntityData& entity, uint16 componentID) noexcept
 		{
-			auto it = entity.m_Indices.find(componentID);
-			if (it != entity.m_Indices.end()) return (BaseComponent*)(&(g_Components[componentID][it->second]));
+			auto it = entity.indices.find(componentID);
+			if (it != entity.indices.end()) return (BaseComponent*)(&(g_Components[componentID][it->second]));
 
 			return nullptr;
 		}
@@ -102,6 +102,7 @@ namespace jshScene {
 			g_EntityData.push_back(entityData);
 		}
 		
+		g_EntityData[entity].transform.entity = entity;
 		g_Entities.push_back(entity, 10u);
 		return entity;
 	}
@@ -118,6 +119,7 @@ namespace jshScene {
 
 			EntityData& entityData = g_EntityData[entity];
 			entityData.handleIndex = entityIndex++;
+			entityData.transform.entity = entity;
 
 			g_Entities.push_back_nr(entity);
 			if (entities) entities->push_back_nr(entity);
@@ -126,11 +128,12 @@ namespace jshScene {
 		g_EntityData.reserve(cant);
 		Entity beginEntity = Entity(g_EntityData.size());
 		for (uint32 i = 0; i < cant; ++i) {
+			Entity entity = beginEntity + i;
+			g_Entities.push_back(entity);
 			EntityData ed;
 			ed.handleIndex = entityIndex + i;
 			g_EntityData.push_back(ed);
-			Entity entity = beginEntity + i;
-			g_Entities.push_back(entity);
+			ed.transform.entity = entity;
 			if (entities) entities->push_back_nr(entity);
 		}
 	}
@@ -168,6 +171,7 @@ namespace jshScene {
 		entityData.parent = parent;
 		size_t index = parentData.handleIndex + parentData.sonsCount;
 		entityData.handleIndex = index;
+		entityData.transform.entity = entity;
 
 		// special case, the parent and sons are in back of the list
 		if (index == g_Entities.size()) {
@@ -229,6 +233,7 @@ namespace jshScene {
 			EntityData& entityData = g_EntityData[entity];
 			entityData.handleIndex = entityIndex++;
 			entityData.parent = parent;
+			entityData.transform.entity = entity;
 			g_Entities[entityData.handleIndex] = entity;
 			if (entities) entities->push_back_nr(entity);
 		}
@@ -241,6 +246,7 @@ namespace jshScene {
 			EntityData ed;
 			ed.handleIndex = entityIndex + i;
 			ed.parent = parent;
+			ed.transform.entity = entity;
 			g_EntityData.push_back(ed);
 			g_Entities[ed.handleIndex] = entity;
 			if (entities) entities->push_back_nr(entity);
@@ -309,6 +315,11 @@ namespace jshScene {
 		return g_EntityData[entity].parent;
 	}
 
+	jsh::Transform& GetTransform(jsh::Entity entity)
+	{
+		return g_EntityData[entity].transform;
+	}
+
 	////////////////////////////////COMPONENTS////////////////////////////////
 	namespace _internal {
 		void AddComponent(Entity entity, BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept
@@ -328,7 +339,7 @@ namespace jshScene {
 			memcpy(&list[index], comp, componentSize);
 
 			// set index in entity
-			g_EntityData[entity].m_Indices[componentID] = index;
+			g_EntityData[entity].indices[componentID] = index;
 		}
 
 		void AddComponents(jsh::vector<Entity>& entities, BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept
@@ -354,18 +365,18 @@ namespace jshScene {
 				BaseComponent* component = (BaseComponent*)(&list[currentIndex]);
 				component->entityID = currentEntity;
 				// set index in entity
-				g_EntityData[currentEntity].m_Indices[componentID] = currentIndex;
+				g_EntityData[currentEntity].indices[componentID] = currentIndex;
 			}
 		}
 
 		void RemoveComponent(Entity entity, uint16 componentID, size_t componentSize) noexcept
 		{
 			EntityData& entityData = g_EntityData[entity];
-			auto it = entityData.m_Indices.find(componentID);
-			if (it == entityData.m_Indices.end()) return;
+			auto it = entityData.indices.find(componentID);
+			if (it == entityData.indices.end()) return;
 
 			size_t index = (*it).second;
-			entityData.m_Indices.erase(it);
+			entityData.indices.erase(it);
 
 			auto& list = g_Components[componentID];
 
@@ -375,7 +386,7 @@ namespace jshScene {
 				memcpy(&list[index], &list[list.size() - componentSize], componentSize);
 
 				Entity otherEntity = ((BaseComponent*)(&list[index]))->entityID;
-				g_EntityData[otherEntity].m_Indices[componentID] = index;
+				g_EntityData[otherEntity].indices[componentID] = index;
 			}
 
 			list.sub_pos(componentSize);
@@ -385,7 +396,7 @@ namespace jshScene {
 		{
 			uint16 componentID;
 			size_t componentSize, index;
-			for (auto& it : entityData.m_Indices) {
+			for (auto& it : entityData.indices) {
 				componentID = it.first;
 				componentSize = g_ComponentsSize[componentID];
 				index = it.second;
@@ -396,12 +407,12 @@ namespace jshScene {
 					memcpy(&list[index], &list[list.size() - componentSize], componentSize);
 
 					Entity otherEntity = ((BaseComponent*)(&list[index]))->entityID;
-					g_EntityData[otherEntity].m_Indices[componentID] = index;
+					g_EntityData[otherEntity].indices[componentID] = index;
 				}
 
 				list.sub_pos(componentSize);
 			}
-			entityData.m_Indices.clear();
+			entityData.indices.clear();
 		}
 	}
 
@@ -789,7 +800,9 @@ namespace jshScene {
 
 				EntityData& entityData = g_EntityData[m_SelectedEntity];
 
-				for (auto& it : entityData.m_Indices) {
+				entityData.transform.ShowInfo();
+
+				for (auto& it : entityData.indices) {
 
 					uint16 compID = it.first;
 					size_t index = it.second;

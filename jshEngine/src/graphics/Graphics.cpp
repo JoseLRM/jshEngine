@@ -34,6 +34,11 @@ namespace jshGraphics {
 		jshGraphics::CreatePixelShader(L"SimpleColPixel.cso", &simpleColShader->ps);
 		jshGraphics::Save("SimpleColShader", simpleColShader);
 
+		std::shared_ptr<Shader> normalShader = std::make_shared<Shader>();
+		jshGraphics::CreateVertexShader(L"NormalVertex.cso", &normalShader->vs);
+		jshGraphics::CreatePixelShader(L"NormalPixel.cso", &normalShader->ps);
+		jshGraphics::Save("NormalShader", normalShader);
+
 		// post processing effects
 		std::shared_ptr<VertexShader> ppVertex = std::make_shared<VertexShader>();
 		jshGraphics::CreateVertexShader(L"PostProcessVertex.cso", ppVertex.get());

@@ -10,7 +10,6 @@ namespace jsh {
 	{
 		m_MeshSystem.pList = &m_Instances;
 
-		m_MeshSystem.AddRequestedComponents<TransformComponent>();
 		m_MeshSystem.AddRequestedComponents<MeshComponent>();
 
 		m_MeshSystem.SetIndividualSystem();
@@ -18,7 +17,6 @@ namespace jsh {
 
 		m_LightSystem.pLightData = &m_LightData;
 
-		m_LightSystem.AddRequestedComponents<TransformComponent>();
 		m_LightSystem.AddRequestedComponents<LightComponent>();
 
 		m_LightSystem.SetIndividualSystem();
@@ -68,6 +66,7 @@ namespace jsh {
 
 		SamplerState* st = (SamplerState*)jshGraphics::Get("DefaultSamplerState");
 		jshGraphics::BindSamplerState(*st, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
+		jshGraphics::BindSamplerState(*st, 1u, JSH_SHADER_TYPE_PIXEL, cmd);
 
 		Viewport* vp = (Viewport*)jshGraphics::Get("DefaultViewport");
 		jshGraphics::BindViewport(*vp, 0u, cmd);
@@ -96,8 +95,8 @@ namespace jsh {
 
 	void MeshSystem::UpdateEntity(Entity e, BaseComponent** comp, float dt)
 	{
-		TransformComponent* transform = (TransformComponent*) comp[0];
-		MeshComponent* meshComp = (MeshComponent*) comp[1];
+		MeshComponent* meshComp = (MeshComponent*) comp[0];
+		Transform* transform = &jshScene::GetTransform(e);
 
 		meshComp->mesh->UpdatePrimitives();
 		pList->push_back({ meshComp->mesh, transform }, 10);
@@ -105,8 +104,8 @@ namespace jsh {
 
 	void LightSystem::UpdateEntity(Entity e, BaseComponent** comp, float dt)
 	{
-		TransformComponent* transform = (TransformComponent*)comp[0];
-		LightComponent* lightComp = (LightComponent*)comp[1];
+		LightComponent* lightComp = (LightComponent*)comp[0];
+		Transform* transform = &jshScene::GetTransform(e);
 
 		lightComp->lightType = 1;
 

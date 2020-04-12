@@ -48,10 +48,22 @@ namespace jshLoader
 			material->GetTexture(aiTextureType_DIFFUSE, 0, &path0);
 			jsh::Texture diffuseMap;
 			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &diffuseMap);
-			mesh->SetDiffuseMap(diffuseMap);
+			if(diffuseMap.IsValid())
+				mesh->SetDiffuseMap(diffuseMap);
+		}
+		if (material->GetTextureCount(aiTextureType_NORMALS) != 0) {
+			aiString path0;
+			material->GetTexture(aiTextureType_NORMALS, 0, &path0);
+			jsh::Texture normalMap;
+			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &normalMap);
+			mesh->SetNormalMap(normalMap);
 		}
 
 		// mesh creation
+		if (aimesh->HasTangentsAndBitangents()) {
+			mesh->rawData->SetTangents((float*)aimesh->mTangents);
+			mesh->rawData->SetBitangents((float*)aimesh->mBitangents);
+		}
 		if (textureCoords) mesh->rawData->SetTextureCoords(textureCoords);
 		mesh->rawData->SetIndices(iData, indexCount);
 		mesh->rawData->SetPositionsAndNormals((float*)vertices, (float*)normals, aimesh->mNumVertices);
@@ -64,7 +76,7 @@ namespace jshLoader
 	{
 		auto model = std::make_shared<jsh::Model>();
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile((std::string(path) + name).c_str(), aiProcess_Triangulate);
+		const aiScene* scene = importer.ReadFile((std::string(path) + name).c_str(), aiProcess_Triangulate | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_ConvertToLeftHanded | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
 
 		if (!scene || !scene->HasMeshes()) {
 			jshLogE("Empty model %s", path);

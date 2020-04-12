@@ -21,11 +21,6 @@ namespace jsh {
 		float m_Far;
 
 	public:
-		vec3 position;
-		float pitch;
-		float yaw;
-
-	public:
 		CameraComponent();
 
 		void SetPerspectiveMatrix(float fov, float near, float far) noexcept;
@@ -46,9 +41,6 @@ namespace jsh {
 	public:
 		void ShowInfo() override
 		{
-			ImGui::DragFloat3("Position", &position.x, 1.f);
-			ImGui::DragFloat("Pitch", &pitch, 0.25f);
-			ImGui::DragFloat("Yaw", &yaw, 0.75f);
 			if (m_IsOrthographic) {
 				ImGui::DragFloat("Width", &m_Width, 1.f, 0.01f, FLT_MAX);
 				ImGui::DragFloat("Height", &m_Height, 1.f, 0.01f, FLT_MAX);

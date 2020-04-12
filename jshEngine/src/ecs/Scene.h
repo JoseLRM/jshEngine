@@ -114,6 +114,7 @@ namespace jshScene {
 
 	void GetEntitySons(jsh::Entity entity, jsh::vector<jsh::Entity>& entities) noexcept;
 	jsh::Entity GetEntityParent(jsh::Entity entity);
+	jsh::Transform& GetTransform(jsh::Entity entity);
 
 	void DestroyEntity(jsh::Entity entity) noexcept;
 

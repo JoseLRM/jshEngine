@@ -25,6 +25,13 @@ namespace jsh {
 		m_Created = true;
 
 		if (m_DataFlags & JSH_RAW_DATA_TEX_COORDS) {
+
+			if (m_DataFlags & JSH_RAW_DATA_TANGENTS && m_DataFlags & JSH_RAW_DATA_BITANGENTS) {
+				CreateNormal();
+				m_CreationType = 4;
+				return;
+			}
+
 			CreateSimpleTex();
 			m_CreationType = 2;
 			return;
@@ -75,6 +82,18 @@ namespace jsh {
 	{
 		m_pTexCoordsData = coords;
 		if (coords) m_DataFlags |= JSH_RAW_DATA_TEX_COORDS;
+	}
+
+	void RawData::SetTangents(float* tan)
+	{
+		m_pTanData = tan;
+		if (tan)m_DataFlags |= JSH_RAW_DATA_TANGENTS;
+	}
+
+	void RawData::SetBitangents(float* bitan)
+	{
+		m_pBitanData = bitan;
+		if (bitan) m_DataFlags |= JSH_RAW_DATA_BITANGENTS;
 	}
 
 	void RawData::CreateSolid()
@@ -209,6 +228,61 @@ namespace jsh {
 		delete[] vData;
 	}
 
+	void RawData::CreateNormal()
+	{
+		struct Vertex {
+			vec3 position;
+			vec3 normal;
+			vec2 texCoord;
+			vec3 tan;
+			vec3 bitan;
+		};
+		Vertex* vData = new Vertex[m_VertexCount];
+		for (uint32 i = 0; i < m_VertexCount; i++) {
+			vData[i].position.x = m_pPosData[i * 3u + 0];
+			vData[i].position.y = m_pPosData[i * 3u + 1];
+			vData[i].position.z = m_pPosData[i * 3u + 2];
+			vData[i].normal.x = m_pNorData[i * 3u + 0];
+			vData[i].normal.y = m_pNorData[i * 3u + 1];
+			vData[i].normal.z = m_pNorData[i * 3u + 2];
+			vData[i].texCoord.x = m_pTexCoordsData[i * 2u + 0];
+			vData[i].texCoord.y = m_pTexCoordsData[i * 2u + 1];
+			vData[i].tan.x = m_pTanData[i * 3u + 0];
+			vData[i].tan.y = m_pTanData[i * 3u + 1];
+			vData[i].tan.z = m_pTanData[i * 3u + 2];
+			vData[i].bitan.x = m_pBitanData[i * 3u + 0];
+			vData[i].bitan.y = m_pBitanData[i * 3u + 1];
+			vData[i].bitan.z = m_pBitanData[i * 3u + 2];
+		}
+
+		JSH_BUFFER_DESC vertexDesc;
+		vertexDesc.BindFlags = JSH_BIND_VERTEX_BUFFER;
+		vertexDesc.ByteWidth = m_VertexCount * sizeof(Vertex);
+		vertexDesc.CPUAccessFlags = 0u;
+		vertexDesc.MiscFlags = 0u;
+		vertexDesc.StructureByteStride = sizeof(Vertex);
+		vertexDesc.Usage = JSH_USAGE_IMMUTABLE;
+		JSH_SUBRESOURCE_DATA vertexSData;
+		vertexSData.pSysMem = vData;
+		jshGraphics::CreateBuffer(&vertexDesc, &vertexSData, &m_VertexBuffer);
+
+		JSH_BUFFER_DESC indexDesc;
+		indexDesc.BindFlags = JSH_BIND_INDEX_BUFFER;
+		indexDesc.ByteWidth = m_IndexCount * sizeof(uint32);
+		indexDesc.CPUAccessFlags = 0u;
+		indexDesc.MiscFlags = 0u;
+		indexDesc.StructureByteStride = sizeof(uint32);
+		indexDesc.Usage = JSH_USAGE_IMMUTABLE;
+		JSH_SUBRESOURCE_DATA indexSData;
+		indexSData.pSysMem = m_pIndexData;
+		jshGraphics::CreateBuffer(&indexDesc, &indexSData, &m_IndexBuffer);
+
+		assert(m_VertexBuffer.IsValid());
+		assert(m_IndexBuffer.IsValid());
+
+		delete[] vData;
+	}
+
 	bool RawData::CreateInputLayout(jsh::InputLayout* il, jsh::VertexShader& vs) const noexcept
 	{
 		if (m_CreationType == 0) return false;;
@@ -244,6 +318,18 @@ namespace jsh {
 			jshGraphics::CreateInputLayout(desc, 3, vs, il);
 		}
 			return true;
+		case 4: // with tangents
+		{
+			const JSH_INPUT_ELEMENT_DESC desc[] = {
+				{"Position", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 0u, 0u},
+				{"Normal", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 3 * sizeof(float), 0u},
+				{"TexCoord", 0, JSH_FORMAT_R32G32_FLOAT, 0, true, 6 * sizeof(float), 0u},
+				{"Tangent", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 8 * sizeof(float), 0u},
+				{"Bitangent", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 11 * sizeof(float), 0u}
+			};
+			jshGraphics::CreateInputLayout(desc, 5, vs, il);
+		}
+		return true;
 		default:
 			return false;;
 		}
@@ -276,7 +362,12 @@ namespace jsh {
 
 		m_Modified = false;
 
-		if (flags & JSH_RAW_DATA_TEX_COORDS && m_EnabledDiffuseMap) {
+		if (flags & JSH_RAW_DATA_TEX_COORDS && flags & JSH_RAW_DATA_TANGENTS && m_EnabledDiffuseMap && m_EnabledNormalMap) {
+			Shader* shader = (Shader*)jshGraphics::Get("NormalShader");
+			m_VShader = shader->vs;
+			m_PShader = shader->ps;
+		}
+		else if (flags & JSH_RAW_DATA_TEX_COORDS && m_EnabledDiffuseMap) {
 			Shader* shader = (Shader*) jshGraphics::Get("SimpleTexShader");
 			m_VShader = shader->vs;
 			m_PShader = shader->ps;
@@ -350,7 +441,7 @@ namespace jsh {
 		if (cant == 0) return;
 
 		jsh::vector<Entity> entities;
-		jshScene::CreateSEntities(parent, cant, &entities, jsh::TransformComponent(), jsh::MeshComponent());
+		jshScene::CreateSEntities(parent, cant, &entities, jsh::MeshComponent());
 
 		for (uint32 i = 0; i < cant; ++i) {
 			AddNode(entities[i], &sons[i]);

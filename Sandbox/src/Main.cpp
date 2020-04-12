@@ -84,21 +84,24 @@ jsh::Mesh* CreateTerrain() {
 void State::Initialize()
 {
 	CreateTerrain();
-	std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/", "jose.obj");
+	std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/gobber/", "GoblinX.obj");
 	jshGraphics::Save("DragonModel", dragonModel);
 
-	jsh::Texture texture;
-	jshLoader::LoadTexture("res/models/pene.jpg", &texture);
+	//jsh::Texture texture;
+	//jshLoader::LoadTexture("res/models/dennis/diffuse.jpg", &texture);
+	//jsh::Texture texture2;
+	//jshLoader::LoadTexture("res/models/alien/normal.jpg", &texture2);
+	//dragonModel->mesh->SetDiffuseMap(texture);
+	//dragonModel->mesh->SetNormalMap(texture2);
 
-	//dragonModel.mesh->SetDiffuseMap(texture);
 
-	dragonModel->CreateEntity(jshScene::CreateEntity(jsh::NameComponent("Dragon"), jsh::TransformComponent(-5.f, -5.f, 20.f)));
-	jshScene::CreateEntity(jsh::NameComponent("Pene"), jsh::TransformComponent(5.f, -5.f, 20.f), jsh::MeshComponent("Terrain"));
+	dragonModel->CreateEntity(jshScene::CreateEntity(jsh::NameComponent("Dragon")));
+	jshScene::CreateEntity(jsh::NameComponent("Pene"), jsh::MeshComponent("Terrain"));
 	jsh::Entity cameraEntity = jshScene::CreateEntity(jsh::NameComponent("Camera"), jsh::CameraComponent(), jsh::LightComponent());
-	jshScene::CreateEntity(jsh::TransformComponent(), jsh::LightComponent());
+	jshScene::CreateEntity(jsh::LightComponent());
 
 	jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(cameraEntity);
-	camera->SetPerspectiveMatrix(70.f, 5.f, 2000.f);
+	camera->SetPerspectiveMatrix(70.f, 0.1f, 2000.f);
 	jshRenderer::SetCamera(camera);
 
 }
@@ -106,11 +109,15 @@ void State::Initialize()
 
 void State::Update(float dt)
 {
+	jsh::vec3 r = jshScene::GetTransform(1).GetLocalRotation();
+	r.y += dt * 45.f;
+	jshScene::GetTransform(1).SetRotation(r);
 	jsh::CameraComponent* camera = jshRenderer::GetMainCamera();
 
 	uint8 front = 0u;
 	uint8 right = 0u;
-	float direction = camera->yaw;
+	jsh::Transform& cameraTransform = jshScene::GetTransform(camera->entityID);
+	float direction = cameraTransform.GetLocalRotation().y;
 
 	if (jshInput::IsKey('W')) {
 		front = 1;
@@ -146,16 +153,21 @@ void State::Update(float dt)
 		jsh::vec2 forward(sin(ToRadians(direction)), cos(ToRadians(direction)));
 		forward.Normalize();
 		forward *= force * dt;
-		camera->position.x += forward.x;
-		camera->position.z += forward.y;
+		jsh::vec3 pos = cameraTransform.GetLocalPosition();
+		pos.x += forward.x;
+		pos.z += forward.y;
+		cameraTransform.SetPosition(pos);
 	}
 
 	static bool actived = false;
 	if (jshInput::IsKeyPressed('C')) actived = !actived;
-	jshEvent::Register<jsh::MouseDraggedEvent>(JSH_EVENT_LAYER_DEFAULT, [this, camera, dt](jsh::MouseDraggedEvent& e) {
+	jshEvent::Register<jsh::MouseDraggedEvent>(JSH_EVENT_LAYER_DEFAULT, [this, dt](jsh::MouseDraggedEvent& e) {
 		if (actived) {
-			camera->yaw += ((float)e.draggedX / (float)jshWindow::GetWidth()) * 25000.f * dt;
-			camera->pitch += ((float)e.draggedY / (float)jshWindow::GetHeight()) * 16000.f * dt;
+			jsh::Transform& tran = jshScene::GetTransform(jshRenderer::GetMainCamera()->entityID);
+			jsh::vec3 rot = tran.GetLocalRotation();
+			rot.y += ((float)e.draggedX / (float)jshWindow::GetWidth()) * 25000.f * dt;
+			rot.x += ((float)e.draggedY / (float)jshWindow::GetHeight()) * 16000.f * dt;
+			tran.SetRotation(rot);
 		}
 
 		return false;

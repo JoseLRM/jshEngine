@@ -25,6 +25,8 @@ namespace jsh {
 	#define JSH_RAW_DATA_TEX_COORDS		BIT(2)
 	#define JSH_RAW_DATA_INDICES		BIT(3)
 	#define JSH_RAW_DATA_COLORS			BIT(4)
+	#define JSH_RAW_DATA_TANGENTS		BIT(5)
+	#define JSH_RAW_DATA_BITANGENTS		BIT(6)
 
 	class RawData {
 		JSH_RAW_DATA m_DataFlags;
@@ -32,6 +34,8 @@ namespace jsh {
 
 		float* m_pPosData = nullptr;
 		float* m_pNorData = nullptr;
+		float* m_pTanData = nullptr;
+		float* m_pBitanData = nullptr;
 		uint32 m_VertexCount = 0u;
 
 		float* m_pTexCoordsData = nullptr;
@@ -61,6 +65,8 @@ namespace jsh {
 		void SetColors(uint8* col);
 		void SetIndices(uint32* data, uint32 indices);
 		void SetTextureCoords(float* coords);
+		void SetTangents(float* tan);
+		void SetBitangents(float* bitan);
 
 		// getters
 		inline bool IsCreated() const noexcept { return m_Created; }
@@ -77,6 +83,7 @@ namespace jsh {
 		void CreateSolid();
 		void CreateSimpleTex();
 		void CreateSimpleCol();
+		void CreateNormal();
 
 	};	
 

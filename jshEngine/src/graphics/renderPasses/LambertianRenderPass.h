@@ -6,7 +6,6 @@
 namespace jsh {
 
 	class Scene;
-	class TransformComponent;
 	class CameraComponent;
 
 #define JSH_GFX_MAX_LIGHTS 120
@@ -22,7 +21,7 @@ namespace jsh {
 
 	struct MeshInstance {
 		Mesh* mesh;
-		TransformComponent* pTransform;
+		Transform* pTransform;
 	};
 
 	class MeshSystem : public System {

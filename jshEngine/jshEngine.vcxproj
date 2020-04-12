@@ -93,7 +93,7 @@
   <ItemGroup>
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\components\CameraComponent.cpp" />
-    <ClCompile Include="src\components\TransformComponent.cpp" />
+    <ClCompile Include="src\components\Transform.cpp" />
     <ClCompile Include="src\Debug.cpp" />
     <ClCompile Include="src\ecs\Component.cpp" />
     <ClCompile Include="src\ecs\Scene.cpp" />
@@ -127,7 +127,7 @@
     <ClInclude Include="src\common.h" />
     <ClInclude Include="src\components\CameraComponent.h" />
     <ClInclude Include="src\components\Components.h" />
-    <ClInclude Include="src\components\TransformComponent.h" />
+    <ClInclude Include="src\components\Transform.h" />
     <ClInclude Include="src\Debug.h" />
     <ClInclude Include="src\ecs\Component.h" />
     <ClInclude Include="src\ecs\Entity.h" />
@@ -168,6 +168,22 @@
     <ClInclude Include="src\utils\stb_lib.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="shaders\NormalPixel.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.1</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.1</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="shaders\NormalVertex.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.1</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.1</ShaderModel>
+    </FxCompile>
     <FxCompile Include="shaders\PostProcessVertex.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
