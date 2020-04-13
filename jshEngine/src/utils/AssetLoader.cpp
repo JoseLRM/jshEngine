@@ -42,24 +42,40 @@ namespace jshLoader
 			}
 		}
 
+		// MATERIAL
 		const aiMaterial* material = materials[aimesh->mMaterialIndex];
+		
+		// properties
+		uint32 cantProperties = material->mNumProperties;
+
+		aiGetMaterialFloat(material, AI_MATKEY_SHININESS, &mesh->material.shininess);
+		aiGetMaterialFloat(material, AI_MATKEY_SHININESS_STRENGTH, &mesh->material.specularIntensity);
+
+		// mapping
 		if (material->GetTextureCount(aiTextureType_DIFFUSE) != 0) {
 			aiString path0;
 			material->GetTexture(aiTextureType_DIFFUSE, 0, &path0);
 			jsh::Texture diffuseMap;
 			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &diffuseMap);
 			if(diffuseMap.IsValid())
-				mesh->SetDiffuseMap(diffuseMap);
+				mesh->material.SetDiffuseMap(diffuseMap);
 		}
 		if (material->GetTextureCount(aiTextureType_NORMALS) != 0) {
 			aiString path0;
 			material->GetTexture(aiTextureType_NORMALS, 0, &path0);
 			jsh::Texture normalMap;
 			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &normalMap);
-			mesh->SetNormalMap(normalMap);
+			mesh->material.SetNormalMap(normalMap);
+		}
+		if (material->GetTextureCount(aiTextureType_SPECULAR) != 0) {
+			aiString path0;
+			material->GetTexture(aiTextureType_SPECULAR, 0, &path0);
+			jsh::Texture specularMap;
+			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &specularMap);
+			mesh->material.SetSpecularMap(specularMap);
 		}
 
-		// mesh creation
+		// MESH CREATION
 		if (aimesh->HasTangentsAndBitangents()) {
 			mesh->rawData->SetTangents((float*)aimesh->mTangents);
 			mesh->rawData->SetBitangents((float*)aimesh->mBitangents);
@@ -76,7 +92,7 @@ namespace jshLoader
 	{
 		auto model = std::make_shared<jsh::Model>();
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile((std::string(path) + name).c_str(), aiProcess_Triangulate | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_ConvertToLeftHanded | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
+		const aiScene* scene = importer.ReadFile((std::string(path) + name).c_str(), aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
 
 		if (!scene || !scene->HasMeshes()) {
 			jshLogE("Empty model %s", path);
@@ -111,6 +127,8 @@ namespace jshLoader
 			model->sons.push_back_nr(node);
 		}
 
+		importer.FreeScene();
+
 		return model;
 	}
 
@@ -142,6 +160,9 @@ namespace jshLoader
 		sData.SysMemPitch = width * 4;
 
 		jshGraphics::CreateTexture(&desc, &sData, texture);
+
+		stbi_image_free(data);
+
 		return true;
 	}
 

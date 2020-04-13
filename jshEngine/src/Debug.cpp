@@ -61,6 +61,10 @@ namespace jshDebug {
 	bool g_ShowTaskSystem = false;
 	bool g_ShowEntities = false;
 	bool g_ShowSystems = false;
+	bool g_ShowMeshes = false;
+	jsh::Mesh* g_InitialMesh = nullptr;
+	bool g_ShowRawData = false;
+	jsh::RawData* g_InitialRawData = nullptr;
 	bool g_ShowImGuiDemo = false;
 
 	void ShowImGuiWindow()
@@ -71,6 +75,8 @@ namespace jshDebug {
 			if (ImGui::Button("Task System")) g_ShowTaskSystem = !g_ShowTaskSystem;
 			if (ImGui::Button("Entities")) g_ShowEntities = !g_ShowEntities;
 			if (ImGui::Button("Systems")) g_ShowSystems = !g_ShowSystems;
+			if (ImGui::Button("Meshes")) g_ShowMeshes = !g_ShowMeshes;
+			if (ImGui::Button("RawData")) g_ShowRawData = !g_ShowRawData;
 
 			if (ImGui::Button("ImGui Demo")) g_ShowImGuiDemo = !g_ShowImGuiDemo;
 
@@ -86,7 +92,21 @@ namespace jshDebug {
 		if (g_ShowTaskSystem) g_ShowTaskSystem = jshTask::ShowImGuiWindow();
 		if (g_ShowEntities) g_ShowEntities = jshScene::ShowImGuiEntityWindow();
 		if (g_ShowSystems) g_ShowSystems = jshScene::ShowImGuiSystemsWindow();
+		if (g_ShowMeshes) {
+			g_ShowMeshes = jshGraphics::ShowMeshImGuiWindow(g_InitialMesh);
+			g_InitialMesh = nullptr;
+		}
+		if (g_ShowRawData) {
+			g_ShowRawData = jshGraphics::ShowRawDataImGuiWindow(g_InitialRawData);
+			g_InitialRawData = nullptr;
+		}
 		if(g_ShowImGuiDemo) ImGui::ShowDemoWindow(&g_ShowImGuiDemo);
+	}
+
+	void ShowMeshImGuiWindow(jsh::Mesh* mesh)
+	{
+		g_ShowMeshes = true;
+		g_InitialMesh = mesh;
 	}
 
 #endif

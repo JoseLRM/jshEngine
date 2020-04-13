@@ -19,6 +19,10 @@ using int16		= int16_t;
 using int32		= int32_t;
 using int64		= int64_t;
 
+typedef int BOOL;
+#define FALSE 0
+#define TRUE 1
+
 #define ToRadians(x) x * 0.0174533f
 
 namespace jsh {

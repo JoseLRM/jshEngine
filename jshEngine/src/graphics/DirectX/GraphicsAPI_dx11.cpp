@@ -742,7 +742,7 @@ namespace jshGraphics_dx11 {
 	void ClearRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd)
 	{
 		RenderTargetView_dx11* renderTargetView = ToInternal(rtv);
-		const float clearColor[] = { 0.f,0.f,1.f,1.f };
+		const float clearColor[] = { 0.f,0.f,0.f,1.f };
 		g_DeferredContext[cmd]->ClearRenderTargetView(renderTargetView->ptr.Get(), clearColor);
 	}
 

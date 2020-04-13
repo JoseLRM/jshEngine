@@ -9,6 +9,60 @@ using namespace jsh;
 
 namespace jsh {
 
+	/////////////////////////////MATERIAL/////////////////////////////
+	Material::Material() {}
+
+	void Material::SetDiffuseMap(Texture map) noexcept
+	{
+		if (map.IsValid()) {
+			m_DiffuseMap = map;
+			m_DataFlags |= JSH_MATERIAL_DIFFUSE_MAP;
+		}
+	}
+	void Material::SetNormalMap(Texture map) noexcept
+	{
+		if (map.IsValid()) {
+			m_NormalMap = map;
+			m_DataFlags |= JSH_MATERIAL_NORMAL_MAP;
+		}
+	}
+	void Material::SetSpecularMap(Texture map) noexcept
+	{
+		if (map.IsValid()) {
+			m_SpecularMap = map;
+			m_DataFlags |= JSH_MATERIAL_SPECULAR_MAP;
+		}
+	}
+
+	void Material::EnableDiffuseMap(bool enable) noexcept
+	{ 
+		if (enable) {
+			if (m_DiffuseMap.IsValid()) m_DataFlags |= JSH_MATERIAL_DIFFUSE_MAP;
+		}
+		else m_DataFlags &= ~JSH_MATERIAL_DIFFUSE_MAP;
+	}
+	void Material::EnableNormalMap(bool enable) noexcept
+	{ 
+		if (enable) {
+			if (m_NormalMap.IsValid()) m_DataFlags |= JSH_MATERIAL_NORMAL_MAP;
+		}
+		else m_DataFlags &= ~JSH_MATERIAL_NORMAL_MAP;
+	}
+	void Material::EnableSpecularMap(bool enable) noexcept
+	{ 
+		if (enable) {
+			if (m_SpecularMap.IsValid()) m_DataFlags |= JSH_MATERIAL_SPECULAR_MAP;
+		}
+		else m_DataFlags &= ~JSH_MATERIAL_SPECULAR_MAP;
+	}
+
+	void Material::Bind(jsh::CommandList cmd) const
+	{
+		if (HasDiffuseMap()) jshGraphics::BindTexture(m_DiffuseMap, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
+		if (HasNormalMap()) jshGraphics::BindTexture(m_NormalMap, 1u, JSH_SHADER_TYPE_PIXEL, cmd);
+		if (HasSpecularMap()) jshGraphics::BindTexture(m_SpecularMap, 2u, JSH_SHADER_TYPE_PIXEL, cmd);
+	}
+
 	//////////////////////RAW DATA/////////////////////////////////
 	RawData::RawData() : m_DataFlags(JSH_RAW_DATA_NONE) {}
 
@@ -336,38 +390,28 @@ namespace jsh {
 	}
 
 	//////////////////////MESH/////////////////////////////////
-	Mesh::Mesh() : rawData(nullptr), m_EnabledDiffuseMap(false), m_EnabledNormalMap(false) {}
+	Mesh::Mesh() : rawData(nullptr), material() {}
 
 	void Mesh::Bind(CommandList cmd)
 	{
 		rawData->Bind(cmd);
-		if (m_EnabledDiffuseMap) {
-			jshGraphics::BindTexture(m_DiffuseMap, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
-			if(m_DiffuseSamplerState.IsValid()) jshGraphics::BindSamplerState(m_DiffuseSamplerState, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
-		}
-
-		if (m_EnabledNormalMap) {
-			jshGraphics::BindTexture(m_NormalMap, 1u, JSH_SHADER_TYPE_PIXEL, cmd);
-			if (m_NormalSamplerState.IsValid()) jshGraphics::BindSamplerState(m_NormalSamplerState, 1u, JSH_SHADER_TYPE_PIXEL, cmd);
-		}
+		material.Bind(cmd);
 
 		jshGraphics::BindInputLayout(m_InputLayout, cmd);
 		jshGraphics::BindVertexShader(m_VShader, cmd);
 		jshGraphics::BindPixelShader(m_PShader, cmd);
 	}
 
-	void Mesh::Update() noexcept
+	void Mesh::UpdatePrimitives() noexcept
 	{
-		JSH_RAW_DATA flags = rawData->GetFlags();
+		RawDataFlags flags = rawData->GetFlags();
 
-		m_Modified = false;
-
-		if (flags & JSH_RAW_DATA_TEX_COORDS && flags & JSH_RAW_DATA_TANGENTS && m_EnabledDiffuseMap && m_EnabledNormalMap) {
+		if (flags & JSH_RAW_DATA_TEX_COORDS && flags & JSH_RAW_DATA_TANGENTS && (material.HasSpecularMap() || material.HasNormalMap())) {
 			Shader* shader = (Shader*)jshGraphics::Get("NormalShader");
 			m_VShader = shader->vs;
 			m_PShader = shader->ps;
 		}
-		else if (flags & JSH_RAW_DATA_TEX_COORDS && m_EnabledDiffuseMap) {
+		else if (flags & JSH_RAW_DATA_TEX_COORDS && material.HasDiffuseMap()) {
 			Shader* shader = (Shader*) jshGraphics::Get("SimpleTexShader");
 			m_VShader = shader->vs;
 			m_PShader = shader->ps;
@@ -384,40 +428,6 @@ namespace jsh {
 		}
 
 		if(!rawData->CreateInputLayout(&m_InputLayout, m_VShader)) return;
-	}
-
-	void Mesh::SetDiffuseMap(Texture tex, SamplerState* state) noexcept
-	{
-		m_DiffuseMap = tex;
-		m_EnabledDiffuseMap = true;
-		m_Modified = true;
-
-		if (state && state->IsValid()) {
-			m_DiffuseSamplerState = *state;
-		}
-	}
-	void Mesh::SetNormalMap(Texture tex, SamplerState* state) noexcept
-	{
-		m_NormalMap = tex;
-		m_EnabledNormalMap = true;
-		m_Modified = true;
-
-		if (state && state->IsValid()) {
-			m_NormalSamplerState = *state;
-		}
-	}
-
-	void Mesh::EnableDiffuseMap(bool enable) noexcept
-	{
-		if (enable == m_EnabledDiffuseMap) return;
-		m_Modified = true;
-		m_EnabledDiffuseMap = enable;
-	}
-	void Mesh::EnableNormalMap(bool enable) noexcept
-	{
-		if (enable == m_EnabledNormalMap) return;
-		m_Modified = true;
-		m_EnabledNormalMap = enable;
 	}
 
 	//////////////////////MODEL/////////////////////////////////
@@ -670,5 +680,127 @@ namespace jshGraphics {
 			g_RawData.erase(name);
 		}
 	}
+
+	void ClearObjects()
+	{
+		g_NamedData.clear();
+		for (auto& it : g_Mesh) {
+			delete it.second;
+		}
+		for (auto& it : g_RawData) {
+			delete it.second;
+		}
+		g_Mesh.clear();
+		g_RawData.clear();
+	}
+
+#ifdef JSH_IMGUI
+
+	const char* g_SelectedMesh = nullptr;
+	bool ShowMeshImGuiWindow(jsh::Mesh* mesh)
+	{
+		for (auto& it : g_Mesh) {
+			if (it.second == mesh) {
+				g_SelectedMesh = it.first.c_str();
+				break;
+			}
+		}
+
+		bool result = true;
+		if (ImGui::Begin("Meshes")) {
+
+			ImGui::Columns(2);
+
+			for (auto& it : g_Mesh) {
+
+				const char* cstr = it.first.c_str();
+
+				bool selected = cstr == g_SelectedMesh;
+
+				if (ImGui::Selectable(it.first.c_str(), selected)) {
+					g_SelectedMesh = cstr;
+				}
+			}
+
+			ImGui::NextColumn();
+
+			if (g_SelectedMesh != nullptr) {
+				ImGui::Text(g_SelectedMesh);
+
+				Mesh* mesh = g_Mesh[g_SelectedMesh];
+				
+				bool diffuse = mesh->material.HasDiffuseMap();
+				bool normal = mesh->material.HasNormalMap();
+				bool specular = mesh->material.HasSpecularMap();
+
+				ImGui::Checkbox("DiffuseMapping", &diffuse);
+				mesh->material.EnableDiffuseMap(diffuse);
+
+				ImGui::Checkbox("NormalMapping", &normal);
+				mesh->material.EnableNormalMap(normal);
+
+				ImGui::Checkbox("SpecularMapping", &specular);
+				mesh->material.EnableSpecularMap(specular);
+
+				ImGui::DragFloat("Shininess", &mesh->material.shininess, 1.f, 1.f, FLT_MAX);
+				ImGui::DragFloat("Specular Intensity", &mesh->material.specularIntensity, 0.05f, 0.001f, FLT_MAX);
+
+				mesh->UpdatePrimitives();
+			}
+
+			ImGui::NextColumn();
+
+			if (ImGui::Button("Close")) result = false;
+		}
+		ImGui::End();
+		return result;
+	}
+
+	const char* g_SelectedRawData = nullptr;
+	bool ShowRawDataImGuiWindow(jsh::RawData* rawData)
+	{
+		for (auto& it : g_RawData) {
+			if (it.second == rawData) {
+				g_SelectedRawData = it.first.c_str();
+				break;
+			}
+		}
+
+		bool result = true;
+		if (ImGui::Begin("RawData")) {
+
+			ImGui::Columns(2);
+
+			for (auto& it : g_RawData) {
+				
+				const char* cstr = it.first.c_str();
+
+				bool selected = cstr == g_SelectedRawData;
+
+				if (ImGui::Selectable(it.first.c_str(), selected)) {
+					g_SelectedRawData = cstr;
+				}
+			}
+
+			ImGui::NextColumn();
+
+			if (g_SelectedRawData != nullptr) {
+				ImGui::Text(g_SelectedRawData);
+
+				RawData* rawData = g_RawData[g_SelectedRawData];
+
+				ImGui::Text((std::string("Index Count: ") + std::to_string(rawData->GetIndexCount())).c_str());
+				ImGui::Text((std::string("Triangles: ") + std::to_string(rawData->GetIndexCount() / 3)).c_str());
+
+			}
+
+			ImGui::NextColumn();
+
+			if (ImGui::Button("Close")) result = false;
+		}
+		ImGui::End();
+		return result;
+	}
+#endif
 
 }

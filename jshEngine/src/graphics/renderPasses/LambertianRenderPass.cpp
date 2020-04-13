@@ -46,9 +46,26 @@ namespace jsh {
 		JSH_SUBRESOURCE_DATA cpSData;
 		cpSData.pSysMem = &m_LightData;
 		jshGraphics::CreateBuffer(&cpDesc, &cpSData, &m_LightBuffer);
+
+		// def material
+		MaterialData m;
+
+		JSH_BUFFER_DESC cmDesc;
+		cmDesc.BindFlags = JSH_BIND_CONSTANT_BUFFER;
+		cmDesc.ByteWidth = sizeof(MaterialData);
+		cmDesc.CPUAccessFlags = 0u;
+		cmDesc.MiscFlags = 0u;
+		cmDesc.StructureByteStride = 0u;
+		cmDesc.Usage = JSH_USAGE_DEFAULT;
+		JSH_SUBRESOURCE_DATA cmSData;
+		cmSData.pSysMem = &m;
+		jshGraphics::CreateBuffer(&cmDesc, &cmSData, &m_MaterialBuffer);
 	}
 	void LambertianRenderPass::Render()
 	{
+		m_Instances.clear(false);
+		m_LightSystem.Clear();
+
 		CameraComponent* camera = jshRenderer::GetMainCamera();
 		if (!camera) return;
 
@@ -78,19 +95,19 @@ namespace jsh {
 
 		jshGraphics::BindConstantBuffer(m_MatrixBuffer, 0u, JSH_SHADER_TYPE_VERTEX, cmd);
 		jshGraphics::BindConstantBuffer(m_LightBuffer, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
+		jshGraphics::BindConstantBuffer(m_MaterialBuffer, 1u, JSH_SHADER_TYPE_PIXEL, cmd);
 		jshGraphics::UpdateConstantBuffer(m_LightBuffer, &m_LightData, cmd);
 
 		for (uint32 i = 0; i < m_Instances.size(); ++i) {
 			MeshInstance& instance = m_Instances[i];
-			instance.mesh->Bind(cmd);
 			m_MatrixData.tm = XMMatrixTranspose(instance.pTransform->GetWorldMatrix());
 
 			jshGraphics::UpdateConstantBuffer(m_MatrixBuffer, &m_MatrixData, cmd);
+			jshGraphics::UpdateConstantBuffer(m_MaterialBuffer, &instance.materialData, cmd);
+			instance.mesh->Bind(cmd);
 			jshGraphics::DrawIndexed(instance.mesh->rawData->GetIndexCount(), cmd);
 		}
 
-		m_Instances.clear(false);
-		m_LightSystem.Clear();
 	}
 
 	void MeshSystem::UpdateEntity(Entity e, BaseComponent** comp, float dt)
@@ -98,8 +115,15 @@ namespace jsh {
 		MeshComponent* meshComp = (MeshComponent*) comp[0];
 		Transform* transform = &jshScene::GetTransform(e);
 
+		MaterialData mat;
+		mat.diffuseActived = meshComp->mesh->material.HasDiffuseMap();
+		mat.normalActived = meshComp->mesh->material.HasNormalMap();
+		mat.specularActived = meshComp->mesh->material.HasSpecularMap();
+		mat.shininess = meshComp->mesh->material.shininess;
+		mat.specularIntensity = meshComp->mesh->material.specularIntensity;
+
 		meshComp->mesh->UpdatePrimitives();
-		pList->push_back({ meshComp->mesh, transform }, 10);
+		pList->push_back({ meshComp->mesh, mat, transform }, 10);
 	}
 
 	void LightSystem::UpdateEntity(Entity e, BaseComponent** comp, float dt)

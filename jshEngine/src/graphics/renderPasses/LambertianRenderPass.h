@@ -19,8 +19,17 @@ namespace jsh {
 		Light lights[JSH_GFX_MAX_LIGHTS];
 	};
 
+	struct alignas(16) MaterialData {
+		BOOL diffuseActived;
+		BOOL normalActived;
+		BOOL specularActived;
+		float shininess;
+		float specularIntensity;
+	};
+
 	struct MeshInstance {
 		Mesh* mesh;
+		MaterialData materialData;
 		Transform* pTransform;
 	};
 
@@ -57,6 +66,7 @@ namespace jsh {
 		MatrixData m_MatrixData;
 		Buffer m_LightBuffer;
 		LightData m_LightData;
+		Buffer m_MaterialBuffer;
 
 	public:
 		LambertianRenderPass();

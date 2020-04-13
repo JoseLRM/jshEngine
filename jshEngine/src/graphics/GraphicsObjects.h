@@ -6,18 +6,52 @@
 namespace jsh {
 
 	typedef uint32 Entity;
-		
-	// TODO: Material
-	// TODO: Light
 
-	// Shader
+	/////////////////////////////SHADER/////////////////////////////
 	struct Shader {
 		VertexShader vs;
 		PixelShader ps;
 	};
 
+	/////////////////////////////MATERIAL/////////////////////////////
+	typedef uint8 MaterialFlags;
+
+#define JSH_MATERIAL_NONE			0
+#define JSH_MATERIAL_DIFFUSE_MAP	BIT(0)
+#define JSH_MATERIAL_NORMAL_MAP		BIT(1)
+#define JSH_MATERIAL_SPECULAR_MAP	BIT(2)
+
+	class Material {
+		MaterialFlags m_DataFlags = JSH_MATERIAL_NONE;
+
+		Texture m_DiffuseMap;
+		Texture m_NormalMap;
+		Texture m_SpecularMap;
+
+	public:
+		float specularIntensity = 1.f;
+		float shininess = 5.f;
+
+	public:
+		Material();
+
+		void SetDiffuseMap(Texture map) noexcept;
+		void SetNormalMap(Texture map) noexcept;
+		void SetSpecularMap(Texture map) noexcept;
+
+		void EnableDiffuseMap(bool enable) noexcept;
+		void EnableNormalMap(bool enable) noexcept;
+		void EnableSpecularMap(bool enable) noexcept;
+
+		void Bind(jsh::CommandList cmd) const;
+
+		inline bool HasDiffuseMap() const noexcept { return m_DataFlags & JSH_MATERIAL_DIFFUSE_MAP; }
+		inline bool HasNormalMap() const noexcept { return m_DataFlags & JSH_MATERIAL_NORMAL_MAP; }
+		inline bool HasSpecularMap() const noexcept { return m_DataFlags & JSH_MATERIAL_SPECULAR_MAP; }
+	};
+
 	////////////////////////////RAWDATA//////////////////////////////
-	typedef uint16 JSH_RAW_DATA;
+	typedef uint8 RawDataFlags;
 
 	#define JSH_RAW_DATA_NONE			0
 	#define JSH_RAW_DATA_POSITIONS		BIT(0)
@@ -29,7 +63,7 @@ namespace jsh {
 	#define JSH_RAW_DATA_BITANGENTS		BIT(6)
 
 	class RawData {
-		JSH_RAW_DATA m_DataFlags;
+		RawDataFlags m_DataFlags;
 		uint8 m_CreationType = 0u;
 
 		float* m_pPosData = nullptr;
@@ -74,7 +108,7 @@ namespace jsh {
 			return IsCreated() ? true : m_DataFlags != JSH_RAW_DATA_NONE &&
 				(m_DataFlags & JSH_RAW_DATA_POSITIONS && m_DataFlags & JSH_RAW_DATA_NORMALS && m_DataFlags & JSH_RAW_DATA_INDICES);
 		}
-		inline JSH_RAW_DATA GetFlags() const noexcept { return m_DataFlags; }
+		inline RawDataFlags GetFlags() const noexcept { return m_DataFlags; }
 		bool CreateInputLayout(jsh::InputLayout* il, jsh::VertexShader& vs) const noexcept;
 
 		inline uint32 GetIndexCount() const noexcept { return m_IndexCount; }
@@ -89,19 +123,9 @@ namespace jsh {
 
 	////////////////////////////MESH//////////////////////////////
 	class Mesh {
-		Texture m_DiffuseMap;
-		SamplerState m_DiffuseSamplerState;
-		Texture m_NormalMap;
-		SamplerState m_NormalSamplerState;
-
 		InputLayout m_InputLayout;
 		VertexShader m_VShader;
 		PixelShader m_PShader;
-
-		bool m_EnabledDiffuseMap = false;
-		bool m_EnabledNormalMap = false;
-
-		bool m_Modified = true;
 
 #ifdef JSH_ENGINE
 	public:
@@ -109,21 +133,12 @@ namespace jsh {
 		Mesh();
 	public:
 		RawData* rawData;
+		Material material;
 
-		inline void UpdatePrimitives() noexcept { if (m_Modified) Update(); }
 		void Bind(jsh::CommandList cmd);
 
-		void SetDiffuseMap(Texture tex, SamplerState* state = nullptr) noexcept;
-		void SetNormalMap(Texture tex, SamplerState* state = nullptr) noexcept;
+		void UpdatePrimitives() noexcept;
 
-		void EnableDiffuseMap(bool enable) noexcept;
-		void EnableNormalMap(bool enable) noexcept;
-
-		bool HasDiffuseMap() const noexcept { return m_DiffuseMap.IsValid(); }
-		bool HasNormalMap() const noexcept { return m_NormalMap.IsValid(); }
-
-	private:
-		void Update() noexcept;
 	};
 
 	////////////////////////////MODEL//////////////////////////////
@@ -205,5 +220,13 @@ namespace jshGraphics {
 	void RemoveMesh(const char* name);
 	void RemoveRawData(const char* name);
 
+#ifdef JSH_ENGINE
+
+#ifdef JSH_IMGUI
+	bool ShowMeshImGuiWindow(jsh::Mesh* mesh = nullptr);
+	bool ShowRawDataImGuiWindow(jsh::RawData* rawData = nullptr);
+#endif
+	void ClearObjects();
+#endif
 }
 

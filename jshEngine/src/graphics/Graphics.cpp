@@ -65,6 +65,7 @@ namespace jshGraphics {
 
 	bool Close()
 	{
+		jshGraphics::ClearObjects();
 		return jshGraphics_dx11::Close();
 	}
 

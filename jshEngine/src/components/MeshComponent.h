@@ -9,25 +9,16 @@ namespace jsh {
 
 		Mesh* mesh;
 
-		MeshComponent() {}
+		MeshComponent() : mesh(nullptr) {}
 		MeshComponent(Mesh* mesh) : mesh(mesh) {}
 		MeshComponent(const char* meshName) : mesh(jshGraphics::GetMesh(meshName)) {}
 
 #ifdef JSH_IMGUI
-	private:
-		bool diffuse = false;
-		bool normal = false;
 	public:
 		void ShowInfo() override
 		{
-			if (!mesh) return;
-			if (mesh->HasDiffuseMap()) {
-				ImGui::Checkbox("DiffuseMapping", &diffuse);
-				mesh->EnableDiffuseMap(diffuse);
-			}
-			if (mesh->HasNormalMap()) {
-				ImGui::Checkbox("NormalMapping", &normal);
-				mesh->EnableNormalMap(normal);
+			if (mesh) {
+				if(ImGui::Button("Mesh")) jshDebug::ShowMeshImGuiWindow(mesh);
 			}
 		}
 #endif

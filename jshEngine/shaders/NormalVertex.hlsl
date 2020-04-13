@@ -25,7 +25,7 @@ VS_OUT main( VS_IN input )
 	VS_OUT output;
 
 	output.fragPos = mul(float4(input.position, 1.f), tm);
-	output.tanBiNor = float3x3(normalize(mul(input.tangent, (float3x3)tm)), normalize(mul(input.bitangent, (float3x3)tm)), normalize(mul(input.normal, (float3x3)tm)));
+	output.tanBiNor = mul(float3x3(input.tangent, input.bitangent, input.normal), (float3x3)tm);
 
 	output.texCoord = input.texCoord;
 

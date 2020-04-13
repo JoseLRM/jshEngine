@@ -29,7 +29,7 @@
 
 #endif 
 
-#define BIT(x) 1 << x
+#define BIT(x) (1 << x)
 #define jshZeroMemory(dest, size) memset(dest, 0u, size)
 
 // platform macros

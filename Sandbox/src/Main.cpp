@@ -83,26 +83,21 @@ jsh::Mesh* CreateTerrain() {
 
 void State::Initialize()
 {
-	CreateTerrain();
-	std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/gobber/", "GoblinX.obj");
-	jshGraphics::Save("DragonModel", dragonModel);
+	//std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/nano_textured/", "nanosuit.obj");
+	std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/Sponza/", "sponza.obj");
 
-	//jsh::Texture texture;
-	//jshLoader::LoadTexture("res/models/dennis/diffuse.jpg", &texture);
-	//jsh::Texture texture2;
-	//jshLoader::LoadTexture("res/models/alien/normal.jpg", &texture2);
-	//dragonModel->mesh->SetDiffuseMap(texture);
-	//dragonModel->mesh->SetNormalMap(texture2);
-
-
-	dragonModel->CreateEntity(jshScene::CreateEntity(jsh::NameComponent("Dragon")));
-	jshScene::CreateEntity(jsh::NameComponent("Pene"), jsh::MeshComponent("Terrain"));
+	dragonModel->CreateEntity(jshScene::CreateEntity(jsh::NameComponent("Goblin")));
 	jsh::Entity cameraEntity = jshScene::CreateEntity(jsh::NameComponent("Camera"), jsh::CameraComponent(), jsh::LightComponent());
-	jshScene::CreateEntity(jsh::LightComponent());
 
 	jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(cameraEntity);
 	camera->SetPerspectiveMatrix(70.f, 0.1f, 2000.f);
 	jshRenderer::SetCamera(camera);
+	jsh::vec3 pos = jshScene::GetTransform(cameraEntity).GetLocalPosition();
+	pos.x = -1.f;
+	pos.z = -4.f;
+	jshScene::GetTransform(cameraEntity).SetPosition(pos);
+
+	jshScene::GetComponent<jsh::LightComponent>(cameraEntity)->intensity = 1.5f;
 
 }
 
@@ -110,7 +105,7 @@ void State::Initialize()
 void State::Update(float dt)
 {
 	jsh::vec3 r = jshScene::GetTransform(1).GetLocalRotation();
-	r.y += dt * 45.f;
+	//r.y += dt * 45.f;
 	jshScene::GetTransform(1).SetRotation(r);
 	jsh::CameraComponent* camera = jshRenderer::GetMainCamera();
 
