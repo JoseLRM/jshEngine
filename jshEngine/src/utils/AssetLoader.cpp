@@ -38,7 +38,7 @@ namespace jshLoader
 			textureCoords = new float[cantTexCoords * 2u];
 			for (uint32 i = 0; i < cantTexCoords; ++i) {
 				textureCoords[i * 2u] = aimesh->mTextureCoords[0][i].x;
-				textureCoords[i * 2u + 1u] = aimesh->mTextureCoords[0][i].y;
+				textureCoords[i * 2u + 1u] = 1.f - aimesh->mTextureCoords[0][i].y;
 			}
 		}
 
@@ -57,8 +57,7 @@ namespace jshLoader
 			material->GetTexture(aiTextureType_DIFFUSE, 0, &path0);
 			jsh::Texture diffuseMap;
 			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &diffuseMap);
-			if(diffuseMap.IsValid())
-				mesh->material.SetDiffuseMap(diffuseMap);
+			mesh->material.SetDiffuseMap(diffuseMap);
 		}
 		if (material->GetTextureCount(aiTextureType_NORMALS) != 0) {
 			aiString path0;
@@ -84,23 +83,70 @@ namespace jshLoader
 		mesh->rawData->SetIndices(iData, indexCount);
 		mesh->rawData->SetPositionsAndNormals((float*)vertices, (float*)normals, aimesh->mNumVertices);
 		mesh->rawData->Create();
+		mesh->UpdatePrimitives();
 
 		if (textureCoords) delete[] textureCoords;
 	}
 
-	std::shared_ptr<jsh::Model> LoadModel(const char* path, const char* name)
+	void AddNode(aiNode* ainode, jsh::MeshNode* node, jsh::Mesh** meshes)
 	{
-		auto model = std::make_shared<jsh::Model>();
+		node->sons.reserve(ainode->mNumChildren);
+		node->sons.add_pos(ainode->mNumChildren);
+		XMMATRIX localMatrix = XMLoadFloat4x4((XMFLOAT4X4*)&ainode->mTransformation);
+
+		// transformation
+		jsh::vec3 position;
+		jsh::vec3 rotation;
+		jsh::vec3 scale;
+
+		{
+			XMVECTOR positionV;
+			XMVECTOR qRotationV;
+			XMVECTOR scaleV;
+			
+			XMMatrixDecompose(&scaleV, &qRotationV, &positionV, localMatrix);
+			jsh::QuaternionToEuler((jsh::vec4*)& qRotationV, &rotation);
+
+			XMStoreFloat3((XMFLOAT3*)& position, positionV);
+			XMStoreFloat3((XMFLOAT3*)& scale, scaleV);
+		}
+
+		node->transform.SetPosition(position);
+		node->transform.SetRotation(rotation);
+		node->transform.SetScale(scale);
+		
+		if(ainode->mNumMeshes > 0) node->mesh = meshes[ainode->mMeshes[0]];
+
+		// recursion
+		for (uint32 i = 0; i < ainode->mNumChildren; ++i) {
+			node->sons[i] = jsh::MeshNode();
+			AddNode(ainode->mChildren[i], &node->sons[i], meshes);
+		}
+	}
+
+	std::shared_ptr<jsh::Model> LoadModel(const char* absolutePath, const char* name)
+	{
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile((std::string(path) + name).c_str(), aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
+		const aiScene* scene = importer.ReadFile(absolutePath, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
 
 		if (!scene || !scene->HasMeshes()) {
-			jshLogE("Empty model %s", path);
+			jshLogE("Empty model %s", absolutePath);
 			return false;
 		}
 
+		std::string pathStr = absolutePath;
+		{
+			uint32 pos = pathStr.size() - 1;
+			while (pathStr[pos--] != '/') if (pos == 0) break;;
+			if (pos != 0) {
+				pathStr = pathStr.substr(0u, pos + 2);
+			}
+		}
+		const char* path = pathStr.c_str();
+
+		// MESHES
 		uint32 numOfMeshes = scene->mNumMeshes;
-		model->sons.reserve(numOfMeshes-1);
+		jsh::Mesh** meshes = new jsh::Mesh*[numOfMeshes];
 
 		for (uint32 i = 0; i < numOfMeshes; ++i) {
 			const aiMesh* mesh = scene->mMeshes[i];
@@ -110,24 +156,26 @@ namespace jshLoader
 				continue;
 			}
 
-			if (i == 0) {
-				std::string meshName;
-				if (numOfMeshes == 1) meshName = name;
-				else meshName = std::string(name) + "[0]";
-
-				model->mesh = jshGraphics::CreateMesh(meshName.c_str());
-				LoadMesh(mesh, scene->mMaterials, model->mesh, path, meshName.c_str());
-				continue;
-			}
-			jsh::MeshNode node;
+			// name
 			std::stringstream meshName;
-			meshName << name << "[" << std::to_string(i) << "]";
-			node.mesh = jshGraphics::CreateMesh(meshName.str().c_str());
-			LoadMesh(mesh, scene->mMaterials, node.mesh, path, meshName.str().c_str());
-			model->sons.push_back_nr(node);
+			meshName << name;
+			if (numOfMeshes != 0) meshName << '[' << std::to_string(i) << ']';
+
+			// mesh
+			meshes[i] = jshGraphics::CreateMesh(meshName.str().c_str());
+			LoadMesh(mesh, scene->mMaterials, meshes[i], path, meshName.str().c_str());
 		}
 
-		importer.FreeScene();
+		// NODES
+		auto model = std::make_shared<jsh::Model>();
+
+		aiNode* aiRoot = scene->mRootNode;
+		if (aiRoot) {
+			AddNode(aiRoot, &model->root, meshes);
+		}
+		else {
+			model->root.mesh = meshes[0];
+		}
 
 		return model;
 	}

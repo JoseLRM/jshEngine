@@ -48,9 +48,6 @@ namespace jshGraphics {
 		jshGraphics::CreatePixelShader(L"PostProcessBlackAndWhite.cso", bandwPP.get());
 		jshGraphics::Save("BlackAndWhitePP", bandwPP);
 
-
-		FrameBuffer::Initialize();
-
 		jshRenderer::Initialize();
 
 		return result;

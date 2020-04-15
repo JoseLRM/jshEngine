@@ -2,6 +2,7 @@
 
 #include "GraphicsPrimitives.h"
 #include "..//utils/dataStructures/vector.h"
+#include "..//components/Transform.h"
 
 namespace jsh {
 
@@ -144,66 +145,20 @@ namespace jsh {
 	////////////////////////////MODEL//////////////////////////////
 	struct MeshNode {
 		Mesh* mesh;
+		Transform transform;
 		jsh::vector<MeshNode> sons;
 	};
 
-	class Model : public MeshNode {
+	class Model {
 	public:
 
 		Model();
 		void CreateEntity(jsh::Entity entity) noexcept;
 
+		MeshNode root;
+
 	private:
 		void AddNode(jsh::Entity parent, MeshNode* node) noexcept;
-	};
-
-	////////////////////////////FRAMEBUFFER//////////////////////////////
-	class FrameBuffer {
-		static jsh::DepthStencilState s_NullDST;
-		static jsh::DepthStencilState s_DepthDST;
-		static jsh::DepthStencilState s_StencilDST;
-		static jsh::DepthStencilState s_DepthStencilDST;
-
-		jsh::Texture m_Texture;
-		jsh::RenderTargetView m_RenderTarget;
-		uint32 m_DepthStateID = 1;
-
-		uint32 m_Width = 0u;
-		uint32 m_Height = 0u;
-		bool m_ConserveResolution = true;
-		bool m_Created = false;
-
-#ifdef JSH_ENGINE
-	public:
-#endif
-		static void Initialize();
-
-	public:
-		FrameBuffer();
-		FrameBuffer(bool depthTest, bool stencilTest);
-		FrameBuffer(uint32 width, uint32 height);
-
-		void Create(bool fromBackBuffer = false);
-		void Bind(jsh::CommandList cmd) const;
-		void Clear(jsh::CommandList cmd) const;
-
-		inline void SetResolution(uint32 width, uint32 height) noexcept { 
-			m_Width = width; 
-			m_Height = height; 
-			// TODO: change resolution after creation
-		}
-
-		void EnableDepthTest(jsh::CommandList cmd);
-		void DisableDepthTest(jsh::CommandList cmd);
-		void EnableStencilTest(jsh::CommandList cmd);
-		void DisableStencilTest(jsh::CommandList cmd);
-
-		inline const jsh::RenderTargetView& GetRTV() const noexcept { return m_RenderTarget; }
-
-	private:
-		void BindDepthStencilState(jsh::CommandList cmd) const;
-		bool IsBounded() const;
-
 	};
 
 }

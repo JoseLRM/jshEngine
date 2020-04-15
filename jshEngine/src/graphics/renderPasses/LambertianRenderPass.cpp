@@ -69,29 +69,32 @@ namespace jsh {
 		CameraComponent* camera = jshRenderer::GetMainCamera();
 		if (!camera) return;
 
-		jshScene::UpdateSystem(&m_MeshSystem, 0.f);
-		jshScene::UpdateSystem(&m_LightSystem, 0.f);
-
-		FrameBuffer* fb = (FrameBuffer*)jshGraphics::Get("MainFrameBuffer");
-		fb->Bind(cmd);
-		fb->Clear(cmd);
-
-		fb->EnableDepthTest(cmd);
-		fb->DisableStencilTest(cmd);
+		jsh::RenderTargetView& offscreenRenderTargetView = jshRenderer::primitives::GetOffscreenRenderTargetView();
+		jsh::RenderTargetView& mainRenderTargetView = jshRenderer::primitives::GetMainRenderTargetView();
+		jsh::DepthStencilState& depthStencilState = jshRenderer::primitives::GetDefaultDepthStencilState();
+		jsh::Texture& dsResource = jshRenderer::primitives::GetDefaultDepthStencilView();
+		jshGraphics::BindRenderTargetView(offscreenRenderTargetView, dsResource, cmd);
+		jshGraphics::BindDepthStencilState(depthStencilState, cmd);
+		jshGraphics::ClearRenderTargetView(offscreenRenderTargetView, cmd);
+		jshGraphics::ClearRenderTargetView(mainRenderTargetView, cmd);
+		jshGraphics::ClearDepthStencilView(dsResource, cmd);
 
 		jshGraphics::SetTopology(JSH_TOPOLOGY_TRIANGLES, cmd);
 
-		SamplerState* st = (SamplerState*)jshGraphics::Get("DefaultSamplerState");
-		jshGraphics::BindSamplerState(*st, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
-		jshGraphics::BindSamplerState(*st, 1u, JSH_SHADER_TYPE_PIXEL, cmd);
+		SamplerState& st = jshRenderer::primitives::GetDefaultSamplerState();
+		jshGraphics::BindSamplerState(st, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
+		jshGraphics::BindSamplerState(st, 1u, JSH_SHADER_TYPE_PIXEL, cmd);
 
-		Viewport* vp = (Viewport*)jshGraphics::Get("DefaultViewport");
-		jshGraphics::BindViewport(*vp, 0u, cmd);
+		Viewport& vp = jshRenderer::primitives::GetDefaultViewport();
+		jshGraphics::BindViewport(vp, 0u, cmd);
 
 		camera->UpdateMatrices();
 
 		m_MatrixData.pm = camera->GetProjectionMatrix();
 		m_MatrixData.vm = camera->GetViewMatrix();
+
+		jshScene::UpdateSystem(&m_MeshSystem, 0.f);
+		jshScene::UpdateSystem(&m_LightSystem, 0.f);
 
 		jshGraphics::BindConstantBuffer(m_MatrixBuffer, 0u, JSH_SHADER_TYPE_VERTEX, cmd);
 		jshGraphics::BindConstantBuffer(m_LightBuffer, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
@@ -122,7 +125,6 @@ namespace jsh {
 		mat.shininess = meshComp->mesh->material.shininess;
 		mat.specularIntensity = meshComp->mesh->material.specularIntensity;
 
-		meshComp->mesh->UpdatePrimitives();
 		pList->push_back({ meshComp->mesh, mat, transform }, 10);
 	}
 

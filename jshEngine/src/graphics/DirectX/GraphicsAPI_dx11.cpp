@@ -61,6 +61,7 @@ namespace jshGraphics_dx11 {
 	struct RenderTargetView_dx11 {
 		ComPtr<ID3D11RenderTargetView> ptr;
 		ComPtr<ID3D11Texture2D> resourcePtr;
+		ComPtr<ID3D11ShaderResourceView> shaderResView;
 	};
 
 #define jshDefineToInternal(jshFormat, dx11Format) inline dx11Format* ToInternal(const jshFormat& primitive) \
@@ -251,6 +252,11 @@ namespace jshGraphics_dx11 {
 		viewport.TopLeftY = 0;
 
 		g_ImmediateContext->RSSetViewports(1, &viewport);
+
+		// multithreading support
+		D3D11_FEATURE_DATA_THREADING data;
+		g_Device->CheckFeatureSupport(D3D11_FEATURE_THREADING, &data, sizeof(D3D11_FEATURE_DATA_THREADING));
+		jshLogI("%i, %i", data.DriverCommandLists, data.DriverConcurrentCreates);
 
 		return true;
 	}
@@ -525,6 +531,29 @@ namespace jshGraphics_dx11 {
 			break;
 		}
 	}
+	void BindTexture(const jsh::RenderTargetView& rtv, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
+	{
+		assert(rtv.IsValid());
+		RenderTargetView_dx11* RTV = ToInternal(rtv);
+		assert(RTV->shaderResView.Get() != nullptr);
+
+		switch (shaderType)
+		{
+		case JSH_SHADER_TYPE_VERTEX:
+			g_DeferredContext[cmd]->VSSetShaderResources(slot, 1u, RTV->shaderResView.GetAddressOf());
+			break;
+		case JSH_SHADER_TYPE_PIXEL:
+			g_DeferredContext[cmd]->PSSetShaderResources(slot, 1u, RTV->shaderResView.GetAddressOf());
+			break;
+		case JSH_SHADER_TYPE_GEOMETRY:
+			g_DeferredContext[cmd]->GSSetShaderResources(slot, 1u, RTV->shaderResView.GetAddressOf());
+			break;
+		case JSH_SHADER_TYPE_NULL:
+		default:
+			jshLogE("Invalid shader type");
+			break;
+		}
+	}
 
 	/////////////////////////VIEWPORT////////////////////////////////////////
 	void CreateViewport(float x, float y, float width, float height, jsh::Viewport* vp)
@@ -706,23 +735,31 @@ namespace jshGraphics_dx11 {
 		desc.Texture2D.MipSlice = d->Texture2D.MipSlice;
 
 		jshGfx(g_Device->CreateTexture2D(&texDesc, nullptr, &RTV->resourcePtr));
+
+		if (td->BindFlags & JSH_BIND_SHADER_RESOURCE) {
+			D3D11_SHADER_RESOURCE_VIEW_DESC srDesc;
+			jshZeroMemory(&srDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+			srDesc.Format = texDesc.Format;
+			srDesc.Texture2D.MipLevels = 1u;
+			srDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+			jshGfx(g_Device->CreateShaderResourceView(RTV->resourcePtr.Get(), &srDesc, &RTV->shaderResView));
+		}
+
 		jshGfx(g_Device->CreateRenderTargetView(RTV->resourcePtr.Get(), &desc, &RTV->ptr));
+
 	}
-	void CreateRenderTargetViewFromBackBuffer(jsh::RenderTargetView* rtv)
+	void CreateRenderTargetViewFromBackBuffer(JSH_RENDER_TARGET_VIEW_DESC* d, jsh::RenderTargetView* rtv)
 	{
 		auto RTV = std::make_shared<RenderTargetView_dx11>();
 		rtv->internalAllocation = RTV;
 
 		// resource
-		jshGfx(g_SwapChain->GetBuffer(0u, __uuidof(ID3D11Resource), &RTV->resourcePtr));
-
-		// RTV
 		D3D11_RENDER_TARGET_VIEW_DESC desc;
-		jshZeroMemory(&desc, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
-		desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-		desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-		desc.Texture2D.MipSlice = 0u;
+		desc.Format = ParseFormat(d->Format);
+		desc.ViewDimension = ParseRTVDimension(d->ViewDimension);
+		desc.Texture2D.MipSlice = d->Texture2D.MipSlice;
 
+		jshGfx(g_SwapChain->GetBuffer(0u, __uuidof(ID3D11Resource), &RTV->resourcePtr));
 		jshGfx(g_Device->CreateRenderTargetView(RTV->resourcePtr.Get(), &desc, &RTV->ptr));
 	}
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd)

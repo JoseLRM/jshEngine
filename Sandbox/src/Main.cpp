@@ -84,7 +84,8 @@ jsh::Mesh* CreateTerrain() {
 void State::Initialize()
 {
 	//std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/nano_textured/", "nanosuit.obj");
-	std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/Sponza/", "sponza.obj");
+	std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/Sponza/sponza.obj", "sponza");
+	//std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/gobber/GoblinX.obj", "Goblin");
 
 	dragonModel->CreateEntity(jshScene::CreateEntity(jsh::NameComponent("Goblin")));
 	jsh::Entity cameraEntity = jshScene::CreateEntity(jsh::NameComponent("Camera"), jsh::CameraComponent(), jsh::LightComponent());
@@ -97,7 +98,7 @@ void State::Initialize()
 	pos.z = -4.f;
 	jshScene::GetTransform(cameraEntity).SetPosition(pos);
 
-	jshScene::GetComponent<jsh::LightComponent>(cameraEntity)->intensity = 1.5f;
+	jshScene::GetComponent<jsh::LightComponent>(cameraEntity)->intensity = 1000.f;
 
 }
 
@@ -144,7 +145,7 @@ void State::Update(float dt)
 			else direction -= 90u;
 		}
 
-		constexpr float force = 15.f;
+		constexpr float force = 1500.f;
 		jsh::vec2 forward(sin(ToRadians(direction)), cos(ToRadians(direction)));
 		forward.Normalize();
 		forward *= force * dt;

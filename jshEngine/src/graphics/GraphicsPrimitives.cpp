@@ -11,53 +11,6 @@ namespace jshGraphics {
 
 	RenderTargetView g_RenderTargetView[1];
 
-	void Bind(const Bindable& bindable, CommandList cmd)
-	{
-		switch (bindable.type)
-		{
-		case JSH_PRIMITIVE_VERTEX_BUFFER:
-			jshGraphics::BindVertexBuffer(*(Buffer*)bindable.primitive.get(), bindable.param0, cmd);
-			break;
-		case JSH_PRIMITIVE_INDEX_BUFFER:
-			jshGraphics::BindIndexBuffer(*(Buffer*)bindable.primitive.get(), cmd);
-			break;
-		case JSH_PRIMITIVE_CONSTANT_BUFFER:
-			jshGraphics::BindConstantBuffer(*(Buffer*)bindable.primitive.get(), bindable.param0, (JSH_SHADER_TYPE)bindable.param1, cmd);
-			break;
-		case JSH_PRIMITIVE_VERTEX_SHADER:
-			jshGraphics::BindVertexShader(*(VertexShader*)bindable.primitive.get(), cmd);
-			break;
-		case JSH_PRIMITIVE_PIXEL_SHADER:
-			jshGraphics::BindPixelShader(*(PixelShader*)bindable.primitive.get(), cmd);
-			break;
-		case JSH_PRIMITIVE_GEOMETRY_SHADER:
-			//jshGraphics::BindVertexShader(*(VertexShader*)bindable.primitive.get(), cmd);
-			//TODO: all types of shaders
-			break;
-		case JSH_PRIMITIVE_INPUT_LAYOUT:
-			jshGraphics::BindInputLayout(*(InputLayout*)bindable.primitive.get(), cmd);
-			break;
-		case JSH_PRIMITIVE_TEXTURE:
-			jshGraphics::BindTexture(*(Texture*)bindable.primitive.get(), bindable.param0, (JSH_SHADER_TYPE)bindable.param1, cmd);
-			break;
-		case JSH_PRIMITIVE_SAMPLER_STATE:
-			jshGraphics::BindSamplerState(*(SamplerState*)bindable.primitive.get(), bindable.param0, (JSH_SHADER_TYPE)bindable.param1, cmd);
-			break;
-		case JSH_PRIMITIVE_BLEND_STATE:
-			jshGraphics::BindBlendState(*(BlendState*)bindable.primitive.get(), cmd);
-			break;
-		case JSH_PRIMITIVE_DEPTHSTENCIL_STATE:
-			jshGraphics::BindDepthStencilState(*(DepthStencilState*)bindable.primitive.get(), cmd);
-			break;
-		case JSH_PRIMITIVE_RASTERIZER_STATE:
-			jshGraphics::BindRasterizerState(*(RasterizerState*)bindable.primitive.get(), cmd);
-			break;
-		case JSH_PRIMITIVE_RENDER_TARGET_VIEW:
-			jshGraphics::BindRenderTargetView(*(RenderTargetView*)bindable.primitive.get(), cmd);
-			break;
-		}
-	}
-
 	/////////////////////////BUFFER//////////////////////
 	void CreateBuffer(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Buffer* buffer)
 	{
@@ -150,6 +103,10 @@ namespace jshGraphics {
 	{
 		jshGraphics_dx11::BindTexture(texture, slot, shaderType, cmd);
 	}
+	void BindTexture(const jsh::RenderTargetView& rtv, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
+	{
+		jshGraphics_dx11::BindTexture(rtv, slot, shaderType, cmd);
+	}
 
 	/////////////////////////VIEWPORT////////////////////////
 	void CreateViewport(float x, float y, float width, float height, jsh::Viewport* vp)
@@ -209,9 +166,9 @@ namespace jshGraphics {
 	{
 		return jshGraphics_dx11::CreateRenderTargetView(desc, texDesc, rtv);
 	}
-	void CreateRenderTargetViewFromBackBuffer(jsh::RenderTargetView* rtv)
+	void CreateRenderTargetViewFromBackBuffer(JSH_RENDER_TARGET_VIEW_DESC* desc, jsh::RenderTargetView* rtv)
 	{
-		return jshGraphics_dx11::CreateRenderTargetViewFromBackBuffer(rtv);
+		return jshGraphics_dx11::CreateRenderTargetViewFromBackBuffer(desc, rtv);
 	}
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd)
 	{

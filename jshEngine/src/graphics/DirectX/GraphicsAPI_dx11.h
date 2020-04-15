@@ -47,6 +47,7 @@ namespace jshGraphics_dx11 {
 	/////////////////////////TEXTURE////////////////////////
 	void CreateTexture(const JSH_TEXTURE2D_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Texture* tex);
 	void BindTexture(const jsh::Texture& texture, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
+	void BindTexture(const jsh::RenderTargetView& rtv, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 
 	/////////////////////////VIEWPORT////////////////////////
 	void CreateViewport(float x, float y, float width, float height, jsh::Viewport* vp);
@@ -71,7 +72,7 @@ namespace jshGraphics_dx11 {
 
 	/////////////////////////RENDER TARGET VIEW////////////////////////
 	void CreateRenderTargetView(const JSH_RENDER_TARGET_VIEW_DESC* desc, const JSH_TEXTURE2D_DESC* texDesc, jsh::RenderTargetView* rtv);
-	void CreateRenderTargetViewFromBackBuffer(jsh::RenderTargetView* rtv);
+	void CreateRenderTargetViewFromBackBuffer(JSH_RENDER_TARGET_VIEW_DESC* desc, jsh::RenderTargetView* rtv);
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd);
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, const jsh::Texture& tex, jsh::CommandList cmd);
 	void ClearRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd);

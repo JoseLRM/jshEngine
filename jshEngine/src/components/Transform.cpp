@@ -2,6 +2,22 @@
 
 namespace jsh {
 
+	void Transform::operator=(const Transform& other)
+	{
+		m_LocalPosition = other.m_LocalPosition;
+		m_LocalRotation = other.m_LocalRotation;
+		m_LocalScale = other.m_LocalScale;
+		m_Modified = true;
+	}
+	void Transform::operator=(Transform&& other)
+	{
+		m_LocalPosition = other.m_LocalPosition;
+		m_LocalRotation = other.m_LocalRotation;
+		m_LocalScale = other.m_LocalScale;
+		entity = other.entity;
+		m_Modified = true;
+	}
+
 	XMMATRIX Transform::GetLocalMatrix() const noexcept
 	{
 		XMVECTOR radRotation = XMVectorSet(ToRadians(m_LocalRotation.x), ToRadians(m_LocalRotation.y), ToRadians(m_LocalRotation.z), 1.f);

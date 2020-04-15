@@ -16,7 +16,16 @@ namespace jsh {
 		bool m_Modified = true;
 
 	public:
-		Entity entity;
+		Transform() = default;
+		~Transform() = default;
+
+		Transform(const Transform& other) = default;
+		Transform(Transform&& other) = default;
+
+		void operator=(const Transform& other);
+		void operator=(Transform&& other);
+
+		Entity entity = 0;
 
 		// getters
 		inline const vec3& GetLocalPosition() const noexcept { return *(vec3*)& m_LocalPosition; }

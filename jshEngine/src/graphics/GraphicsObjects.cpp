@@ -431,21 +431,19 @@ namespace jsh {
 	}
 
 	//////////////////////MODEL/////////////////////////////////
-	Model::Model() : MeshNode() {}
+	Model::Model() : root() {}
 
 	void Model::CreateEntity(jsh::Entity entity) noexcept
 	{
-		MeshComponent* comp = jshScene::GetComponent<MeshComponent>(entity);
-		if (!comp) {
-			jshScene::AddComponent(entity, jsh::MeshComponent());
-		}
-
-		AddNode(entity, this);
+		AddNode(entity, &root);
 	}
 	void Model::AddNode(jsh::Entity parent, MeshNode* node) noexcept
 	{
-		MeshComponent* meshComp = jshScene::GetComponent<MeshComponent>(parent);
-		meshComp->mesh = node->mesh;
+		if (node->mesh != nullptr) {
+			MeshComponent* meshComp = jshScene::GetComponent<MeshComponent>(parent);
+			meshComp->mesh = node->mesh;
+			jshScene::GetTransform(meshComp->entityID) = node->transform;
+		}
 
 		uint32 cant = node->sons.size();
 		if (cant == 0) return;
@@ -454,140 +452,8 @@ namespace jsh {
 		jshScene::CreateSEntities(parent, cant, &entities, jsh::MeshComponent());
 
 		for (uint32 i = 0; i < cant; ++i) {
-			AddNode(entities[i], &sons[i]);
+			AddNode(entities[i], &node->sons[i]);
 		}
-	}
-
-	//////////////////////FRAME BUFFER/////////////////////////////////
-	DepthStencilState FrameBuffer::s_NullDST;
-	DepthStencilState FrameBuffer::s_DepthDST;
-	DepthStencilState FrameBuffer::s_StencilDST;
-	DepthStencilState FrameBuffer::s_DepthStencilDST;
-
-	void FrameBuffer::Initialize()
-	{
-		JSH_DEPTH_STENCIL_DESC nullDesc;
-		nullDesc.DepthEnable = false;
-		nullDesc.DepthWriteMask = JSH_DEPTH_WRITE_MASK_ALL;
-		nullDesc.StencilEnable = false;
-		jshGraphics::CreateDepthStencilState(&nullDesc, &s_NullDST);
-
-		JSH_DEPTH_STENCIL_DESC depthDesc;
-		depthDesc.DepthEnable = true;
-		depthDesc.DepthFunc = JSH_COMPARISON_LESS;
-		depthDesc.DepthWriteMask = JSH_DEPTH_WRITE_MASK_ALL;
-		depthDesc.StencilEnable = false;
-		jshGraphics::CreateDepthStencilState(&depthDesc, &s_DepthDST);
-	}
-
-	FrameBuffer::FrameBuffer() : m_Width(1080), m_Height(720) {}
-	FrameBuffer::FrameBuffer(bool depthTest, bool stencilTest) : m_Width(1080), m_Height(720) {
-		if (!depthTest && !stencilTest) m_DepthStateID = 0;
-		else if (depthTest && !stencilTest) m_DepthStateID = 1;
-		else if (!depthTest && stencilTest) m_DepthStateID = 2;
-		else m_DepthStateID = 3;
-	}
-	FrameBuffer::FrameBuffer(uint32 width, uint32 height)
-		: m_Width(width),
-		m_Height(height), m_ConserveResolution(false) {}
-
-	void FrameBuffer::Create(bool fromBackBuffer) {
-
-		JSH_TEXTURE2D_DESC texDesc;
-		texDesc.ArraySize = 1u;
-		texDesc.BindFlags = JSH_BIND_DEPTH_STENCIL;
-		texDesc.CPUAccessFlags = 0u;
-		texDesc.Format = JSH_FORMAT_D24_UNORM_S8_UINT;
-		texDesc.Width = 1080;
-		texDesc.Height = 720;
-		texDesc.MipLevels = 1u;
-		texDesc.MiscFlags = 0u;
-		texDesc.SampleDesc.Count = 1u;
-		texDesc.SampleDesc.Quality = 0u;
-		texDesc.Usage = JSH_USAGE_DEFAULT;
-
-		jshGraphics::CreateTexture(&texDesc, nullptr, &m_Texture);
-
-		if (fromBackBuffer) {
-			jshGraphics::CreateRenderTargetViewFromBackBuffer(&m_RenderTarget);
-		}
-		else {
-			JSH_TEXTURE2D_DESC rtvTexDesc;
-			texDesc.ArraySize = 1u;
-			texDesc.BindFlags = JSH_BIND_RENDER_TARGET;
-			texDesc.CPUAccessFlags = 0u;
-			texDesc.Format = JSH_FORMAT_D24_UNORM_S8_UINT;
-			texDesc.Width = 1080;
-			texDesc.Height = 720;
-			texDesc.MipLevels = 1u;
-			texDesc.MiscFlags = 0u;
-			texDesc.SampleDesc.Count = 1u;
-			texDesc.SampleDesc.Quality = 0u;
-			texDesc.Usage = JSH_USAGE_DEFAULT;
-			JSH_RENDER_TARGET_VIEW_DESC rtvDesc;
-			rtvDesc.Format = JSH_FORMAT_D24_UNORM_S8_UINT;
-			rtvDesc.ViewDimension = JSH_RTV_DIMENSION_TEXTURE2D;
-			rtvDesc.Texture2D.MipSlice = 0u;
-
-			jshGraphics::CreateRenderTargetView(&rtvDesc, &rtvTexDesc, &m_RenderTarget);
-		}
-	}
-	void FrameBuffer::Bind(jsh::CommandList cmd) const
-	{
-		jshGraphics::BindRenderTargetView(m_RenderTarget, m_Texture, cmd);
-		BindDepthStencilState(cmd);
-	}
-	void FrameBuffer::Clear(CommandList cmd) const
-	{
-		jshGraphics::ClearRenderTargetView(m_RenderTarget, cmd);
-		jshGraphics::ClearDepthStencilView(m_Texture, cmd);
-	}
-
-	void FrameBuffer::EnableDepthTest(jsh::CommandList cmd)
-	{
-		if (m_DepthStateID == 1 || m_DepthStateID == 3) return;
-		m_DepthStateID = (m_DepthStateID == 2) ? 3 : 1;
-		if (IsBounded()) BindDepthStencilState(cmd);
-	}
-	void FrameBuffer::DisableDepthTest(jsh::CommandList cmd)
-	{
-		if (m_DepthStateID == 0 || m_DepthStateID == 2) return;
-		m_DepthStateID = (m_DepthStateID == 1) ? 0 : 2;
-		if (IsBounded()) BindDepthStencilState(cmd);
-	}
-	void FrameBuffer::EnableStencilTest(jsh::CommandList cmd)
-	{
-		if (m_DepthStateID == 2 || m_DepthStateID == 3) return;
-		m_DepthStateID = (m_DepthStateID == 1) ? 3 : 2;
-		if (IsBounded()) BindDepthStencilState(cmd);
-	}
-	void FrameBuffer::DisableStencilTest(jsh::CommandList cmd)
-	{
-		if (m_DepthStateID == 0 || m_DepthStateID == 1) return;
-		m_DepthStateID = (m_DepthStateID == 2) ? 0 : 3;
-		if (IsBounded()) BindDepthStencilState(cmd);
-	}
-	void FrameBuffer::BindDepthStencilState(CommandList cmd) const
-	{
-		switch (m_DepthStateID)
-		{
-		case 0:
-			jshGraphics::BindDepthStencilState(s_NullDST, cmd);
-			break;
-		case 1:
-			jshGraphics::BindDepthStencilState(s_DepthDST, cmd);
-			break;
-		case 2:
-			jshGraphics::BindDepthStencilState(s_StencilDST, cmd);
-			break;
-		case 3:
-			jshGraphics::BindDepthStencilState(s_DepthStencilDST, cmd);
-			break;
-		}
-	}
-	bool FrameBuffer::IsBounded() const
-	{
-		return (m_RenderTarget.internalAllocation.get() == jshGraphics::GetRenderTargetView().internalAllocation.get());
 	}
 
 }

@@ -14,6 +14,29 @@ using namespace jsh;
 
 namespace jshRenderer {
 
+	namespace primitives {
+		jsh::RenderTargetView	g_MainRenderTargetView;
+		jsh::DepthStencilState	g_DefaultDepthStencilState;
+		jsh::Texture			g_DefaultDepthStencilView;
+
+		jsh::RenderTargetView	g_OffscreenRenderTargetView;
+
+		jsh::SamplerState		g_DefaultSamplerState;
+		jsh::Viewport			g_DefaultViewport;
+
+		// getters
+		jsh::RenderTargetView& GetMainRenderTargetView() { return g_MainRenderTargetView; }
+		jsh::DepthStencilState& GetDefaultDepthStencilState() { return g_DefaultDepthStencilState; }
+		jsh::Texture& GetDefaultDepthStencilView() { return g_DefaultDepthStencilView; }
+
+		jsh::RenderTargetView& GetOffscreenRenderTargetView() { return g_OffscreenRenderTargetView; }
+
+		jsh::SamplerState& GetDefaultSamplerState() { return g_DefaultSamplerState; }
+		jsh::Viewport& GetDefaultViewport() { return g_DefaultViewport; }
+	}
+
+	using namespace primitives;
+
 	class DefRenderGraph : public RenderGraph {
 
 	public:
@@ -35,23 +58,74 @@ namespace jshRenderer {
 
 	bool Initialize()
 	{		
-		std::shared_ptr<FrameBuffer> mainFB = std::make_shared<FrameBuffer>();
-		jshGraphics::Save("MainFrameBuffer", mainFB);
-		mainFB->Create(true);
+		// MAIN FRAME BUFFER
+		{
+			JSH_RENDER_TARGET_VIEW_DESC rtvDesc;
+			jshZeroMemory(&rtvDesc, sizeof(JSH_RENDER_TARGET_VIEW_DESC));
+			rtvDesc.Format = JSH_FORMAT_B8G8R8A8_UNORM;
+			rtvDesc.ViewDimension = JSH_RTV_DIMENSION_TEXTURE2D;
+			rtvDesc.Texture2D.MipSlice = 0u;
 
-		std::shared_ptr<SamplerState> defSampler = std::make_shared<SamplerState>();
-		jshGraphics::Save("DefaultSamplerState", defSampler);
+			JSH_DEPTH_STENCIL_DESC dsDesc;
+			jshZeroMemory(&dsDesc, sizeof(JSH_DEPTH_STENCIL_DESC));
+			dsDesc.DepthEnable = true;
+			dsDesc.DepthFunc = JSH_COMPARISON_LESS;
+			dsDesc.DepthWriteMask = JSH_DEPTH_WRITE_MASK_ALL;
+			dsDesc.StencilEnable = FALSE;
+
+			JSH_TEXTURE2D_DESC dsResDesc;
+			jshZeroMemory(&dsResDesc, sizeof(JSH_TEXTURE2D_DESC));
+			dsResDesc.ArraySize = 1u;
+			dsResDesc.BindFlags = JSH_BIND_DEPTH_STENCIL;
+			dsResDesc.CPUAccessFlags = 0u;
+			dsResDesc.Format = JSH_FORMAT_D24_UNORM_S8_UINT;
+			dsResDesc.Width = 1080;
+			dsResDesc.Height = 720;
+			dsResDesc.MipLevels = 1u;
+			dsResDesc.MiscFlags = 0u;
+			dsResDesc.SampleDesc.Count = 1u;
+			dsResDesc.SampleDesc.Quality = 0u;
+			dsResDesc.Usage = JSH_USAGE_DEFAULT;
+
+			jshGraphics::CreateRenderTargetViewFromBackBuffer(&rtvDesc, &g_MainRenderTargetView);
+			jshGraphics::CreateDepthStencilState(&dsDesc, &g_DefaultDepthStencilState);
+			jshGraphics::CreateTexture(&dsResDesc, nullptr, &g_DefaultDepthStencilView);
+		}
+
+		// OFFSREEN RTV
+		{
+			JSH_RENDER_TARGET_VIEW_DESC rtvDesc;
+			rtvDesc.Format = JSH_FORMAT_R8G8B8A8_UNORM;
+			rtvDesc.Texture2D.MipSlice = 0u;
+			rtvDesc.ViewDimension = JSH_RTV_DIMENSION_TEXTURE2D;
+
+			JSH_TEXTURE2D_DESC res;
+			res.ArraySize = 1u;
+			res.BindFlags = JSH_BIND_RENDER_TARGET | JSH_BIND_SHADER_RESOURCE;
+			res.CPUAccessFlags = 0u;
+			res.Format = JSH_FORMAT_R8G8B8A8_UNORM;
+			res.Width = 1080;
+			res.Height = 720;
+			res.MipLevels = 1u;
+			res.MiscFlags = 0u;
+			res.SampleDesc.Count = 1u;
+			res.SampleDesc.Quality = 0u;
+			res.Usage = JSH_USAGE_DEFAULT;
+
+			jshGraphics::CreateRenderTargetView(&rtvDesc, &res, &g_OffscreenRenderTargetView);
+		}
+
+		// DEFAULT SAMPLER
 		JSH_SAMPLER_DESC samplerDesc;
 		jshZeroMemory(&samplerDesc, sizeof(JSH_SAMPLER_DESC));
 		samplerDesc.AddressU = JSH_TEXTURE_ADDRESS_WRAP;
 		samplerDesc.AddressV = JSH_TEXTURE_ADDRESS_WRAP;
 		samplerDesc.AddressW = JSH_TEXTURE_ADDRESS_WRAP;
 		samplerDesc.Filter = JSH_FILTER_MIN_MAG_MIP_LINEAR;
-		jshGraphics::CreateSamplerState(&samplerDesc, defSampler.get());
+		jshGraphics::CreateSamplerState(&samplerDesc, &g_DefaultSamplerState);
 
-		std::shared_ptr<Viewport> defViewport = std::make_shared<Viewport>();
-		jshGraphics::Save("DefaultViewport", defViewport);
-		jshGraphics::CreateViewport(0, 0, 1080, 720, defViewport.get());
+		// DEFAULT VIEWPORT
+		jshGraphics::CreateViewport(0, 0, 1080, 720, &g_DefaultViewport);
 
 		g_RenderGraph.Initialize();
 
@@ -70,8 +144,7 @@ namespace jshRenderer {
 		g_RenderGraph.Render();
 
 		jshGraphics::End();
-		FrameBuffer* mainFB = (FrameBuffer*)jshGraphics::Get("MainFrameBuffer");
-		jshImGui(jshGraphics::EndImGui(mainFB->GetRTV()));
+		jshImGui(jshGraphics::EndImGui(g_MainRenderTargetView));
 		jshGraphics::Present();	
 	}
 

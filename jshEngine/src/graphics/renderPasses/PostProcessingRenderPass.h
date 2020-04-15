@@ -75,14 +75,17 @@ namespace jsh {
 	protected:
 		void Render() override
 		{
-			FrameBuffer* mainFB = (FrameBuffer*)jshGraphics::Get("MainFrameBuffer");
-			SamplerState* sampler = (SamplerState*)jshGraphics::Get("DefaultSamplerState");
-			Viewport* vp = (Viewport*)jshGraphics::Get("DefaultViewport");
+			
+			RenderTargetView& rtv = jshRenderer::primitives::GetMainRenderTargetView();
+			jshGraphics::BindRenderTargetView(rtv, cmd);
+
+			RenderTargetView& offscreen = jshRenderer::primitives::GetOffscreenRenderTargetView();
+			jshGraphics::BindTexture(offscreen, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
+
 			jshGraphics::SetTopology(JSH_TOPOLOGY_TRIANGLES, cmd);
 
-			mainFB->Bind(cmd);
-			jshGraphics::BindSamplerState(*sampler, 0, JSH_SHADER_TYPE_PIXEL, cmd);
-			jshGraphics::BindViewport(*vp, 0, cmd);
+			jshGraphics::BindSamplerState(jshRenderer::primitives::GetDefaultSamplerState(), 0, JSH_SHADER_TYPE_PIXEL, cmd);
+			jshGraphics::BindViewport(jshRenderer::primitives::GetDefaultViewport(), 0, cmd);
 
 			jshGraphics::BindVertexBuffer(m_vBuffer, 0u, cmd);
 			jshGraphics::BindIndexBuffer(m_iBuffer, cmd);
@@ -93,7 +96,8 @@ namespace jsh {
 			jshGraphics::BindVertexShader(*vs, cmd);
 			jshGraphics::BindPixelShader(*ps, cmd);
 
-			//jshGraphics::DrawIndexed(6, cmd);
+			jshGraphics::DrawIndexed(6, cmd);
+			
 		}
 
 	};
