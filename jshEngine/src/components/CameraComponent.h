@@ -23,6 +23,8 @@ namespace jsh {
 	public:
 		CameraComponent();
 
+		void UpdateFirstPerson(float hSensibility, float vSensibility, float hSpeed, float vSpeed, float dt) noexcept;
+
 		void SetPerspectiveMatrix(float fov, float near, float far) noexcept;
 		void SetOrthographicMatrix(float width, float height) noexcept;
 

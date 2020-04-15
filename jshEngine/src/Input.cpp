@@ -2,6 +2,8 @@
 
 #include <vector>
 #include "EventSystem.h"
+#include "Debug.h"
+#include "graphics/Window.h"
 
 using namespace jsh;
 
@@ -15,10 +17,9 @@ namespace jshInput {
 	bool g_MousePressed[3];
 	bool g_MouseReleased[3];
 
-	uint16 g_PosX = 0;
-	uint16 g_PosY = 0;
-	int16 g_RPosX = 0;
-	int16 g_RPosY = 0;
+	vec2 g_Pos;
+	vec2 g_RPos;
+	vec2 g_Dragged;
 
 	bool IsKey(uint8 id) {
 		return g_Keys[id];
@@ -38,6 +39,19 @@ namespace jshInput {
 	}
 	bool IsMouseReleased(uint8 id) {
 		return g_MouseReleased[id];
+	}
+
+	jsh::vec2 MousePos()
+	{
+		return g_Pos;
+	}
+	jsh::vec2 MouseRPos()
+	{
+		return g_RPos;
+	}
+	jsh::vec2 MouseDragged()
+	{
+		return g_Dragged;
 	}
 
 	void Update()
@@ -79,9 +93,9 @@ namespace jshInput {
 			g_MouseReleased[i] = false;
 		}
 
-		// mouse pos
-		g_RPosX = g_PosX;
-		g_RPosY = g_PosY;
+		g_RPos = g_Pos;
+		g_Dragged.x = 0.f;
+		g_Dragged.y = 0.f;
 	}
 
 	void KeyDown(uint8 id) {
@@ -114,10 +128,18 @@ namespace jshInput {
 	}
 	void MousePos(uint16 x, uint16 y)
 	{
-		g_PosX = x;
-		g_PosY = y;
+		g_RPos.x = g_Pos.x;
+		g_RPos.y = g_Pos.y;
+		g_Pos.x = ((float)x / jshWindow::GetWidth()) * 2.f - 1.f;
+		g_Pos.y = ((float)y / jshWindow::GetHeight()) * 2.f - 1.f;
+	}
 
-		MouseDraggedEvent e(x, y, x - g_RPosX, y - g_RPosY);
+	void MouseDragged(int dx, int dy)
+	{
+		g_Dragged.x = dx;
+		g_Dragged.y = dy;
+
+		MouseDraggedEvent e(g_Pos.x, g_Pos.y, g_Dragged.x, g_Dragged.y);
 		jshEvent::Dispatch(e);
 
 		MouseEvent e2(JSH_EVENT_DRAGGED);

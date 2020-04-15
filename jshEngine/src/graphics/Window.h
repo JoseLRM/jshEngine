@@ -20,4 +20,7 @@ namespace jshWindow {
 	int GetY();
 	int GetWidth();
 	int GetHeight();
+
+	void ShowMouse();
+	void HideMouse();
 }

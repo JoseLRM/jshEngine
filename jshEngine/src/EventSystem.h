@@ -190,12 +190,12 @@ namespace jsh {
 	};
 
 	struct MouseDraggedEvent : public jsh::Event {
-		uint16 mouseX = 0u;
-		uint16 mouseY = 0u;
-		int16 draggedX = 0;
-		int16 draggedY = 0;
+		float mouseX = 0u;
+		float mouseY = 0u;
+		float draggedX = 0;
+		float draggedY = 0;
 
-		MouseDraggedEvent(uint16 x, uint16 y, int16 dx, int16 dy)
+		MouseDraggedEvent(float x, float y, float dx, float dy)
 			: mouseX(x), mouseY(y), draggedX(dx), draggedY(dy) {}
 	};
 

@@ -1,12 +1,77 @@
 #include "CameraComponent.h"
 
 #include "..//graphics/Window.h"
+#include "..//Input.h"
 
 namespace jsh {
 
 	CameraComponent::CameraComponent() : m_ProjectionMatrix(), m_ViewMatrix(),
 		m_Width(100.f), m_Height(100.f), m_Fov(70.f), m_Near(0.1f), m_Far(2000.f) {
 		SetPerspectiveMatrix(m_Fov, m_Near, m_Far);
+	}
+
+	void CameraComponent::UpdateFirstPerson(float hSensibility, float vSensibility, float hSpeed, float vSpeed, float dt) noexcept
+	{
+		uint8 front = 0u;
+		uint8 right = 0u;
+		jsh::Transform& trans = jshScene::GetTransform(entityID);
+		float direction = trans.GetLocalRotation().y;
+		jsh::vec3 pos = trans.GetLocalPosition();
+
+		if (jshInput::IsKey('W')) {
+			front = 1;
+		}
+		if (jshInput::IsKey('S')) {
+			if (front) front = 0;
+			else front = 2;
+		}
+		if (jshInput::IsKey('D')) {
+			right = 1;
+		}
+		if (jshInput::IsKey('A')) {
+			if (right) right = 0;
+			else right = 2;
+		}
+
+		if (front || right) {
+			if (front == 1) {
+				if (right == 1) direction += 45u;
+				else if (right == 2) direction -= 45u;
+			}
+			else if (front == 2) {
+				if (right == 1) direction += 135u;
+				else if (right == 2) direction -= 135u;
+				else direction += 180u;
+			}
+			else {
+				if (right == 1) direction += 90u;
+				else direction -= 90u;
+			}
+
+			jsh::vec2 forward(sin(ToRadians(direction)), cos(ToRadians(direction)));
+			forward.Normalize();
+			forward *= hSpeed * dt;
+
+			pos.x += forward.x;
+			pos.z += forward.y;
+		}
+
+		if (jshInput::IsKey(JSH_KEY_SPACE)) {
+			pos.y += vSpeed * dt;
+		}
+		if (jshInput::IsKey(JSH_KEY_SHIFT)) {
+			pos.y -= vSpeed * dt;
+		}
+
+		trans.SetPosition(pos);
+
+		jsh::vec3 rot = trans.GetLocalRotation();
+
+		jsh::vec2 dragged = jshInput::MouseDragged();
+
+		rot.y += dragged.x * hSensibility * dt;
+		rot.x += dragged.y * vSensibility * dt;
+		trans.SetRotation(rot);
 	}
 
 	void CameraComponent::SetPerspectiveMatrix(float fov, float near, float far) noexcept

@@ -105,70 +105,16 @@ void State::Initialize()
 
 void State::Update(float dt)
 {
-	jsh::vec3 r = jshScene::GetTransform(1).GetLocalRotation();
-	//r.y += dt * 45.f;
-	jshScene::GetTransform(1).SetRotation(r);
-	jsh::CameraComponent* camera = jshRenderer::GetMainCamera();
-
-	uint8 front = 0u;
-	uint8 right = 0u;
-	jsh::Transform& cameraTransform = jshScene::GetTransform(camera->entityID);
-	float direction = cameraTransform.GetLocalRotation().y;
-
-	if (jshInput::IsKey('W')) {
-		front = 1;
-	}
-	if (jshInput::IsKey('S')) {
-		if (front) front = 0;
-		else front = 2;
-	}
-	if (jshInput::IsKey('D')) {
-		right = 1;
-	}
-	if (jshInput::IsKey('A')) {
-		if (right) right = 0;
-		else right = 2;
-	}
-
-	if (front || right) {
-		if (front == 1) {
-			if (right == 1) direction += 45u;
-			else if (right == 2) direction -= 45u;
-		}
-		else if (front == 2) {
-			if (right == 1) direction += 135u;
-			else if (right == 2) direction -= 135u;
-			else direction += 180u;
-		}
-		else {
-			if (right == 1) direction += 90u;
-			else direction -= 90u;
-		}
-
-		constexpr float force = 1500.f;
-		jsh::vec2 forward(sin(ToRadians(direction)), cos(ToRadians(direction)));
-		forward.Normalize();
-		forward *= force * dt;
-		jsh::vec3 pos = cameraTransform.GetLocalPosition();
-		pos.x += forward.x;
-		pos.z += forward.y;
-		cameraTransform.SetPosition(pos);
-	}
-
 	static bool actived = false;
-	if (jshInput::IsKeyPressed('C')) actived = !actived;
-	jshEvent::Register<jsh::MouseDraggedEvent>(JSH_EVENT_LAYER_DEFAULT, [this, dt](jsh::MouseDraggedEvent& e) {
-		if (actived) {
-			jsh::Transform& tran = jshScene::GetTransform(jshRenderer::GetMainCamera()->entityID);
-			jsh::vec3 rot = tran.GetLocalRotation();
-			rot.y += ((float)e.draggedX / (float)jshWindow::GetWidth()) * 25000.f * dt;
-			rot.x += ((float)e.draggedY / (float)jshWindow::GetHeight()) * 16000.f * dt;
-			tran.SetRotation(rot);
-		}
-
-		return false;
-	});
-
+	if (jshInput::IsKeyPressed('C')) {
+		actived = !actived;
+		if (actived) jshWindow::HideMouse();
+		else jshWindow::ShowMouse();
+	}
+	if (actived) {
+		jsh::CameraComponent* camera = jshRenderer::GetMainCamera();
+		camera->UpdateFirstPerson(70.f, 30.f, 500.f, 500.f, dt);
+	}
 }
 
 void State::Render()

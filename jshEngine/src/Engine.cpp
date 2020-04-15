@@ -99,7 +99,7 @@ namespace jshEngine {
 
 			const float SHOW_FPS_RATE = 0.1f;
 			float dtCount = 0.f;
-			uint32 fpsCount = 0u;
+			float fpsCount = 0u;
 
 			float fixedUpdateCount = 0.f;
 
@@ -131,8 +131,8 @@ namespace jshEngine {
 				dtCount += deltaTime;
 				fpsCount++;
 				if (dtCount >= SHOW_FPS_RATE) {
-					g_FPS = (float)fpsCount / (float)SHOW_FPS_RATE;
-					fpsCount = 0u;
+					g_FPS = fpsCount / SHOW_FPS_RATE;
+					fpsCount = 0.f;
 					dtCount -= SHOW_FPS_RATE;
 				}
 			}

@@ -7,6 +7,7 @@
 
 #include "..//ImGui/imgui.h"
 #include "..//ImGui/imgui_impl_win32.h"
+#include "..//utils/dataStructures/vector.h"
 
 using namespace jsh;
 
@@ -19,6 +20,8 @@ namespace jshWindow {
 	int screenY = 0;
 	int screenW = 1080;
 	int screenH = 720;
+
+	jsh::vector<byte> rawMouseBuffer;
 
 	LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
 	{
@@ -50,6 +53,7 @@ namespace jshWindow {
 			uint8 keyCode = (uint8)wParam;
 			if (keyCode > 255) {
 				jshLogW("Unknown keycode: %u", keyCode);
+				VK_SHIFT;
 			}
 			else jshInput::KeyUp(keyCode);
 
@@ -74,9 +78,29 @@ namespace jshWindow {
 			jshInput::MouseUp(2);
 			break;
 		case WM_MOUSEMOVE:
+		{
 			uint16 x = LOWORD(lParam);
 			uint16 y = HIWORD(lParam);
 			jshInput::MousePos(x, y);
+			break;
+		}
+
+		// RAW MOUSE
+		case WM_INPUT:
+		{
+			UINT size;
+			if(GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, nullptr, &size, sizeof(RAWINPUTHEADER)) == -1) break;
+
+			rawMouseBuffer.resize(size);
+			if (GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, rawMouseBuffer.data(), &size, sizeof(RAWINPUTHEADER)) == -1) break;
+
+			RAWINPUT& rawInput = reinterpret_cast<RAWINPUT&>(*rawMouseBuffer.data());
+			if (rawInput.header.dwType == RIM_TYPEMOUSE) {
+				if (rawInput.data.mouse.lLastX != 0 || rawInput.data.mouse.lLastY != 0) {
+					jshInput::MouseDragged(rawInput.data.mouse.lLastX, rawInput.data.mouse.lLastY);
+				}
+			}
+		}
 			break;
 		}
 
@@ -121,6 +145,15 @@ namespace jshWindow {
 		ShowWindow(windowHandle, SW_SHOWDEFAULT);
 
 		consoleHandle = GetConsoleWindow();
+
+		// register raw mouse input
+		RAWINPUTDEVICE rid;
+		rid.usUsagePage = 1;
+		rid.usUsage = 2;
+		rid.hwndTarget = nullptr;
+		rid.dwFlags = 0;
+
+		if(!RegisterRawInputDevices(&rid, 1u, sizeof(RAWINPUTDEVICE))) return false;
 
 		return true;
 	}
@@ -171,4 +204,26 @@ namespace jshWindow {
 	int GetY() { return screenY; }
 	int GetWidth() { return screenW; }
 	int GetHeight() { return screenH; }
+
+	void ShowMouse()
+	{
+		while(ShowCursor(TRUE) < 0);
+
+		ClipCursor(nullptr);
+
+		jshImGui(ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse);
+	}
+
+	void HideMouse()
+	{
+		while (ShowCursor(FALSE) >= 0);
+
+		jshImGui(ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse);
+
+		RECT r;
+		GetClientRect(windowHandle, &r);
+		MapWindowPoints(windowHandle, nullptr, (POINT*)& r, 2);
+		ClipCursor(&r);
+	}
+
 }
