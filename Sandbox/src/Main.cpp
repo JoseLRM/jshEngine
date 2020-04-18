@@ -72,19 +72,19 @@ jsh::Mesh* CreateTerrain() {
 		}
 	}
 
-	mesh->rawData = jshGraphics::CreateRawData("Terrain");
-	mesh->rawData->SetPositionsAndNormals((float*)positions, (float*)normals, cantOfVertices);
-	mesh->rawData->SetColors((uint8*)colors);
-	mesh->rawData->SetIndices(indices, cantOfIndices);
-	mesh->rawData->Create();
+	mesh->SetRawData(jshGraphics::CreateRawData("Terrain"));
+	mesh->GetRawData()->SetPositionsAndNormals((float*)positions, (float*)normals, cantOfVertices);
+	mesh->GetRawData()->SetColors((uint8*)colors);
+	mesh->GetRawData()->SetIndices(indices, cantOfIndices);
+	mesh->GetRawData()->Create();
 
 	return mesh;
 }
 
 void State::Initialize()
 {
-	//std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/nano_textured/", "nanosuit.obj");
-	std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/Sponza/sponza.obj", "sponza");
+	std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/nano_textured/nanosuit.obj", "nanosuit");
+	//std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/Sponza/sponza.obj", "sponza");
 	//std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/gobber/GoblinX.obj", "Goblin");
 
 	dragonModel->CreateEntity(jshScene::CreateEntity(jsh::NameComponent("Goblin")));
@@ -98,7 +98,7 @@ void State::Initialize()
 	pos.z = -4.f;
 	jshScene::GetTransform(cameraEntity).SetPosition(pos);
 
-	jshScene::GetComponent<jsh::LightComponent>(cameraEntity)->intensity = 1000.f;
+	jshScene::GetComponent<jsh::LightComponent>(cameraEntity)->intensity = 4.f;
 
 }
 
@@ -113,7 +113,7 @@ void State::Update(float dt)
 	}
 	if (actived) {
 		jsh::CameraComponent* camera = jshRenderer::GetMainCamera();
-		camera->UpdateFirstPerson(70.f, 30.f, 500.f, 500.f, dt);
+		camera->UpdateFirstPerson(0.5f, 0.5f, 5.f, 5.f, dt);
 	}
 }
 

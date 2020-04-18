@@ -47,9 +47,12 @@ namespace jsh {
 namespace jsh {
 
 	struct NameComponent : jsh::Component<NameComponent> {
-		const char* name;
+		std::string name;
 
+		NameComponent() {}
 		NameComponent(const char* name) : name(name) {}
+		NameComponent(const std::string& str) : name(str) {}
+		NameComponent(std::string&& str) : name(name) {}
 	};
 	jshDefineComponent(NameComponent);
 

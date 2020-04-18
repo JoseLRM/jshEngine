@@ -15,6 +15,11 @@ namespace jshRenderer {
 
 	void BeginFrame();
 	void EndFrame();
+
+#ifdef JSH_IMGUI
+	bool ShowImGuiWindow();
+#endif
+
 #endif
 
 	void SetCamera(jsh::CameraComponent* camera);
@@ -23,12 +28,15 @@ namespace jshRenderer {
 	namespace primitives {
 		jsh::RenderTargetView& GetMainRenderTargetView();
 		jsh::DepthStencilState& GetDefaultDepthStencilState();
-		jsh::Texture& GetDefaultDepthStencilView();
+		jsh::Resource& GetDefaultDepthStencilView();
 
 		jsh::RenderTargetView& GetOffscreenRenderTargetView();
 
 		jsh::SamplerState& GetDefaultSamplerState();
 		jsh::Viewport& GetDefaultViewport();
+
+		jsh::Resource& GetCameraBuffer();
+		jsh::Resource& GetLightBuffer();
 	}
 
 }

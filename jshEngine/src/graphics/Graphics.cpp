@@ -19,34 +19,76 @@ namespace jshGraphics {
 		bool result = jshGraphics_dx11::Initialize();
 
 		// default shaders
-		std::shared_ptr<Shader> solidShader = std::make_shared<Shader>();
-		jshGraphics::CreateVertexShader(L"SolidVertex.cso", &solidShader->vs);
-		jshGraphics::CreatePixelShader(L"SolidPixel.cso", &solidShader->ps);
-		jshGraphics::Save("SolidShader", solidShader);
+		{
+			Shader* solidShader = jshGraphics::CreateShader("Solid");
+			jshGraphics::CreateVertexShader(L"SolidVertex.cso", &solidShader->vs);
+			jshGraphics::CreatePixelShader(L"SolidPixel.cso", &solidShader->ps);
 
-		std::shared_ptr<Shader> simpleTexShader = std::make_shared<Shader>();
-		jshGraphics::CreateVertexShader(L"SimpleTexVertex.cso", &simpleTexShader->vs);
-		jshGraphics::CreatePixelShader(L"SimpleTexPixel.cso", &simpleTexShader->ps);
-		jshGraphics::Save("SimpleTexShader", simpleTexShader);
+			const JSH_INPUT_ELEMENT_DESC desc[] = {
+				{"Position", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 0u, 0u},
+				{"Normal", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 3 * sizeof(float), 0u}
+			};
 
-		std::shared_ptr<Shader> simpleColShader = std::make_shared<Shader>();
-		jshGraphics::CreateVertexShader(L"SimpleColVertex.cso", &simpleColShader->vs);
-		jshGraphics::CreatePixelShader(L"SimpleColPixel.cso", &simpleColShader->ps);
-		jshGraphics::Save("SimpleColShader", simpleColShader);
+			jshGraphics::CreateInputLayout(desc, 2u, solidShader->vs, &solidShader->inputLayout);
+		}
 
-		std::shared_ptr<Shader> normalShader = std::make_shared<Shader>();
-		jshGraphics::CreateVertexShader(L"NormalVertex.cso", &normalShader->vs);
-		jshGraphics::CreatePixelShader(L"NormalPixel.cso", &normalShader->ps);
-		jshGraphics::Save("NormalShader", normalShader);
+		{
+			Shader* simpleTexShader = jshGraphics::CreateShader("SimpleTex");
+			jshGraphics::CreateVertexShader(L"SimpleTexVertex.cso", &simpleTexShader->vs);
+			jshGraphics::CreatePixelShader(L"SimpleTexPixel.cso", &simpleTexShader->ps);
+			
+			const JSH_INPUT_ELEMENT_DESC desc[] = {
+					{"Position", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 0u, 0u},
+					{"Normal", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 3 * sizeof(float), 0u},
+					{"TexCoord", 0, JSH_FORMAT_R32G32_FLOAT, 0, true, 6 * sizeof(float), 0u}
+			};
+
+			jshGraphics::CreateInputLayout(desc, 3u, simpleTexShader->vs, &simpleTexShader->inputLayout);
+		}
+
+		{
+			Shader* simpleColShader = jshGraphics::CreateShader("SimpleCol");
+			jshGraphics::CreateVertexShader(L"SimpleColVertex.cso", &simpleColShader->vs);
+			jshGraphics::CreatePixelShader(L"SimpleColPixel.cso", &simpleColShader->ps);
+
+			const JSH_INPUT_ELEMENT_DESC desc[] = {
+				{"Position", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 0u, 0u},
+				{"Normal", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 3 * sizeof(float), 0u},
+				{"Color", 0, JSH_FORMAT_R8G8B8A8_UNORM, 0, true, 6 * sizeof(float), 0u}
+			};
+
+			jshGraphics::CreateInputLayout(desc, 3u, simpleColShader->vs, &simpleColShader->inputLayout);
+
+		}
+
+		{
+			Shader* normalShader = jshGraphics::CreateShader("Normal");
+			jshGraphics::CreateVertexShader(L"NormalVertex.cso", &normalShader->vs);
+			jshGraphics::CreatePixelShader(L"NormalPixel.cso", &normalShader->ps);
+			
+			const JSH_INPUT_ELEMENT_DESC desc[] = {
+				{"Position", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 0u, 0u},
+				{"Normal", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 3 * sizeof(float), 0u},
+				{"TexCoord", 0, JSH_FORMAT_R32G32_FLOAT, 0, true, 6 * sizeof(float), 0u},
+				{"Tangent", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 8 * sizeof(float), 0u},
+				{"Bitangent", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 11 * sizeof(float), 0u}
+			};
+
+			jshGraphics::CreateInputLayout(desc, 5u, normalShader->vs, &normalShader->inputLayout);
+		}
 
 		// post processing effects
-		std::shared_ptr<VertexShader> ppVertex = std::make_shared<VertexShader>();
-		jshGraphics::CreateVertexShader(L"PostProcessVertex.cso", ppVertex.get());
-		jshGraphics::Save("PostProcessVertex", ppVertex);
+		{
+			std::shared_ptr<VertexShader> ppVertex = std::make_shared<VertexShader>();
+			jshGraphics::CreateVertexShader(L"PostProcessVertex.cso", ppVertex.get());
+			jshGraphics::Save("PostProcessVertex", ppVertex);
+		}
 
-		std::shared_ptr<PixelShader> bandwPP = std::make_shared<PixelShader>();
-		jshGraphics::CreatePixelShader(L"PostProcessBlackAndWhite.cso", bandwPP.get());
-		jshGraphics::Save("BlackAndWhitePP", bandwPP);
+		{
+			std::shared_ptr<PixelShader> bandwPP = std::make_shared<PixelShader>();
+			jshGraphics::CreatePixelShader(L"PostProcessBlackAndWhite.cso", bandwPP.get());
+			jshGraphics::Save("BlackAndWhitePP", bandwPP);
+		}
 
 		jshRenderer::Initialize();
 
@@ -74,9 +116,9 @@ namespace jshGraphics {
 	{
 		jshGraphics_dx11::End();
 	}
-	void Present()
+	void Present(uint32 interval)
 	{
-		jshGraphics_dx11::Present();
+		jshGraphics_dx11::Present(interval);
 	}
 
 #ifdef JSH_IMGUI
@@ -106,7 +148,7 @@ namespace jshGraphics {
 
 	///////////////GRAPHICS API//////////////////////////////////////
 
-	void UpdateConstantBuffer(jsh::Buffer buffer, void* data, CommandList cmd)
+	void UpdateConstantBuffer(jsh::Resource buffer, void* data, CommandList cmd)
 	{
 		jshGraphics_dx11::UpdateConstantBuffer(buffer, data, cmd);
 	}

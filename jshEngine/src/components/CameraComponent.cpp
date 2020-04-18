@@ -12,6 +12,10 @@ namespace jsh {
 
 	void CameraComponent::UpdateFirstPerson(float hSensibility, float vSensibility, float hSpeed, float vSpeed, float dt) noexcept
 	{
+
+		vSpeed *= dt;
+		hSpeed *= dt;
+
 		uint8 front = 0u;
 		uint8 right = 0u;
 		jsh::Transform& trans = jshScene::GetTransform(entityID);
@@ -50,17 +54,17 @@ namespace jsh {
 
 			jsh::vec2 forward(sin(ToRadians(direction)), cos(ToRadians(direction)));
 			forward.Normalize();
-			forward *= hSpeed * dt;
+			forward *= hSpeed;
 
 			pos.x += forward.x;
 			pos.z += forward.y;
 		}
 
 		if (jshInput::IsKey(JSH_KEY_SPACE)) {
-			pos.y += vSpeed * dt;
+			pos.y += vSpeed;
 		}
 		if (jshInput::IsKey(JSH_KEY_SHIFT)) {
-			pos.y -= vSpeed * dt;
+			pos.y -= vSpeed;
 		}
 
 		trans.SetPosition(pos);
@@ -69,8 +73,8 @@ namespace jsh {
 
 		jsh::vec2 dragged = jshInput::MouseDragged();
 
-		rot.y += dragged.x * hSensibility * dt;
-		rot.x += dragged.y * vSensibility * dt;
+		rot.y += dragged.x * hSensibility;
+		rot.x += dragged.y * vSensibility;
 		trans.SetRotation(rot);
 	}
 

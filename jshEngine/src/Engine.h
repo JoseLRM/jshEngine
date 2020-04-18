@@ -19,6 +19,7 @@ namespace jshEngine {
 	jsh::State* GetCurrentState();
 
 	uint32 GetFPS();
+	float GetDeltaTime();
 
 	// fixedUpdate methods
 	void SetFixedUpdateFrameRate(uint32 frameRate);

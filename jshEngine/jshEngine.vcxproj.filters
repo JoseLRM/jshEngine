@@ -81,9 +81,6 @@
     <ClCompile Include="src\Exception.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\renderPasses\RenderPass.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="src\graphics\renderPasses\LambertianRenderPass.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -94,6 +91,9 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\components\Transform.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\renderPasses\OutlineRenderPass.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
@@ -212,9 +212,6 @@
     <ClInclude Include="src\Exception.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\renderPasses\RenderPass.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="src\graphics\renderPasses\LambertianRenderPass.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -236,6 +233,12 @@
     <ClInclude Include="src\components\Transform.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\components\OutlineComponent.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\renderPasses\OutlineRenderPass.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\SolidPixel.hlsl" />
@@ -248,9 +251,14 @@
     <FxCompile Include="shaders\postProcess\PostProcessBlackAndWhite.hlsl" />
     <FxCompile Include="shaders\NormalVertex.hlsl" />
     <FxCompile Include="shaders\NormalPixel.hlsl" />
+    <FxCompile Include="shaders\OutlineMaskVertex.hlsl" />
+    <FxCompile Include="shaders\OutlineMaskPixel.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\Light.hlsli" />
     <None Include="shaders\common.hlsli" />
+    <None Include="shaders\Material.hlsli" />
+    <None Include="shaders\Camera.hlsli" />
+    <None Include="shaders\Instance.hlsli" />
   </ItemGroup>
 </Project>

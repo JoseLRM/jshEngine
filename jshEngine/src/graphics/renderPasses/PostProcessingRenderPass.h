@@ -1,14 +1,14 @@
 #pragma once
 
-#include "RenderPass.h"
+#include "..//RenderGraph.h"
 
 namespace jsh {
 
 	class PostProcessingRenderPass : public RenderPass {
 
-		Buffer m_vBuffer;
-		Buffer m_iBuffer;
-		Buffer m_cBuffer;
+		Resource m_vBuffer;
+		Resource m_iBuffer;
+		Resource m_cBuffer;
 		InputLayout m_InputLayout;
 
 	public:
@@ -39,7 +39,7 @@ namespace jsh {
 			vDesc.Usage = JSH_USAGE_DEFAULT;
 			JSH_SUBRESOURCE_DATA vSubData;
 			vSubData.pSysMem = &vData;
-			jshGraphics::CreateBuffer(&vDesc, &vSubData, &m_vBuffer);
+			jshGraphics::CreateResource(&vDesc, &vSubData, &m_vBuffer);
 
 			JSH_BUFFER_DESC iDesc;
 			iDesc.BindFlags = JSH_BIND_INDEX_BUFFER;
@@ -50,7 +50,7 @@ namespace jsh {
 			iDesc.Usage = JSH_USAGE_DEFAULT;
 			JSH_SUBRESOURCE_DATA iSubData;
 			iSubData.pSysMem = &iData;
-			jshGraphics::CreateBuffer(&iDesc, &iSubData, &m_iBuffer);
+			jshGraphics::CreateResource(&iDesc, &iSubData, &m_iBuffer);
 
 			JSH_BUFFER_DESC cDesc;
 			cDesc.BindFlags = JSH_BIND_CONSTANT_BUFFER;
@@ -61,7 +61,7 @@ namespace jsh {
 			cDesc.Usage = JSH_USAGE_DEFAULT;
 			JSH_SUBRESOURCE_DATA cSubData;
 			cSubData.pSysMem = &cData;
-			jshGraphics::CreateBuffer(&cDesc, &cSubData, &m_cBuffer);
+			jshGraphics::CreateResource(&cDesc, &cSubData, &m_cBuffer);
 
 			const JSH_INPUT_ELEMENT_DESC ilDesc[] = {
 				{"Position", 0, JSH_FORMAT_R32G32_FLOAT, 0, true, 0, 0}

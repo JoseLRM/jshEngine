@@ -1,3 +1,4 @@
+#include "common.hlsli"
 #include "Light.hlsli"
 
 Texture2D tex;

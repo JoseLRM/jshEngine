@@ -28,6 +28,7 @@ namespace jshEngine {
 	bool g_Closed = false;
 	State* g_CurrentState = nullptr;
 	uint32 g_FPS = 0u;
+	Time g_DeltaTime = 0.f;
 	uint32 g_FixedUpdateFrameRate;
 	float g_FixedUpdateDeltaTime;
 
@@ -77,7 +78,7 @@ namespace jshEngine {
 			return false;
 		}
 		catch (std::exception e) {
-			jshLogE(e.what());
+			jshLogE("%s", e.what());
 			return false;
 		}
 		catch (...) {
@@ -94,7 +95,7 @@ namespace jshEngine {
 		try {
 
 			Time lastTime = jshTimer::Now();
-			Time deltaTime = lastTime;
+			g_DeltaTime = lastTime;
 			Time actualTime = 0.f;
 
 			const float SHOW_FPS_RATE = 0.1f;
@@ -106,14 +107,14 @@ namespace jshEngine {
 			while (jshWindow::UpdateInput()) {
 				actualTime = jshTimer::Now();
 
-				deltaTime = actualTime - lastTime;
+				g_DeltaTime = actualTime - lastTime;
 				lastTime = actualTime;
 
-				fixedUpdateCount += deltaTime;
+				fixedUpdateCount += g_DeltaTime;
 
 				if (g_CurrentState) {
 					// update
-					g_CurrentState->Update(deltaTime);
+					g_CurrentState->Update(g_DeltaTime);
 
 					if (fixedUpdateCount >= 0.01666666f) {
 						fixedUpdateCount -= 0.01666666f;
@@ -128,7 +129,7 @@ namespace jshEngine {
 				}
 
 				// FPS count
-				dtCount += deltaTime;
+				dtCount += g_DeltaTime;
 				fpsCount++;
 				if (dtCount >= SHOW_FPS_RATE) {
 					g_FPS = fpsCount / SHOW_FPS_RATE;
@@ -141,7 +142,7 @@ namespace jshEngine {
 			e.what();
 		}
 		catch (std::exception e) {
-			jshLogE(e.what());
+			jshLogE("%s", e.what());
 		}
 		catch (...) {
 			jshLogE("Unknown error");
@@ -170,7 +171,7 @@ namespace jshEngine {
 			return false;
 		}
 		catch (std::exception e) {
-			jshLogE(e.what());
+			jshLogE("%s",e.what());
 			return false;
 		}
 		catch (...) {
@@ -209,6 +210,10 @@ namespace jshEngine {
 	uint32 GetFPS()
 	{
 		return g_FPS;
+	}
+	float GetDeltaTime()
+	{
+		return g_DeltaTime;
 	}
 
 	void SetFixedUpdateFrameRate(uint32 frameRate)

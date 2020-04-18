@@ -1,8 +1,5 @@
-cbuffer c {
-	matrix tm;
-	matrix vm;
-	matrix pm;
-};
+#include "Camera.hlsli"
+#include "Instance.hlsli"
 
 struct VS_IN {
 	float3 position : Position;
@@ -24,15 +21,14 @@ VS_OUT main( VS_IN input )
 {
 	VS_OUT output;
 
-	output.fragPos = mul(float4(input.position, 1.f), tm);
-	output.tanBiNor = mul(float3x3(input.tangent, input.bitangent, input.normal), (float3x3)tm);
+	output.fragPos = mul(float4(input.position, 1.f), instance.tm);
+	output.tanBiNor = mul(float3x3(input.tangent, input.bitangent, input.normal), (float3x3)instance.tm);
 
 	output.texCoord = input.texCoord;
 
-	float3 cameraPos = float3(vm[3][0], vm[3][1], vm[3][2]);
-	output.toCamera = normalize(output.fragPos + cameraPos);
+	output.toCamera = normalize(output.fragPos - camera.position.xyz);
 
-	output.position = mul(mul(float4(output.fragPos, 1.f), vm), pm);
+	output.position = mul(mul(float4(output.fragPos, 1.f), camera.vm), camera.pm);
 
 	return output;
 }

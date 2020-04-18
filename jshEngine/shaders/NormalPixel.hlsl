@@ -1,22 +1,18 @@
+#include "common.hlsli"
 #include "Light.hlsli"
+#include "Material.hlsli"
 
-Texture2D diffuseMap : register(t0);
-Texture2D normalMap : register(t1);
-Texture2D specularMap : register(t2);
+Texture2D diffuseMap : register(JSH_GFX_SLOT_TEXTURE2D_DIFFUSE);
+Texture2D normalMap : register(JSH_GFX_SLOT_TEXTURE2D_NORMAL);
+Texture2D specularMap : register(JSH_GFX_SLOT_TEXTURE2D_SPECULAR);
 
 SamplerState diffuseSampler : register(s0);
 SamplerState defSampler : register(s1);
 
-cbuffer material : register(b1) {
+cbuffer mesh : register(b0) {
 	bool diffuseEnabled;
 	bool normalEnabled;
 	bool specularEnabled;
-	float shininess;
-	float specularIntensity;
-
-	float _internal_Offset0;
-	float _internal_Offset1;
-	float _internal_Offset2;
 };
 
 float4 main(float3 position : FragPosition, float3x3 tanBiNor : FragTanBiNor,
@@ -34,16 +30,16 @@ float4 main(float3 position : FragPosition, float3x3 tanBiNor : FragTanBiNor,
 		normal = normalize(float3(tanBiNor[2][0], tanBiNor[2][1], tanBiNor[2][2]));
 	}
 
-	float specI = specularIntensity;
-	float shiny = shininess;
+	float specI = material.specularIntensity;
+	float shiny = material.shininess;
 	if (specularEnabled) {
 		float4 s = specularMap.Sample(defSampler, texCoord);
 		specI *= s.x;
 		shiny *= s.w;
 	}
 
-	float3 lightColor = LoadLightColor(position, normalize(normal), toCamera, specI, shiny);
-
+	float3 lightColor = LoadLightColor(position, normal, toCamera, specI, shiny);
+	
 	if (diffuseEnabled) {
 		return float4(lightColor, 1.f)* diffuseMap.Sample(diffuseSampler, texCoord);
 	}

@@ -5,6 +5,7 @@
 #include "TaskSystem.h"
 #include "Engine.h"
 #include "State.h"
+#include "graphics/Renderer.h"
 
 namespace jshDebug {
 
@@ -65,6 +66,7 @@ namespace jshDebug {
 	jsh::Mesh* g_InitialMesh = nullptr;
 	bool g_ShowRawData = false;
 	jsh::RawData* g_InitialRawData = nullptr;
+	bool g_ShowRenderer = false;
 	bool g_ShowImGuiDemo = false;
 
 	void ShowImGuiWindow()
@@ -77,6 +79,7 @@ namespace jshDebug {
 			if (ImGui::Button("Systems")) g_ShowSystems = !g_ShowSystems;
 			if (ImGui::Button("Meshes")) g_ShowMeshes = !g_ShowMeshes;
 			if (ImGui::Button("RawData")) g_ShowRawData = !g_ShowRawData;
+			if (ImGui::Button("Renderer")) g_ShowRenderer = !g_ShowRenderer;
 
 			if (ImGui::Button("ImGui Demo")) g_ShowImGuiDemo = !g_ShowImGuiDemo;
 
@@ -100,7 +103,8 @@ namespace jshDebug {
 			g_ShowRawData = jshGraphics::ShowRawDataImGuiWindow(g_InitialRawData);
 			g_InitialRawData = nullptr;
 		}
-		if(g_ShowImGuiDemo) ImGui::ShowDemoWindow(&g_ShowImGuiDemo);
+		if (g_ShowRenderer) g_ShowRenderer = jshRenderer::ShowImGuiWindow();
+		if (g_ShowImGuiDemo) ImGui::ShowDemoWindow(&g_ShowImGuiDemo);
 	}
 
 	void ShowMeshImGuiWindow(jsh::Mesh* mesh)

@@ -14,7 +14,8 @@ namespace jshLoader
 
 	void LoadMesh(const aiMesh* aimesh, aiMaterial** const materials, jsh::Mesh* mesh, const char* path, const char* meshName)
 	{
-		mesh->rawData = jshGraphics::CreateRawData(meshName);
+		mesh->SetRawData(jshGraphics::CreateRawData(meshName));
+		mesh->SetMaterial(jshGraphics::CreateMaterial(meshName));
 		// vertex buffer
 		aiVector3D* vertices = aimesh->mVertices;
 		aiVector3D* normals = aimesh->mNormals;
@@ -48,41 +49,53 @@ namespace jshLoader
 		// properties
 		uint32 cantProperties = material->mNumProperties;
 
-		aiGetMaterialFloat(material, AI_MATKEY_SHININESS, &mesh->material.shininess);
-		aiGetMaterialFloat(material, AI_MATKEY_SHININESS_STRENGTH, &mesh->material.specularIntensity);
+		float shininess = 1.f;
+		float specularIntensity = 1.f;
+
+		aiGetMaterialFloat(material, AI_MATKEY_SHININESS, &shininess);
+		aiGetMaterialFloat(material, AI_MATKEY_SHININESS_STRENGTH, &specularIntensity);
+
+		mesh->GetMaterial()->SetShininess(shininess);
+		mesh->GetMaterial()->SetShininess(specularIntensity);
+
+		mesh->GetMaterial()->Create();
 
 		// mapping
 		if (material->GetTextureCount(aiTextureType_DIFFUSE) != 0) {
 			aiString path0;
 			material->GetTexture(aiTextureType_DIFFUSE, 0, &path0);
-			jsh::Texture diffuseMap;
-			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &diffuseMap);
-			mesh->material.SetDiffuseMap(diffuseMap);
+			jsh::Texture* diffuseMap = jshGraphics::CreateTexture((std::string(meshName) + "[diffuse]").c_str());
+			diffuseMap->type = JSH_TEXTURE_DIFFUSE_MAP;
+			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &diffuseMap->resource);
+			mesh->SetTexture(diffuseMap);
 		}
 		if (material->GetTextureCount(aiTextureType_NORMALS) != 0) {
 			aiString path0;
 			material->GetTexture(aiTextureType_NORMALS, 0, &path0);
-			jsh::Texture normalMap;
-			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &normalMap);
-			mesh->material.SetNormalMap(normalMap);
+			jsh::Texture* normalMap = jshGraphics::CreateTexture((std::string(meshName) + "[normal]").c_str());
+			normalMap->type = JSH_TEXTURE_NORMAL_MAP;
+			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &normalMap->resource);
+			mesh->SetTexture(normalMap);
 		}
 		if (material->GetTextureCount(aiTextureType_SPECULAR) != 0) {
 			aiString path0;
 			material->GetTexture(aiTextureType_SPECULAR, 0, &path0);
-			jsh::Texture specularMap;
-			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &specularMap);
-			mesh->material.SetSpecularMap(specularMap);
+			jsh::Texture* specularMap = jshGraphics::CreateTexture((std::string(meshName) + "[specular]").c_str());
+			specularMap->type = JSH_TEXTURE_SPECULAR_MAP;
+			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &specularMap->resource);
+			mesh->SetTexture(specularMap);
 		}
 
 		// MESH CREATION
+		jsh::RawData* rawData = mesh->GetRawData();
 		if (aimesh->HasTangentsAndBitangents()) {
-			mesh->rawData->SetTangents((float*)aimesh->mTangents);
-			mesh->rawData->SetBitangents((float*)aimesh->mBitangents);
+			rawData->SetTangents((float*)aimesh->mTangents);
+			rawData->SetBitangents((float*)aimesh->mBitangents);
 		}
-		if (textureCoords) mesh->rawData->SetTextureCoords(textureCoords);
-		mesh->rawData->SetIndices(iData, indexCount);
-		mesh->rawData->SetPositionsAndNormals((float*)vertices, (float*)normals, aimesh->mNumVertices);
-		mesh->rawData->Create();
+		if (textureCoords) mesh->GetRawData()->SetTextureCoords(textureCoords);
+		rawData->SetIndices(iData, indexCount);
+		rawData->SetPositionsAndNormals((float*)vertices, (float*)normals, aimesh->mNumVertices);
+		rawData->Create();
 		mesh->UpdatePrimitives();
 
 		if (textureCoords) delete[] textureCoords;
@@ -90,8 +103,7 @@ namespace jshLoader
 
 	void AddNode(aiNode* ainode, jsh::MeshNode* node, jsh::Mesh** meshes)
 	{
-		node->sons.reserve(ainode->mNumChildren);
-		node->sons.add_pos(ainode->mNumChildren);
+		node->sons.resize(ainode->mNumChildren);
 		XMMATRIX localMatrix = XMLoadFloat4x4((XMFLOAT4X4*)&ainode->mTransformation);
 
 		// transformation
@@ -114,12 +126,15 @@ namespace jshLoader
 		node->transform.SetPosition(position);
 		node->transform.SetRotation(rotation);
 		node->transform.SetScale(scale);
+		ainode->mParent;
 		
-		if(ainode->mNumMeshes > 0) node->mesh = meshes[ainode->mMeshes[0]];
+		if (ainode->mName.length > 0) node->name = ainode->mName.C_Str();
+		if (ainode->mNumMeshes > 0) node->mesh = meshes[ainode->mMeshes[0]];
 
 		// recursion
 		for (uint32 i = 0; i < ainode->mNumChildren; ++i) {
-			node->sons[i] = jsh::MeshNode();
+			node->sons[i].mesh = nullptr;
+			node->sons[i].transform = jsh::Transform();
 			AddNode(ainode->mChildren[i], &node->sons[i], meshes);
 		}
 	}
@@ -127,7 +142,7 @@ namespace jshLoader
 	std::shared_ptr<jsh::Model> LoadModel(const char* absolutePath, const char* name)
 	{
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(absolutePath, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
+		const aiScene* scene = importer.ReadFile(absolutePath, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace | aiProcess_OptimizeMeshes);
 
 		if (!scene || !scene->HasMeshes()) {
 			jshLogE("Empty model %s", absolutePath);
@@ -173,14 +188,11 @@ namespace jshLoader
 		if (aiRoot) {
 			AddNode(aiRoot, &model->root, meshes);
 		}
-		else {
-			model->root.mesh = meshes[0];
-		}
 
 		return model;
 	}
 
-	bool LoadTexture(const char* path, jsh::Texture* texture)
+	bool LoadTexture(const char* path, jsh::Resource* texture)
 	{
 		int width, height, bits;
 		byte* data = stbi_load(path, &width, &height, &bits, 4);
@@ -207,7 +219,7 @@ namespace jshLoader
 		sData.pSysMem = data;
 		sData.SysMemPitch = width * 4;
 
-		jshGraphics::CreateTexture(&desc, &sData, texture);
+		jshGraphics::CreateResource(&desc, &sData, texture);
 
 		stbi_image_free(data);
 

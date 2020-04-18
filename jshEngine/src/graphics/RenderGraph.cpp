@@ -4,6 +4,15 @@
 
 namespace jsh {
 
+	void RenderPass::AddDependence(RenderPass* renderPass) noexcept
+	{
+		if (renderPass == this) return;
+		for (uint32 i = 0; i < m_Depencences.size(); ++i) {
+			if (m_Depencences[i] == renderPass) return;
+		}
+		m_Depencences.push_back(renderPass);
+	}
+
 	RenderGraph::RenderGraph() {}
 	RenderGraph::~RenderGraph() 
 	{
@@ -14,14 +23,23 @@ namespace jsh {
 
 	void RenderGraph::Render()
 	{
-		TaskList* taskList = jshTask::CreateTaskList();
+		if (m_Modified) UpdateGraph();
+
+		for (uint32 i = 0; i < m_RenderPasses.size(); ++i) {
+			m_RenderPasses[i]->Load();
+		}
+		jshTask::Wait();
+
 		for (uint32 i = 0; i < m_RenderPasses.size(); ++i) {
 			m_RenderPasses[i]->cmd = jshGraphics::BeginCommandList();
-			//taskList->Add([i, this]() { m_RenderPasses[i]->Run(); });
-			m_RenderPasses[i]->Run();
+			m_RenderPasses[i]->Render();
 		}
-		jshTask::Execute(taskList);
-		jshTask::Wait();
+	}
+
+	void RenderGraph::UpdateGraph()
+	{
+		m_Modified = false;
+		//TODO: 
 	}
 
 }

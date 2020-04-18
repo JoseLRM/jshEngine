@@ -4,3 +4,4 @@
 #include "CameraComponent.h"
 #include "LightComponent.h"
 #include "MeshComponent.h"
+#include "OutlineComponent.h"

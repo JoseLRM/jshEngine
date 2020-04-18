@@ -9,7 +9,7 @@ namespace jsh {
 		float quadraticAttenuation = 0.025f;
 		float constantAttenuation = 1.f;
 		float intensity = 5.f;
-		uint32 lightType = 0;
+		uint32 lightType = 1;
 
 		vec4 color = { 1.f, 1.f, 1.f, 1.f };
 

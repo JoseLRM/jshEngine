@@ -3,52 +3,101 @@
 #include "GraphicsPrimitives.h"
 #include "..//utils/dataStructures/vector.h"
 #include "..//components/Transform.h"
+#include <vector>
+
+enum JSH_TEXTURE_TYPE : uint8 {
+	JSH_TEXTURE_NONE,
+	JSH_TEXTURE_DIFFUSE_MAP,
+	JSH_TEXTURE_NORMAL_MAP,
+	JSH_TEXTURE_SPECULAR_MAP,
+	JSH_TEXTURE_ATLAS
+};
 
 namespace jsh {
 
 	typedef uint32 Entity;
 
+	////////////////////////////TEXTURE///////////////////////////
+	struct Texture {
+		Resource resource;
+		JSH_TEXTURE_TYPE type;
+
+		void Bind(JSH_SHADER_TYPE shaderType, CommandList cmd) const;
+	};
+
+	////////////////////////////STATE///////////////////////////
+	struct RenderState {
+		Resource vertexBuffer[JSH_GFX_VERTEX_BUFFERS_COUNT];
+		Resource constantBuffer[2][JSH_GFX_CONSTANT_BUFFERS_COUNT];
+		Resource indexBuffer;
+
+		VertexShader vertexShader;
+		PixelShader pixelShader;
+		InputLayout inputLayout;
+
+		Resource texture[2][JSH_GFX_TEXTURES_COUNT];
+		SamplerState samplerState[2][JSH_GFX_SAMPLER_STATES_COUNT];
+		DepthStencilState depthStencilState;
+		BlendState blendState;
+		RasterizerState rasterizerState;
+		RenderTargetView renderTargetView[JSH_GFX_RENDER_TARGETS_COUNT];
+
+		Viewport viewport[JSH_GFX_VIEWPORTS_COUNT];
+
+		void SetDefault() noexcept;
+		void Bind() const;
+	};
+
 	/////////////////////////////SHADER/////////////////////////////
 	struct Shader {
 		VertexShader vs;
 		PixelShader ps;
+
+		InputLayout inputLayout;
+#ifndef JSH_ENGINE
+	private:
+#endif
+		Shader() = default;
+	};
+
+	/////////////////////////////INSTANCE BUFFER//////////////////////////
+	class InstanceBuffer {
+		Resource m_Buffer;
+
+	public:
+		void Create();
+		void Bind(JSH_SHADER_TYPE shaderType, jsh::CommandList cmd) const;
+		void UpdateBuffer(XMMATRIX* tm, jsh::CommandList cmd);
 	};
 
 	/////////////////////////////MATERIAL/////////////////////////////
-	typedef uint8 MaterialFlags;
-
-#define JSH_MATERIAL_NONE			0
-#define JSH_MATERIAL_DIFFUSE_MAP	BIT(0)
-#define JSH_MATERIAL_NORMAL_MAP		BIT(1)
-#define JSH_MATERIAL_SPECULAR_MAP	BIT(2)
-
 	class Material {
-		MaterialFlags m_DataFlags = JSH_MATERIAL_NONE;
-
-		Texture m_DiffuseMap;
-		Texture m_NormalMap;
-		Texture m_SpecularMap;
-
+		bool m_Modified = true;
+		float m_SpecularIntensity = 1.f;
+		float m_Shininess = 5.f;
+		Resource m_Buffer;
 	public:
-		float specularIntensity = 1.f;
-		float shininess = 5.f;
+		void Create();
+		void Bind(jsh::CommandList cmd, JSH_SHADER_TYPE shaderType);
 
-	public:
-		Material();
+		inline float GetSpecularIntensity() const noexcept { return m_SpecularIntensity; }
+		inline float GetShininess() const noexcept { return m_Shininess; }
 
-		void SetDiffuseMap(Texture map) noexcept;
-		void SetNormalMap(Texture map) noexcept;
-		void SetSpecularMap(Texture map) noexcept;
+		inline void SetSpecularIntensity(float si) noexcept
+		{
+			m_SpecularIntensity = si;
+			m_Modified = true;
+		}
+		inline void SetShininess(float s) noexcept
+		{
+			m_Shininess = s;
+			m_Modified = true;
+		}
 
-		void EnableDiffuseMap(bool enable) noexcept;
-		void EnableNormalMap(bool enable) noexcept;
-		void EnableSpecularMap(bool enable) noexcept;
-
-		void Bind(jsh::CommandList cmd) const;
-
-		inline bool HasDiffuseMap() const noexcept { return m_DataFlags & JSH_MATERIAL_DIFFUSE_MAP; }
-		inline bool HasNormalMap() const noexcept { return m_DataFlags & JSH_MATERIAL_NORMAL_MAP; }
-		inline bool HasSpecularMap() const noexcept { return m_DataFlags & JSH_MATERIAL_SPECULAR_MAP; }
+#ifndef JSH_ENGINE
+	private:
+#endif
+		Material() = default;
 	};
 
 	////////////////////////////RAWDATA//////////////////////////////
@@ -83,8 +132,8 @@ namespace jsh {
 		bool m_Created = false;
 
 		// graphics primitives
-		jsh::Buffer m_VertexBuffer;
-		jsh::Buffer m_IndexBuffer;
+		Resource m_VertexBuffer;
+		Resource m_IndexBuffer;
 
 #ifdef JSH_ENGINE
 	public:
@@ -110,8 +159,6 @@ namespace jsh {
 				(m_DataFlags & JSH_RAW_DATA_POSITIONS && m_DataFlags & JSH_RAW_DATA_NORMALS && m_DataFlags & JSH_RAW_DATA_INDICES);
 		}
 		inline RawDataFlags GetFlags() const noexcept { return m_DataFlags; }
-		bool CreateInputLayout(jsh::InputLayout* il, jsh::VertexShader& vs) const noexcept;
-
 		inline uint32 GetIndexCount() const noexcept { return m_IndexCount; }
 
 	private:
@@ -124,21 +171,41 @@ namespace jsh {
 
 	////////////////////////////MESH//////////////////////////////
 	class Mesh {
-		InputLayout m_InputLayout;
-		VertexShader m_VShader;
-		PixelShader m_PShader;
+		bool m_DiffuseMapEnabled	= false;
+		bool m_NormalMapEnabled		= false;
+		bool m_SpecularMapEnabled	= false;
+
+		Texture* m_DiffuseMap	= nullptr;
+		Texture* m_NormalMap	= nullptr;
+		Texture* m_SpecularMap	= nullptr;
+
+		RawData* m_RawData		= nullptr;
+		Material* m_Material	= nullptr;
+		Shader* m_Shader		= nullptr;
+
+		bool m_Modified = true;
 
 #ifdef JSH_ENGINE
 	public:
 #endif
-		Mesh();
+		Mesh() = default;
 	public:
-		RawData* rawData;
-		Material material;
-
 		void Bind(jsh::CommandList cmd);
 
+		void SetTexture(Texture* texture) noexcept;
+		void EnableTexture(JSH_TEXTURE_TYPE type, bool enable) noexcept;
+		bool HasTexture(JSH_TEXTURE_TYPE type);
+
+		void SetRawData(RawData* rawData) noexcept;
+		void SetMaterial(Material* material) noexcept;
+		void SetShader(Shader* shader) noexcept;
+
 		void UpdatePrimitives() noexcept;
+
+		inline RawData* GetRawData() const noexcept { return m_RawData; }
+		inline Material* GetMaterial() const noexcept { return m_Material; }
+		inline Shader* GetShader() const noexcept { return m_Shader; }
+		Texture* GetTexture(JSH_TEXTURE_TYPE type) const noexcept;
 
 	};
 
@@ -146,7 +213,8 @@ namespace jsh {
 	struct MeshNode {
 		Mesh* mesh;
 		Transform transform;
-		jsh::vector<MeshNode> sons;
+		std::string name;
+		std::vector<MeshNode> sons;
 	};
 
 	class Model {
@@ -170,10 +238,19 @@ namespace jshGraphics {
 
 	jsh::Mesh* CreateMesh(const char* name);
 	jsh::RawData* CreateRawData(const char* name);
+	jsh::Material* CreateMaterial(const char* name);
+	jsh::Shader* CreateShader(const char* name);
+	jsh::Texture* CreateTexture(const char* name);
 	jsh::Mesh* GetMesh(const char* name);
 	jsh::RawData* GetRawData(const char* name);
+	jsh::Material* GetMaterial(const char* name);
+	jsh::Shader* GetShader(const char* name);
+	jsh::Texture* GetTexture(const char* name);
 	void RemoveMesh(const char* name);
 	void RemoveRawData(const char* name);
+	void RemoveMaterial(const char* name);
+	void RemoveShader(const char* name);
+	void RemoveTexture(const char* name);
 
 #ifdef JSH_ENGINE
 

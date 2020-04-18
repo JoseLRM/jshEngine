@@ -64,20 +64,50 @@ namespace jshGraphics_dx11 {
 		ComPtr<ID3D11ShaderResourceView> shaderResView;
 	};
 
-#define jshDefineToInternal(jshFormat, dx11Format) inline dx11Format* ToInternal(const jshFormat& primitive) \
-	{ return (dx11Format*) primitive.internalAllocation.get(); }
-
-	jshDefineToInternal(jsh::Buffer, Buffer_dx11)
-	jshDefineToInternal(jsh::InputLayout, InputLayout_dx11)
-	jshDefineToInternal(jsh::Texture, Texture_dx11)
-	jshDefineToInternal(jsh::VertexShader, VertexShader_dx11)
-	jshDefineToInternal(jsh::PixelShader, PixelShader_dx11)
-	jshDefineToInternal(jsh::Viewport, Viewport_dx11)
-	jshDefineToInternal(jsh::SamplerState, SamplerState_dx11)
-	jshDefineToInternal(jsh::BlendState, BlendState_dx11)
-	jshDefineToInternal(jsh::DepthStencilState, DepthStencilState_dx11)
-	jshDefineToInternal(jsh::RasterizerState, RasterizerState_dx11)
-	jshDefineToInternal(jsh::RenderTargetView, RenderTargetView_dx11)
+	inline Buffer_dx11* ToInternalBuffer(const jsh::Resource& primitive)
+	{ 
+		return (Buffer_dx11*)primitive.internalAllocation.get(); 
+	}
+	inline Texture_dx11* ToInternalTexture(const jsh::Resource& primitive)
+	{
+		return (Texture_dx11*)primitive.internalAllocation.get();
+	}
+	inline InputLayout_dx11* ToInternal(const jsh::InputLayout& primitive)
+	{
+		return (InputLayout_dx11*)primitive.internalAllocation.get();
+	}
+	inline VertexShader_dx11* ToInternal(const jsh::VertexShader& primitive)
+	{
+		return (VertexShader_dx11*)primitive.internalAllocation.get();
+	}
+	inline PixelShader_dx11* ToInternal(const jsh::PixelShader& primitive)
+	{
+		return (PixelShader_dx11*)primitive.internalAllocation.get();
+	}
+	inline Viewport_dx11* ToInternal(const jsh::Viewport& primitive)
+	{
+		return (Viewport_dx11*)primitive.internalAllocation.get();
+	}
+	inline SamplerState_dx11* ToInternal(const jsh::SamplerState& primitive)
+	{
+		return (SamplerState_dx11*)primitive.internalAllocation.get();
+	}
+	inline BlendState_dx11* ToInternal(const jsh::BlendState& primitive)
+	{
+		return (BlendState_dx11*)primitive.internalAllocation.get();
+	}
+	inline DepthStencilState_dx11* ToInternal(const jsh::DepthStencilState& primitive)
+	{
+		return (DepthStencilState_dx11*)primitive.internalAllocation.get();
+	}
+	inline RasterizerState_dx11* ToInternal(const jsh::RasterizerState& primitive)
+	{
+		return (RasterizerState_dx11*)primitive.internalAllocation.get();
+	}
+	inline RenderTargetView_dx11* ToInternal(const jsh::RenderTargetView& primitive)
+	{
+		return (RenderTargetView_dx11*)primitive.internalAllocation.get();
+	}
 
 	////////////////////ALLOCATION//////////////////////////
 
@@ -274,6 +304,9 @@ namespace jshGraphics_dx11 {
 
 	bool Close()
 	{
+		g_ImmediateContext.Reset();
+		g_SwapChain.Reset();
+		g_Device.Reset();
 		return true;
 	}
 
@@ -293,9 +326,9 @@ namespace jshGraphics_dx11 {
 			g_FreeCommandLists.push(cmd);
 		}
 	}
-	void Present()
+	void Present(uint32 interval)
 	{
-		g_SwapChain->Present(0u, 0u);
+		g_SwapChain->Present(interval, 0u);
 	}
 
 #ifdef JSH_IMGUI
@@ -337,7 +370,7 @@ namespace jshGraphics_dx11 {
 	}
 
 	//////////////////////////////BUFFER//////////////////////////////
-	void CreateBuffer(const JSH_BUFFER_DESC* d, JSH_SUBRESOURCE_DATA* s, jsh::Buffer* b)
+	void CreateResource(const JSH_BUFFER_DESC* d, JSH_SUBRESOURCE_DATA* s, jsh::Resource* b)
 	{
 		auto buffer = std::make_shared<Buffer_dx11>();
 		b->internalAllocation = buffer;
@@ -359,11 +392,11 @@ namespace jshGraphics_dx11 {
 
 		jshGfx(g_Device->CreateBuffer(&desc, &subres, buffer->ptr.GetAddressOf()));
 	}
-	void BindVertexBuffer(const jsh::Buffer& b, uint32 slot, jsh::CommandList cmd)
+	void BindVertexBuffer(const jsh::Resource& b, uint32 slot, jsh::CommandList cmd)
 	{
 		assert(b.IsValid());
 
-		Buffer_dx11* buffer = ToInternal(b);
+		Buffer_dx11* buffer = ToInternalBuffer(b);
 
 		const UINT strides = buffer->structureByteStride;
 		const UINT offset = 0U;
@@ -371,20 +404,20 @@ namespace jshGraphics_dx11 {
 
 		return;
 	}
-	void BindIndexBuffer(const jsh::Buffer& b, jsh::CommandList cmd)
+	void BindIndexBuffer(const jsh::Resource& b, jsh::CommandList cmd)
 	{
 		assert(b.IsValid());
 
-		Buffer_dx11* buffer = ToInternal(b);
+		Buffer_dx11* buffer = ToInternalBuffer(b);
 		g_DeferredContext[cmd]->IASetIndexBuffer(buffer->ptr.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 		return;
 	}
-	void BindConstantBuffer(const jsh::Buffer& b, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
+	void BindConstantBuffer(const jsh::Resource& b, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
 	{
 		assert(b.IsValid());
 
-		Buffer_dx11* buffer = ToInternal(b);
+		Buffer_dx11* buffer = ToInternalBuffer(b);
 
 		switch (shaderType) {
 		case JSH_SHADER_TYPE_VERTEX:
@@ -460,7 +493,7 @@ namespace jshGraphics_dx11 {
 	}
 
 	//////////////////////////////TEXUTRE//////////////////////////////
-	void CreateTexture(const JSH_TEXTURE2D_DESC* d, JSH_SUBRESOURCE_DATA* s, jsh::Texture* t)
+	void CreateResource(const JSH_TEXTURE2D_DESC* d, JSH_SUBRESOURCE_DATA* s, jsh::Resource* t)
 	{
 		auto texture = std::make_shared<Texture_dx11>();
 		t->internalAllocation = texture;
@@ -509,10 +542,10 @@ namespace jshGraphics_dx11 {
 			jshGfx(g_Device->CreateDepthStencilView(texture->texturePtr.Get(), &viewDesc, &texture->depthStencilView));
 		}
 	}
-	void BindTexture(const jsh::Texture& t, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
+	void BindTexture(const jsh::Resource& t, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
 	{
 		assert(t.IsValid());
-		Texture_dx11* texture = ToInternal(t);
+		Texture_dx11* texture = ToInternalTexture(t);
 
 		switch (shaderType)
 		{
@@ -668,15 +701,15 @@ namespace jshGraphics_dx11 {
 
 		jshGfx(g_Device->CreateDepthStencilState(&desc, &depthStencilState->statePtr));
 	}
-	void BindDepthStencilState(const jsh::DepthStencilState& ds, jsh::CommandList cmd)
+	void BindDepthStencilState(const jsh::DepthStencilState& ds, uint32 stencilRef, jsh::CommandList cmd)
 	{
 		assert(ds.IsValid());
 		DepthStencilState_dx11* dsState = ToInternal(ds);
-		g_DeferredContext[cmd]->OMSetDepthStencilState(dsState->statePtr.Get(), 1u);
+		g_DeferredContext[cmd]->OMSetDepthStencilState(dsState->statePtr.Get(), stencilRef);
 	}
-	void ClearDepthStencilView(const jsh::Texture& tex, jsh::CommandList cmd)
+	void ClearDepthStencilView(const jsh::Resource& tex, jsh::CommandList cmd)
 	{
-		Texture_dx11* texture = ToInternal(tex);
+		Texture_dx11* texture = ToInternalTexture(tex);
 		assert(texture->depthStencilView.Get() != nullptr);
 		g_DeferredContext[cmd]->ClearDepthStencilView(texture->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 	}
@@ -768,11 +801,11 @@ namespace jshGraphics_dx11 {
 		RenderTargetView_dx11* RTV = ToInternal(rtv);
 		g_DeferredContext[cmd]->OMSetRenderTargets(1u, RTV->ptr.GetAddressOf(), nullptr);
 	}
-	void BindRenderTargetView(const jsh::RenderTargetView& rtv, const jsh::Texture& tex, jsh::CommandList cmd)
+	void BindRenderTargetView(const jsh::RenderTargetView& rtv, const jsh::Resource& tex, jsh::CommandList cmd)
 	{
 		assert(rtv.IsValid() && tex.IsValid());
 		RenderTargetView_dx11* RTV = ToInternal(rtv);
-		Texture_dx11* texture = ToInternal(tex);
+		Texture_dx11* texture = ToInternalTexture(tex);
 		assert(texture->depthStencilView.Get() != nullptr);
 		g_DeferredContext[cmd]->OMSetRenderTargets(1u, RTV->ptr.GetAddressOf(), texture->depthStencilView.Get());
 	}
@@ -785,9 +818,9 @@ namespace jshGraphics_dx11 {
 
 	/////////////////////////METHODS////////////////////////////////////////
 
-	void UpdateConstantBuffer(jsh::Buffer& b, void* data, jsh::CommandList cmd)
+	void UpdateConstantBuffer(jsh::Resource& b, void* data, jsh::CommandList cmd)
 	{
-		Buffer_dx11* buffer = ToInternal(b);
+		Buffer_dx11* buffer = ToInternalBuffer(b);
 		g_DeferredContext[cmd]->UpdateSubresource(buffer->ptr.Get(), 0, nullptr, data, 0, 0);
 	}
 	///////////////////////////RENDER CALLS/////////////////////////

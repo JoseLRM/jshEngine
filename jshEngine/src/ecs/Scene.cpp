@@ -13,7 +13,7 @@ namespace jshScene {
 	jsh::vector<Entity> g_FreeEntityData;
 
 	jsh::vector<size_t> g_ComponentsSize;
-	jsh::vector<jsh::vector<byte>> g_Components;
+	std::vector<std::vector<byte>> g_Components;
 
 	std::map<uint16, System*> g_UpdatedSystems;
 	std::mutex g_UpdatedSystemsMutex;
@@ -27,7 +27,7 @@ namespace jshScene {
 		{
 			return g_EntityData;
 		}
-		jsh::vector<jsh::vector<byte>>& GetComponentsList()
+		std::vector<std::vector<byte>>& GetComponentsList()
 		{
 			return g_Components;
 		}
@@ -61,8 +61,9 @@ namespace jshScene {
 
 	void Initialize() noexcept
 	{
+		g_Components.reserve(BaseComponent::GetComponentsCount());
 		for (uint16 id = 0; id < BaseComponent::GetComponentsCount(); ++id) {
-			g_Components.push_back(jsh::vector<byte>());
+			g_Components.push_back(std::vector<byte>());
 		}
 		CreateEntity(); // allocate invalid Entity :)
 
@@ -101,7 +102,7 @@ namespace jshScene {
 			if (g_EntityData.capacity() == g_EntityData.size()) g_EntityData.reserve(10u);
 			g_EntityData.push_back(entityData);
 		}
-		
+
 		g_EntityData[entity].transform.entity = entity;
 		g_Entities.push_back(entity, 10u);
 		return entity;
@@ -166,7 +167,7 @@ namespace jshScene {
 			if (g_EntityData.capacity() == g_EntityData.size()) g_EntityData.reserve(10u);
 			g_EntityData.push_back(EntityData());
 		}
-		
+
 		EntityData& entityData = g_EntityData[entity];
 		entityData.parent = parent;
 		size_t index = parentData.handleIndex + parentData.sonsCount;
@@ -191,7 +192,7 @@ namespace jshScene {
 
 		return entity;
 	}
-	
+
 	void CreateSEntities(Entity parent, uint32 cant, jsh::vector<Entity>* entities) noexcept
 	{
 		// update parents count
@@ -258,7 +259,7 @@ namespace jshScene {
 	{
 		EntityData& entityData = g_EntityData[entity];
 		uint32 cant = entityData.sonsCount + 1;
-		
+
 		// notify parents
 		if (entityData.parent != INVALID_ENTITY) {
 			jsh::vector<Entity> updateInheritance;
@@ -272,7 +273,7 @@ namespace jshScene {
 				pData.sonsCount -= cant;
 
 				if (pData.parent != INVALID_ENTITY) updateInheritance.push_back(pData.parent, 3);
-				
+
 			}
 		}
 
@@ -298,7 +299,7 @@ namespace jshScene {
 		for (size_t i = indexBeginDest; i < g_Entities.size(); ++i) {
 			g_EntityData[g_Entities[i]].handleIndex = i;
 		}
-		
+
 	}
 
 	void GetEntitySons(Entity entity, jsh::vector<Entity>& entities) noexcept
@@ -332,10 +333,7 @@ namespace jshScene {
 			if (list.empty()) g_ComponentsSize[componentID] = componentSize;
 
 			// allocate the component
-			if (list.capacity() < index + componentSize) {
-				list.reserve(componentSize * 5);
-			}
-			list.add_pos(componentSize);
+			list.resize(list.size() + componentSize);
 			memcpy(&list[index], comp, componentSize);
 
 			// set index in entity
@@ -351,8 +349,7 @@ namespace jshScene {
 			if (list.empty()) g_ComponentsSize[componentID] = componentSize;
 
 			// allocate the components
-			list.reserve(componentSize * entities.size());
-			list.add_pos(componentSize * entities.size());
+			list.resize(list.size() + componentSize * entities.size());
 
 			size_t currentIndex;
 			Entity currentEntity;
@@ -389,7 +386,7 @@ namespace jshScene {
 				g_EntityData[otherEntity].indices[componentID] = index;
 			}
 
-			list.sub_pos(componentSize);
+			list.resize(list.size() - componentSize);
 		}
 
 		void RemoveComponents(EntityData& entityData) noexcept
@@ -410,7 +407,7 @@ namespace jshScene {
 					g_EntityData[otherEntity].indices[componentID] = index;
 				}
 
-				list.sub_pos(componentSize);
+				list.resize(list.size() - componentSize);
 			}
 			entityData.indices.clear();
 		}
@@ -422,12 +419,12 @@ namespace jshScene {
 	{
 		jsh::Time beginTime = jshTimer::Now();
 
-		if(system->GetExecuteType() == JSH_ECS_SYSTEM_SAFE 
+		if (system->GetExecuteType() == JSH_ECS_SYSTEM_SAFE
 			|| system->GetExecuteType() == JSH_ECS_SYSTEM_PARALLEL) {
 
 			if (system->IsIndividualSystem()) UpdateIndividualSafeSystem(system, dt);
 			else UpdateCollectiveAndMultithreadedSystem(system, dt);
-			
+
 		}
 		else {
 			if (system->IsIndividualSystem()) UpdateCollectiveAndMultithreadedSystem(system, dt);
@@ -470,18 +467,18 @@ namespace jshScene {
 		for (uint32 i = 0; i < cant; ++i) {
 			pSystem = systems[i];
 			if (pSystem->GetExecuteType() == JSH_ECS_SYSTEM_PARALLEL) {
-				if (pSystem->IsIndividualSystem()) 
-					jshTask::Execute([pSystem, dt]() { 
+				if (pSystem->IsIndividualSystem())
+					jshTask::Execute([pSystem, dt]() {
 
 					jsh::Time beginTime = jshTimer::Now();
 					UpdateIndividualSafeSystem(pSystem, dt);
 					SetUpdatePerformance(pSystem, beginTime);
 
 				});
-				else jshTask::Execute([pSystem, dt]() { 
+				else jshTask::Execute([pSystem, dt]() {
 
 					jsh::Time beginTime = jshTimer::Now();
-					UpdateCollectiveAndMultithreadedSystem(pSystem, dt); 
+					UpdateCollectiveAndMultithreadedSystem(pSystem, dt);
 					SetUpdatePerformance(pSystem, beginTime);
 
 				});
@@ -727,10 +724,13 @@ namespace jshScene {
 			}
 		}
 	}
-
+}
 	//////////////////////////////////DEBUG////////////////////////////////
 
 #if defined(JSH_IMGUI)
+
+namespace jshScene {
+
 	jsh::Entity m_SelectedEntity = INVALID_ENTITY;
 
 	namespace _internal {
@@ -744,13 +744,25 @@ namespace jshScene {
 			bool active;
 			NameComponent* nameComponent = (NameComponent*)GetComponent(entity, NameComponent::ID);
 			if (nameComponent) {
-				active = ImGui::TreeNodeEx(nameComponent->name, treeFlags);
+				active = ImGui::TreeNodeEx(nameComponent->name.c_str(), treeFlags);
 			}
 			else {
 				active = ImGui::TreeNodeEx(("Entity " + std::to_string(entity)).c_str(), treeFlags);
 			}
 
-			if (ImGui::IsItemClicked()) m_SelectedEntity = entity;
+			if (ImGui::IsItemClicked()) {
+				if (m_SelectedEntity != entity) {
+					if (m_SelectedEntity != INVALID_ENTITY) {
+						if (jshScene::GetComponent<OutlineComponent>(m_SelectedEntity) != nullptr) {
+							jshScene::RemoveComponent<OutlineComponent>(m_SelectedEntity);
+						}
+					}
+					if (jshScene::GetComponent<OutlineComponent>(entity) == nullptr) {
+						jshScene::AddComponent(entity, OutlineComponent());
+					}
+					m_SelectedEntity = entity;
+				}
+			}
 			if (active) {
 				if (!empty) {
 					for (uint32 i = 0; i < entityData.sonsCount; ++i) {
@@ -791,7 +803,7 @@ namespace jshScene {
 
 				NameComponent* nameComponent = (NameComponent*)GetComponent(m_SelectedEntity, NameComponent::ID);
 				if (nameComponent) {
-					ImGui::Text(nameComponent->name);
+					ImGui::Text(nameComponent->name.c_str());
 				}
 				else {
 					ImGui::Text(("Entity " + std::to_string(m_SelectedEntity)).c_str());

@@ -20,7 +20,7 @@ namespace jshGraphics {
 
 	void Begin();
 	void End();
-	void Present();
+	void Present(uint32 interval);
 
 #ifdef JSH_IMGUI
 	void BeginImGui();
@@ -29,7 +29,7 @@ namespace jshGraphics {
 
 	jsh::CommandList BeginCommandList();
 
-	void UpdateConstantBuffer(jsh::Buffer buffer, void* data, jsh::CommandList cmd);
+	void UpdateConstantBuffer(jsh::Resource buffer, void* data, jsh::CommandList cmd);
 	//////////////////DRAW CALLS//////////////////
 	void DrawIndexed(uint32 indicesCount, jsh::CommandList cmd);
 

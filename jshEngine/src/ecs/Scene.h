@@ -14,7 +14,7 @@ namespace jshScene {
 
 		jsh::vector<jsh::Entity>& GetEntitiesList();
 		std::vector<jsh::EntityData>& GetEntityDataList();
-		jsh::vector<jsh::vector<byte>>& GetComponentsList();
+		std::vector<std::vector<byte>>& GetComponentsList();
 
 		void AddComponent(jsh::Entity entity, jsh::BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept;
 		void AddComponents(jsh::vector<jsh::Entity>& entities, jsh::BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept;

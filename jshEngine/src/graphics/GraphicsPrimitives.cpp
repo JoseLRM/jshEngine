@@ -9,15 +9,15 @@ using namespace jsh;
 
 namespace jshGraphics {
 
-	RenderTargetView g_RenderTargetView[1];
+	RenderState g_State;
 
 	/////////////////////////BUFFER//////////////////////
-	void CreateBuffer(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Buffer* buffer)
+	void CreateResource(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Resource* buffer)
 	{
 		switch (jshGraphics::GetAPI()) {
 
 		case JSH_GRAPHCS_API_DIRECTX11:
-			jshGraphics_dx11::CreateBuffer(desc, sdata, buffer);
+			jshGraphics_dx11::CreateResource(desc, sdata, buffer);
 			return;
 		case JSH_GRAPHCS_API_NULL:
 		default:
@@ -25,7 +25,7 @@ namespace jshGraphics {
 		}
 	}
 
-	void BindVertexBuffer(const jsh::Buffer& buffer, uint32 slot, CommandList cmd)
+	void BindVertexBuffer(const jsh::Resource& buffer, uint32 slot, CommandList cmd)
 	{
 		switch (jshGraphics::GetAPI())
 		{
@@ -39,7 +39,7 @@ namespace jshGraphics {
 			return;
 		}
 	}
-	void BindIndexBuffer(const jsh::Buffer& buffer, CommandList cmd)
+	void BindIndexBuffer(const jsh::Resource& buffer, CommandList cmd)
 	{
 		switch (jshGraphics::GetAPI())
 		{
@@ -52,7 +52,7 @@ namespace jshGraphics {
 			return;
 		}
 	}
-	void BindConstantBuffer(const jsh::Buffer& buffer, uint32 slot, JSH_SHADER_TYPE shaderType, CommandList cmd)
+	void BindConstantBuffer(const jsh::Resource& buffer, uint32 slot, JSH_SHADER_TYPE shaderType, CommandList cmd)
 	{
 		switch (jshGraphics::GetAPI())
 		{
@@ -95,11 +95,11 @@ namespace jshGraphics {
 	}
 
 	/////////////////////////TEXTURE////////////////////////
-	void CreateTexture(const JSH_TEXTURE2D_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Texture* tex)
+	void CreateResource(const JSH_TEXTURE2D_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Resource* tex)
 	{
-		jshGraphics_dx11::CreateTexture(desc, sdata, tex);
+		jshGraphics_dx11::CreateResource(desc, sdata, tex);
 	}
-	void BindTexture(const Texture& texture, uint32 slot, JSH_SHADER_TYPE shaderType, CommandList cmd)
+	void BindTexture(const Resource& texture, uint32 slot, JSH_SHADER_TYPE shaderType, CommandList cmd)
 	{
 		jshGraphics_dx11::BindTexture(texture, slot, shaderType, cmd);
 	}
@@ -142,11 +142,11 @@ namespace jshGraphics {
 	{
 		return jshGraphics_dx11::CreateDepthStencilState(desc, dss);
 	}
-	void BindDepthStencilState(const DepthStencilState& dsState, CommandList cmd)
+	void BindDepthStencilState(const DepthStencilState& dsState, uint32 stencilRef, CommandList cmd)
 	{
-		jshGraphics_dx11::BindDepthStencilState(dsState, cmd);
+		jshGraphics_dx11::BindDepthStencilState(dsState, stencilRef, cmd);
 	}
-	void ClearDepthStencilView(const jsh::Texture& tex, jsh::CommandList cmd)
+	void ClearDepthStencilView(const jsh::Resource& tex, jsh::CommandList cmd)
 	{
 		jshGraphics_dx11::ClearDepthStencilView(tex, cmd);
 	}
@@ -173,19 +173,21 @@ namespace jshGraphics {
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd)
 	{
 		jshGraphics_dx11::BindRenderTargetView(rtv, cmd);
-		g_RenderTargetView[0] = rtv;
+		g_State.renderTargetView[0] = rtv;
 	}
-	void BindRenderTargetView(const jsh::RenderTargetView& rtv, const jsh::Texture& tex, jsh::CommandList cmd)
+	void BindRenderTargetView(const jsh::RenderTargetView& rtv, const jsh::Resource& tex, jsh::CommandList cmd)
 	{
 		jshGraphics_dx11::BindRenderTargetView(rtv, tex, cmd);
-		g_RenderTargetView[0] = rtv;
+		g_State.renderTargetView[0] = rtv;
 	}
 	void ClearRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd)
 	{
 		jshGraphics_dx11::ClearRenderTargetView(rtv, cmd);
 	}
-	RenderTargetView& GetRenderTargetView()
+
+	const RenderState& GetRenderState()
 	{
-		return g_RenderTargetView[0];
+		return g_State;
 	}
+
 }
