@@ -691,10 +691,10 @@ namespace jshGraphics_dx11 {
 		desc.DepthEnable = d->DepthEnable;
 		desc.DepthFunc = ParseComparisonFunc(d->DepthFunc);
 		desc.DepthWriteMask = ParseDepthWriteMask(d->DepthWriteMask);
-		desc.FrontFace.StencilDepthFailOp = ParseStencilOp(d->BackFace.StencilDepthFailOp);
-		desc.FrontFace.StencilFailOp = ParseStencilOp(d->BackFace.StencilFailOp);
-		desc.FrontFace.StencilFunc = ParseComparisonFunc(d->BackFace.StencilFunc);
-		desc.FrontFace.StencilPassOp = ParseStencilOp(d->BackFace.StencilPassOp);
+		desc.FrontFace.StencilDepthFailOp = ParseStencilOp(d->FrontFace.StencilDepthFailOp);
+		desc.FrontFace.StencilFailOp = ParseStencilOp(d->FrontFace.StencilFailOp);
+		desc.FrontFace.StencilFunc = ParseComparisonFunc(d->FrontFace.StencilFunc);
+		desc.FrontFace.StencilPassOp = ParseStencilOp(d->FrontFace.StencilPassOp);
 		desc.StencilEnable = d->StencilEnable;
 		desc.StencilReadMask = d->StencilReadMask;
 		desc.StencilWriteMask = d->StencilWriteMask;
@@ -711,7 +711,7 @@ namespace jshGraphics_dx11 {
 	{
 		Texture_dx11* texture = ToInternalTexture(tex);
 		assert(texture->depthStencilView.Get() != nullptr);
-		g_DeferredContext[cmd]->ClearDepthStencilView(texture->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
+		g_DeferredContext[cmd]->ClearDepthStencilView(texture->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
 	}
 
 	/////////////////////////RASTERIZER STATE////////////////////////////////////////
@@ -827,6 +827,10 @@ namespace jshGraphics_dx11 {
 	void DrawIndexed(uint32 indicesCount, jsh::CommandList cmd)
 	{
 		g_DeferredContext[cmd]->DrawIndexed(indicesCount, 0, 0);
+	}
+	void Draw(uint32 vertexCount, jsh::CommandList cmd)
+	{
+		g_DeferredContext[cmd]->Draw(vertexCount, 0);
 	}
 
 }

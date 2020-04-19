@@ -29,7 +29,6 @@ namespace jsh {
 
 	class RenderPass {
 	protected:
-		jsh::CommandList cmd;
 		jsh::vector<RenderPass*> m_Depencences;
 
 	public:
@@ -38,7 +37,7 @@ namespace jsh {
 
 		virtual void Create() = 0;
 		virtual void Load() {}
-		virtual void Render() = 0;
+		virtual void Render(CommandList cmd) = 0;
 
 		void AddDependence(RenderPass* renderPass) noexcept;
 

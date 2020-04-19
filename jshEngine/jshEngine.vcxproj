@@ -104,8 +104,10 @@
     <ClCompile Include="src\graphics\GraphicsObjects.cpp" />
     <ClCompile Include="src\graphics\GraphicsPrimitives.cpp" />
     <ClCompile Include="src\graphics\RenderGraph.cpp" />
+    <ClCompile Include="src\graphics\renderPasses\BlurEffect.cpp" />
     <ClCompile Include="src\graphics\renderPasses\LambertianRenderPass.cpp" />
     <ClCompile Include="src\graphics\renderPasses\OutlineRenderPass.cpp" />
+    <ClCompile Include="src\graphics\renderPasses\PostProcess.cpp" />
     <ClCompile Include="src\ImGui\imgui.cpp" />
     <ClCompile Include="src\ImGui\imgui_demo.cpp" />
     <ClCompile Include="src\ImGui\imgui_draw.cpp" />
@@ -144,9 +146,10 @@
     <ClInclude Include="src\graphics\GraphicsObjects.h" />
     <ClInclude Include="src\graphics\GraphicsPrimitives.h" />
     <ClInclude Include="src\graphics\RenderGraph.h" />
+    <ClInclude Include="src\graphics\renderPasses\BlurEffect.h" />
     <ClInclude Include="src\graphics\renderPasses\LambertianRenderPass.h" />
     <ClInclude Include="src\graphics\renderPasses\OutlineRenderPass.h" />
-    <ClInclude Include="src\graphics\renderPasses\PostProcessingRenderPass.h" />
+    <ClInclude Include="src\graphics\renderPasses\PostProcess.h" />
     <ClInclude Include="src\ImGui\imconfig.h" />
     <ClInclude Include="src\ImGui\imgui.h" />
     <ClInclude Include="src\ImGui\imgui_impl_dx11.h" />
@@ -209,9 +212,17 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="shaders\postProcess\PostProcessBlackAndWhite.hlsl">
+    <FxCompile Include="shaders\postProcess\PP.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="shaders\postProcess\PPGaussianBlur.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
     </FxCompile>

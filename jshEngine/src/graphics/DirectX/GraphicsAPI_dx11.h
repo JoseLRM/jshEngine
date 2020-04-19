@@ -82,5 +82,6 @@ namespace jshGraphics_dx11 {
 
 	//////////////////////////DRAW CALLS////////////////////////////////////
 	void DrawIndexed(uint32 indicesCount, jsh::CommandList cmd);
+	void Draw(uint32 vertexCount, jsh::CommandList cmd);
 
 }

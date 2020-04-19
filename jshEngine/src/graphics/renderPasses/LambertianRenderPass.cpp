@@ -48,9 +48,9 @@ namespace jsh {
 		}
 	}
 
-	void LambertianRenderPass::Render()
+	void LambertianRenderPass::Render(CommandList cmd)
 	{
-		jsh::RenderTargetView& offscreenRenderTargetView = jshRenderer::primitives::GetOffscreenRenderTargetView();
+		//jsh::RenderTargetView& offscreenRenderTargetView = jshRenderer::primitives::GetOffscreenRenderTargetView();
 		jsh::RenderTargetView& mainRenderTargetView = jshRenderer::primitives::GetMainRenderTargetView();
 		jsh::DepthStencilState& depthStencilState = jshRenderer::primitives::GetDefaultDepthStencilState();
 		jsh::Resource& dsResource = jshRenderer::primitives::GetDefaultDepthStencilView();
@@ -58,7 +58,7 @@ namespace jsh {
 		Viewport& vp = jshRenderer::primitives::GetDefaultViewport();
 
 		// bind state
-		jshGraphics::BindRenderTargetView(offscreenRenderTargetView, dsResource, cmd);
+		jshGraphics::BindRenderTargetView(mainRenderTargetView, dsResource, cmd);
 		jshGraphics::BindDepthStencilState(depthStencilState, 1u, cmd);
 		
 		jshGraphics::SetTopology(JSH_TOPOLOGY_TRIANGLES, cmd);

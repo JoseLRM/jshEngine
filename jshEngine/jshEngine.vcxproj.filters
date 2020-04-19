@@ -96,6 +96,12 @@
     <ClCompile Include="src\graphics\renderPasses\OutlineRenderPass.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\renderPasses\PostProcess.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\renderPasses\BlurEffect.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common.h">
@@ -224,9 +230,6 @@
     <ClInclude Include="src\components\LightComponent.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\renderPasses\PostProcessingRenderPass.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="src\components\MeshComponent.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -239,6 +242,12 @@
     <ClInclude Include="src\graphics\renderPasses\OutlineRenderPass.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\graphics\renderPasses\PostProcess.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\renderPasses\BlurEffect.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\SolidPixel.hlsl" />
@@ -248,11 +257,12 @@
     <FxCompile Include="shaders\PostProcessVertex.hlsl" />
     <FxCompile Include="shaders\SimpleColVertex.hlsl" />
     <FxCompile Include="shaders\SimpleColPixel.hlsl" />
-    <FxCompile Include="shaders\postProcess\PostProcessBlackAndWhite.hlsl" />
     <FxCompile Include="shaders\NormalVertex.hlsl" />
     <FxCompile Include="shaders\NormalPixel.hlsl" />
     <FxCompile Include="shaders\OutlineMaskVertex.hlsl" />
     <FxCompile Include="shaders\OutlineMaskPixel.hlsl" />
+    <FxCompile Include="shaders\postProcess\PPGaussianBlur.hlsl" />
+    <FxCompile Include="shaders\postProcess\PP.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\Light.hlsli" />

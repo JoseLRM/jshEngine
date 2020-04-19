@@ -2,6 +2,7 @@
 
 #include "DirectX/GraphicsAPI_dx11.h"
 #include "..//utils/dataStructures/memory_pool.h"
+#include "renderPasses/PostProcess.h"
 #include "Debug.h"
 #include <map>
 #include "Renderer.h"
@@ -77,20 +78,20 @@ namespace jshGraphics {
 			jshGraphics::CreateInputLayout(desc, 5u, normalShader->vs, &normalShader->inputLayout);
 		}
 
-		// post processing effects
 		{
-			std::shared_ptr<VertexShader> ppVertex = std::make_shared<VertexShader>();
-			jshGraphics::CreateVertexShader(L"PostProcessVertex.cso", ppVertex.get());
-			jshGraphics::Save("PostProcessVertex", ppVertex);
-		}
+			Shader* outlineShader = jshGraphics::CreateShader("OutlineMask");
+			jshGraphics::CreateVertexShader(L"OutlineMaskVertex.cso", &outlineShader->vs);
+			jshGraphics::CreatePixelShader(L"OutlineMaskPixel.cso", &outlineShader->ps);
 
-		{
-			std::shared_ptr<PixelShader> bandwPP = std::make_shared<PixelShader>();
-			jshGraphics::CreatePixelShader(L"PostProcessBlackAndWhite.cso", bandwPP.get());
-			jshGraphics::Save("BlackAndWhitePP", bandwPP);
+			const JSH_INPUT_ELEMENT_DESC desc[] = {
+				{"Position", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 0u, 0u}
+			};
+
+			jshGraphics::CreateInputLayout(desc, 1u, outlineShader->vs, &outlineShader->inputLayout);
 		}
 
 		jshRenderer::Initialize();
+		InitializePostProcess();
 
 		return result;
 	}
@@ -157,6 +158,10 @@ namespace jshGraphics {
 	void DrawIndexed(uint32 indicesCount, CommandList cmd)
 	{
 		jshGraphics_dx11::DrawIndexed(indicesCount, cmd);
+	}
+	void Draw(uint32 vertexCount, jsh::CommandList cmd)
+	{
+		jshGraphics_dx11::Draw(vertexCount, cmd);
 	}
 
 }

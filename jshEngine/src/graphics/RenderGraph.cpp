@@ -31,8 +31,7 @@ namespace jsh {
 		jshTask::Wait();
 
 		for (uint32 i = 0; i < m_RenderPasses.size(); ++i) {
-			m_RenderPasses[i]->cmd = jshGraphics::BeginCommandList();
-			m_RenderPasses[i]->Render();
+			m_RenderPasses[i]->Render(jshGraphics::BeginCommandList());
 		}
 	}
 

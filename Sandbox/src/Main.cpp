@@ -83,9 +83,9 @@ jsh::Mesh* CreateTerrain() {
 
 void State::Initialize()
 {
-	std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/nano_textured/nanosuit.obj", "nanosuit");
+	//std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/nano_textured/nanosuit.obj", "nanosuit");
 	//std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/Sponza/sponza.obj", "sponza");
-	//std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/gobber/GoblinX.obj", "Goblin");
+	std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/gobber/GoblinX.obj", "Goblin");
 
 	dragonModel->CreateEntity(jshScene::CreateEntity(jsh::NameComponent("Goblin")));
 	jsh::Entity cameraEntity = jshScene::CreateEntity(jsh::NameComponent("Camera"), jsh::CameraComponent(), jsh::LightComponent());

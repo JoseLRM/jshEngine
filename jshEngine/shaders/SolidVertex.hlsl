@@ -12,7 +12,7 @@ VS_OUTPUT main(float3 pos : Position, float3 nor : Normal)
 {
 	VS_OUTPUT output;
 	output.fragPosition = mul(float4(pos, 1.f), instance.tm);
-	output.position = mul(mul(output.fragPosition, camera.vm), camera.pm);
+	output.position = mul(mul(float4(output.fragPosition, 1.f), camera.vm), camera.pm);
 	output.fragNormal = normalize(mul(nor, (float3x3)instance.tm));
 
 	output.fragToCamera = normalize(output.fragPosition - camera.position.xyz);

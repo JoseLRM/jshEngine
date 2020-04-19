@@ -1,50 +1,37 @@
 #pragma once
 
 #include "..//RenderGraph.h"
+#include "BlurEffect.h"
 #include "..//..//ecs/Scene.h"
 
 namespace jsh {
 
-	struct OutlineInstance {
-		MeshComponent* meshComp;
-		jsh::vec3 color;
-		uint32 intensity;
-	};
-
-	class OutlineSystem : public System {
-	public:
-		jsh::vector<OutlineInstance>* m_pInstances;
-		void UpdateEntity(Entity entity, BaseComponent** comp, float dt) override;
-	};
-
 	class OutlineRenderPass : public RenderPass {
-		OutlineSystem m_System;
+		
+		struct OutlineInstance {
+			MeshComponent* meshComp;
+			jsh::vec3 color;
+			uint32 intensity;
+		};
+
+		jsh::vector<OutlineInstance> m_Instances;
 
 		RenderTargetView m_RenderTargetView;
 		DepthStencilState m_MaskDepthStencilState;
-		Resource m_CBuffer;
+		DepthStencilState m_DrawDepthStencilState;
 
-		VertexShader m_MaskVS;
-		PixelShader m_MaskPS;
-		InputLayout m_MaskIL;
+		Shader* m_pShader;
 
-		struct alignas(16) {
-			XMMATRIX tm;
-			XMMATRIX vm;
-			XMMATRIX pm;
+		InstanceBuffer m_InstanceBuffer;
 
-			//jsh::vec3 color;
-			//uint32 intensity;
-		} m_VCBuffer;
-
-		jsh::vector<OutlineInstance> m_Instances;
+		BlurEffect m_BlurRenderPass;
 
 	public:
 		OutlineRenderPass();
 
 		void Load() override;
 		void Create() override;
-		void Render() override;
+		void Render(CommandList cmd) override;
 
 	};
 

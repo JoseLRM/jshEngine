@@ -27,7 +27,7 @@ namespace jsh {
 
 		void Load() override;
 		void Create() override;
-		void Render() override;
+		void Render(CommandList cmd) override;
 
 	};
 
