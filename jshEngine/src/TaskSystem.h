@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils/dataStructures/safe_queue.h"
+#include "safe_queue.h"
 #include "common.h"
 #include <memory>
 #include <functional>

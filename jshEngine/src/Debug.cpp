@@ -1,11 +1,11 @@
 #include "Debug.h"
 
-#include "graphics/WinLib.h"
+#include "WinLib.h"
 
 #include "TaskSystem.h"
 #include "Engine.h"
 #include "State.h"
-#include "graphics/Renderer.h"
+#include "Renderer.h"
 
 namespace jshDebug {
 

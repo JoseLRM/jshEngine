@@ -38,7 +38,7 @@
 #endif
 
 // includes
-#include "utils/Math.h"
+#include "Math.h"
 #include <string>
 #include <memory>
 #include <sstream>

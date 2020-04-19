@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common.h"
-#include "ecs/Scene.h"
+#include "Scene.h"
 
 namespace jsh {
 

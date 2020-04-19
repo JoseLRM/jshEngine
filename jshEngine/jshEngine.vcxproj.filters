@@ -1,274 +1,319 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Archivos de origen">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="Graphics">
+      <UniqueIdentifier>{42cb4c2a-940a-4d86-89b3-69e8a88c46e6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Archivos de encabezado">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    <Filter Include="System">
+      <UniqueIdentifier>{2e1ee809-0898-445f-9668-3cb7659a3785}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Archivos de recursos">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="System\ECS">
+      <UniqueIdentifier>{56833b68-eeea-49ca-9cbd-15224b0c6684}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Shaders">
+      <UniqueIdentifier>{eaf23892-98b2-4364-9f3f-0c117332d066}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImGui">
+      <UniqueIdentifier>{5bada4db-e388-4c4d-8c1f-4289f0f1073e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{5c46779a-b2e4-42e4-97e1-5d33a0201b50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include">
+      <UniqueIdentifier>{50d3cfdf-b5e2-4f43-9d06-2ab8b4b8236c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Debug.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\BlurEffect.cpp">
+      <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\TaskSystem.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\Graphics.cpp">
+      <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\Timer.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\GraphicsAPI_dx11.cpp">
+      <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\Input.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\GraphicsObjects.cpp">
+      <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\Graphics.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\GraphicsPrimitives.cpp">
+      <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\Window.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\LambertianRenderPass.cpp">
+      <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\ecs\Scene.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\OutlineRenderPass.cpp">
+      <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\ecs\Component.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\PostProcess.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderGraph.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Window.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Transform.cpp">
+      <Filter>System\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene.cpp">
+      <Filter>System\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CameraComponent.cpp">
+      <Filter>System\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Component.cpp">
+      <Filter>System\ECS</Filter>
     </ClCompile>
     <ClCompile Include="src\ImGui\imgui.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ImGui\imgui_draw.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ImGui\imgui_impl_dx11.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ImGui\imgui_impl_win32.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ImGui\imgui_widgets.cpp">
-      <Filter>Archivos de origen</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\ImGui\imgui_demo.cpp">
-      <Filter>Archivos de origen</Filter>
+      <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\DirectX\GraphicsAPI_dx11.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\ImGui\imgui_draw.cpp">
+      <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\GraphicsPrimitives.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\ImGui\imgui_impl_dx11.cpp">
+      <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\GraphicsObjects.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\ImGui\imgui_impl_win32.cpp">
+      <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\utils\AssetLoader.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\ImGui\imgui_widgets.cpp">
+      <Filter>ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\Renderer.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\Input.cpp">
+      <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="src\components\CameraComponent.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\TaskSystem.cpp">
+      <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="src\utils\stb_lib.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\Timer.cpp">
+      <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="src\Exception.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\AssetLoader.cpp">
+      <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\renderPasses\LambertianRenderPass.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\RenderGraph.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\Debug.cpp">
+      <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine.cpp">
-      <Filter>Archivos de origen</Filter>
+      <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="src\components\Transform.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\Exception.cpp">
+      <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\renderPasses\OutlineRenderPass.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\renderPasses\PostProcess.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\renderPasses\BlurEffect.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\stb\stb_lib.cpp">
+      <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\common.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="src\Window.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="include\jshEngine.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="src\BlurEffect.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\Debug.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="src\DirectX11Lib.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\State.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="src\Graphics.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GraphicsAPI_dx11.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GraphicsDesc.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GraphicsObjects.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GraphicsPrimitives.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LambertianRenderPass.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PostProcess.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OutlineRenderPass.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RenderGraph.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CameraComponent.h">
+      <Filter>System\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Component.h">
+      <Filter>System\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Components.h">
+      <Filter>System\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Entity.h">
+      <Filter>System\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LightComponent.h">
+      <Filter>System\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MeshComponent.h">
+      <Filter>System\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OutlineComponent.h">
+      <Filter>System\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scene.h">
+      <Filter>System\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\System.h">
+      <Filter>System\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Transform.h">
+      <Filter>System\ECS</Filter>
     </ClInclude>
     <ClInclude Include="src\TaskSystem.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\dataStructures\safe_queue.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="src\Timer.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="src\EventSystem.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\WinLib.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\Input.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\dataStructures\vector.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\Graphics.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\GraphicsDesc.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\Window.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\WinLib.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ecs\Scene.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ecs\Entity.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ecs\System.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ecs\Component.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\imconfig.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\imgui.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\imgui_impl_dx11.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\imgui_impl_win32.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\imgui_internal.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\imstb_rectpack.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\imstb_textedit.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\ImGui\imstb_truetype.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\DirectX\GraphicsAPI_dx11.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="src\Math.h">
+      <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\DirectX\DirectX11Lib.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="src\AssetLoader.h">
+      <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\dataStructures\memory_pool.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="src\safe_queue.h">
+      <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="src\components\Components.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="src\vector.h">
+      <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\AssetLoader.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="src\memory_pool.h">
+      <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\Math.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\GraphicsPrimitives.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\GraphicsObjects.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\Renderer.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\components\CameraComponent.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\stb_lib.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="src\State.h">
+      <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="src\Exception.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\renderPasses\LambertianRenderPass.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\RenderGraph.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="src\components\LightComponent.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="src\Debug.h">
+      <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="src\components\MeshComponent.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="src\common.h">
+      <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="src\components\Transform.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="include\jshEngine.h">
+      <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="src\components\OutlineComponent.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\renderPasses\OutlineRenderPass.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\renderPasses\PostProcess.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\renderPasses\BlurEffect.h">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="src\stb\stb_lib.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shaders\SolidPixel.hlsl" />
-    <FxCompile Include="shaders\SolidVertex.hlsl" />
-    <FxCompile Include="shaders\SimpleTexVertex.hlsl" />
-    <FxCompile Include="shaders\SimpleTexPixel.hlsl" />
-    <FxCompile Include="shaders\PostProcessVertex.hlsl" />
-    <FxCompile Include="shaders\SimpleColVertex.hlsl" />
-    <FxCompile Include="shaders\SimpleColPixel.hlsl" />
-    <FxCompile Include="shaders\NormalVertex.hlsl" />
-    <FxCompile Include="shaders\NormalPixel.hlsl" />
-    <FxCompile Include="shaders\OutlineMaskVertex.hlsl" />
-    <FxCompile Include="shaders\OutlineMaskPixel.hlsl" />
-    <FxCompile Include="shaders\postProcess\PPGaussianBlur.hlsl" />
-    <FxCompile Include="shaders\postProcess\PP.hlsl" />
+    <FxCompile Include="src\SolidVertex.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\NormalPixel.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\NormalVertex.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\OutlineMaskPixel.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\OutlineMaskVertex.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\PostProcessVertex.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\SimpleColPixel.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\SimpleColVertex.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\SimpleTexPixel.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\SimpleTexVertex.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\SolidPixel.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\PPGaussianBlur.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\PP.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\Light.hlsli" />
-    <None Include="shaders\common.hlsli" />
-    <None Include="shaders\Material.hlsli" />
-    <None Include="shaders\Camera.hlsli" />
-    <None Include="shaders\Instance.hlsli" />
+    <None Include="src\Camera.hlsli">
+      <Filter>Graphics\Shaders</Filter>
+    </None>
+    <None Include="src\common.hlsli">
+      <Filter>Graphics\Shaders</Filter>
+    </None>
+    <None Include="src\Instance.hlsli">
+      <Filter>Graphics\Shaders</Filter>
+    </None>
+    <None Include="src\Light.hlsli">
+      <Filter>Graphics\Shaders</Filter>
+    </None>
+    <None Include="src\Material.hlsli">
+      <Filter>Graphics\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -44,11 +44,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)bin/$(ProjectName)/$(Configuration)-$(Platform)</OutDir>
-    <IntDir>$(SolutionDir)int/$(ProjectName)/$(Configuration)-$(Platform)</IntDir>
+    <IntDir>$(SolutionDir)bin/int/$(ProjectName)/$(Configuration)-$(Platform)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)bin/$(ProjectName)/$(Configuration)-$(Platform)</OutDir>
-    <IntDir>$(SolutionDir)int/$(ProjectName)/$(Configuration)-$(Platform)</IntDir>
+    <IntDir>$(SolutionDir)bin/int/$(ProjectName)/$(Configuration)-$(Platform)</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -58,7 +58,8 @@
       <ConformanceMode>true</ConformanceMode>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);JSH_ENGINE</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)jshEngine/src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <IntrinsicFunctions>false</IntrinsicFunctions>
     </ClCompile>
@@ -79,7 +80,8 @@
       <ConformanceMode>true</ConformanceMode>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);JSH_ENGINE</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)jshEngine/src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -92,22 +94,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Engine.cpp" />
-    <ClCompile Include="src\components\CameraComponent.cpp" />
-    <ClCompile Include="src\components\Transform.cpp" />
+    <ClCompile Include="src\CameraComponent.cpp" />
+    <ClCompile Include="src\stb\stb_lib.cpp" />
+    <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\Debug.cpp" />
-    <ClCompile Include="src\ecs\Component.cpp" />
-    <ClCompile Include="src\ecs\Scene.cpp" />
+    <ClCompile Include="src\Component.cpp" />
+    <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\Exception.cpp" />
-    <ClCompile Include="src\graphics\Renderer.cpp" />
-    <ClCompile Include="src\graphics\DirectX\GraphicsAPI_dx11.cpp" />
-    <ClCompile Include="src\graphics\Graphics.cpp" />
-    <ClCompile Include="src\graphics\GraphicsObjects.cpp" />
-    <ClCompile Include="src\graphics\GraphicsPrimitives.cpp" />
-    <ClCompile Include="src\graphics\RenderGraph.cpp" />
-    <ClCompile Include="src\graphics\renderPasses\BlurEffect.cpp" />
-    <ClCompile Include="src\graphics\renderPasses\LambertianRenderPass.cpp" />
-    <ClCompile Include="src\graphics\renderPasses\OutlineRenderPass.cpp" />
-    <ClCompile Include="src\graphics\renderPasses\PostProcess.cpp" />
+    <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\GraphicsAPI_dx11.cpp" />
+    <ClCompile Include="src\Graphics.cpp" />
+    <ClCompile Include="src\GraphicsObjects.cpp" />
+    <ClCompile Include="src\GraphicsPrimitives.cpp" />
+    <ClCompile Include="src\RenderGraph.cpp" />
+    <ClCompile Include="src\BlurEffect.cpp" />
+    <ClCompile Include="src\LambertianRenderPass.cpp" />
+    <ClCompile Include="src\OutlineRenderPass.cpp" />
+    <ClCompile Include="src\PostProcess.cpp" />
     <ClCompile Include="src\ImGui\imgui.cpp" />
     <ClCompile Include="src\ImGui\imgui_demo.cpp" />
     <ClCompile Include="src\ImGui\imgui_draw.cpp" />
@@ -117,39 +120,39 @@
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\TaskSystem.cpp" />
     <ClCompile Include="src\Timer.cpp" />
-    <ClCompile Include="src\graphics\Window.cpp" />
-    <ClCompile Include="src\utils\AssetLoader.cpp" />
-    <ClCompile Include="src\utils\stb_lib.cpp" />
+    <ClCompile Include="src\Window.cpp" />
+    <ClCompile Include="src\AssetLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\jshEngine.h" />
-    <ClInclude Include="src\components\LightComponent.h" />
-    <ClInclude Include="src\components\MeshComponent.h" />
-    <ClInclude Include="src\components\OutlineComponent.h" />
+    <ClInclude Include="src\LightComponent.h" />
+    <ClInclude Include="src\MeshComponent.h" />
+    <ClInclude Include="src\OutlineComponent.h" />
     <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\common.h" />
-    <ClInclude Include="src\components\CameraComponent.h" />
-    <ClInclude Include="src\components\Components.h" />
-    <ClInclude Include="src\components\Transform.h" />
+    <ClInclude Include="src\CameraComponent.h" />
+    <ClInclude Include="src\Components.h" />
+    <ClInclude Include="src\stb\stb_lib.h" />
+    <ClInclude Include="src\Transform.h" />
     <ClInclude Include="src\Debug.h" />
-    <ClInclude Include="src\ecs\Component.h" />
-    <ClInclude Include="src\ecs\Entity.h" />
-    <ClInclude Include="src\ecs\Scene.h" />
-    <ClInclude Include="src\ecs\System.h" />
+    <ClInclude Include="src\Component.h" />
+    <ClInclude Include="src\Entity.h" />
+    <ClInclude Include="src\Scene.h" />
+    <ClInclude Include="src\System.h" />
     <ClInclude Include="src\Exception.h" />
-    <ClInclude Include="src\graphics\Renderer.h" />
-    <ClInclude Include="src\graphics\DirectX\DirectX11Lib.h" />
+    <ClInclude Include="src\Renderer.h" />
+    <ClInclude Include="src\DirectX11Lib.h" />
     <ClInclude Include="src\EventSystem.h" />
-    <ClInclude Include="src\graphics\DirectX\GraphicsAPI_dx11.h" />
-    <ClInclude Include="src\graphics\Graphics.h" />
-    <ClInclude Include="src\graphics\GraphicsDesc.h" />
-    <ClInclude Include="src\graphics\GraphicsObjects.h" />
-    <ClInclude Include="src\graphics\GraphicsPrimitives.h" />
-    <ClInclude Include="src\graphics\RenderGraph.h" />
-    <ClInclude Include="src\graphics\renderPasses\BlurEffect.h" />
-    <ClInclude Include="src\graphics\renderPasses\LambertianRenderPass.h" />
-    <ClInclude Include="src\graphics\renderPasses\OutlineRenderPass.h" />
-    <ClInclude Include="src\graphics\renderPasses\PostProcess.h" />
+    <ClInclude Include="src\GraphicsAPI_dx11.h" />
+    <ClInclude Include="src\Graphics.h" />
+    <ClInclude Include="src\GraphicsDesc.h" />
+    <ClInclude Include="src\GraphicsObjects.h" />
+    <ClInclude Include="src\GraphicsPrimitives.h" />
+    <ClInclude Include="src\RenderGraph.h" />
+    <ClInclude Include="src\BlurEffect.h" />
+    <ClInclude Include="src\LambertianRenderPass.h" />
+    <ClInclude Include="src\OutlineRenderPass.h" />
+    <ClInclude Include="src\PostProcess.h" />
     <ClInclude Include="src\ImGui\imconfig.h" />
     <ClInclude Include="src\ImGui\imgui.h" />
     <ClInclude Include="src\ImGui\imgui_impl_dx11.h" />
@@ -162,17 +165,16 @@
     <ClInclude Include="src\State.h" />
     <ClInclude Include="src\TaskSystem.h" />
     <ClInclude Include="src\Timer.h" />
-    <ClInclude Include="src\utils\AssetLoader.h" />
-    <ClInclude Include="src\utils\dataStructures\safe_queue.h" />
-    <ClInclude Include="src\utils\dataStructures\vector.h" />
-    <ClInclude Include="src\graphics\Window.h" />
-    <ClInclude Include="src\graphics\WinLib.h" />
-    <ClInclude Include="src\utils\dataStructures\memory_pool.h" />
-    <ClInclude Include="src\utils\Math.h" />
-    <ClInclude Include="src\utils\stb_lib.h" />
+    <ClInclude Include="src\AssetLoader.h" />
+    <ClInclude Include="src\safe_queue.h" />
+    <ClInclude Include="src\vector.h" />
+    <ClInclude Include="src\Window.h" />
+    <ClInclude Include="src\WinLib.h" />
+    <ClInclude Include="src\memory_pool.h" />
+    <ClInclude Include="src\Math.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shaders\NormalPixel.hlsl">
+    <FxCompile Include="src\NormalPixel.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
@@ -180,7 +182,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="shaders\NormalVertex.hlsl">
+    <FxCompile Include="src\NormalVertex.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
@@ -188,7 +190,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="shaders\OutlineMaskPixel.hlsl">
+    <FxCompile Include="src\OutlineMaskPixel.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -196,7 +198,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="shaders\OutlineMaskVertex.hlsl">
+    <FxCompile Include="src\OutlineMaskVertex.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -204,7 +206,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="shaders\PostProcessVertex.hlsl">
+    <FxCompile Include="src\PostProcessVertex.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
@@ -212,13 +214,13 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="shaders\postProcess\PP.hlsl">
+    <FxCompile Include="src\PP.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="shaders\postProcess\PPGaussianBlur.hlsl">
+    <FxCompile Include="src\PPGaussianBlur.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -226,7 +228,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="shaders\SimpleColPixel.hlsl">
+    <FxCompile Include="src\SimpleColPixel.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
@@ -234,7 +236,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="shaders\SimpleColVertex.hlsl">
+    <FxCompile Include="src\SimpleColVertex.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
@@ -242,7 +244,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="shaders\SimpleTexPixel.hlsl">
+    <FxCompile Include="src\SimpleTexPixel.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
@@ -250,7 +252,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="shaders\SimpleTexVertex.hlsl">
+    <FxCompile Include="src\SimpleTexVertex.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
@@ -258,7 +260,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="shaders\SolidPixel.hlsl">
+    <FxCompile Include="src\SolidPixel.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
@@ -266,7 +268,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="shaders\SolidVertex.hlsl">
+    <FxCompile Include="src\SolidVertex.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
@@ -276,11 +278,11 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\Camera.hlsli" />
-    <None Include="shaders\common.hlsli" />
-    <None Include="shaders\Instance.hlsli" />
-    <None Include="shaders\Light.hlsli" />
-    <None Include="shaders\Material.hlsli" />
+    <None Include="src\Camera.hlsli" />
+    <None Include="src\common.hlsli" />
+    <None Include="src\Instance.hlsli" />
+    <None Include="src\Light.hlsli" />
+    <None Include="src\Material.hlsli" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

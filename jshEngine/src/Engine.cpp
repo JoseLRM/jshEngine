@@ -1,10 +1,10 @@
 #include "Engine.h"
 
-#include "graphics/Window.h"
+#include "Window.h"
 #include "TaskSystem.h"
 #include "Timer.h"
-#include "graphics/Graphics.h"
-#include "graphics/Renderer.h"
+#include "Graphics.h"
+#include "Renderer.h"
 #include "Debug.h"
 #include "State.h"
 

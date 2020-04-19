@@ -3,7 +3,7 @@
 #include <vector>
 #include "EventSystem.h"
 #include "Debug.h"
-#include "graphics/Window.h"
+#include "Window.h"
 
 using namespace jsh;
 
