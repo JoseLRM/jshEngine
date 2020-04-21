@@ -22,36 +22,27 @@
     <Filter Include="Include">
       <UniqueIdentifier>{50d3cfdf-b5e2-4f43-9d06-2ab8b4b8236c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{9253dd25-72ae-4f34-8374-b16ab72ba764}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\DirectX11">
+      <UniqueIdentifier>{4c15de7a-95ef-459e-9e0a-52803d51b61f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Shaders\PostProcess">
+      <UniqueIdentifier>{5057376d-493b-4720-8404-435d1abfc864}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Shaders\PostProcess\Blur">
+      <UniqueIdentifier>{b8134a6f-9a99-4f45-9194-26e7c574a1d3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\BlurEffect.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GraphicsAPI_dx11.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\GraphicsObjects.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\GraphicsPrimitives.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\LambertianRenderPass.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\OutlineRenderPass.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PostProcess.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Renderer.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\RenderGraph.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\Window.cpp">
@@ -111,21 +102,33 @@
     <ClCompile Include="src\stb\stb_lib.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="src\GraphicsAPI_dx11.cpp">
+      <Filter>Graphics\DirectX11</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LambertianRenderPass.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\OutlineRenderPass.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PostProcess.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderGraph.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BlurEffect.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Window.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\BlurEffect.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\DirectX11Lib.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="src\Graphics.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GraphicsAPI_dx11.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\GraphicsDesc.h">
@@ -135,21 +138,6 @@
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\GraphicsPrimitives.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\LambertianRenderPass.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\PostProcess.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\OutlineRenderPass.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Renderer.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\RenderGraph.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\CameraComponent.h">
@@ -168,9 +156,6 @@
       <Filter>System\ECS</Filter>
     </ClInclude>
     <ClInclude Include="src\MeshComponent.h">
-      <Filter>System\ECS</Filter>
-    </ClInclude>
-    <ClInclude Include="src\OutlineComponent.h">
       <Filter>System\ECS</Filter>
     </ClInclude>
     <ClInclude Include="src\Scene.h">
@@ -257,6 +242,33 @@
     <ClInclude Include="src\stb\stb_lib.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="src\DirectX11Lib.h">
+      <Filter>Graphics\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GraphicsAPI_dx11.h">
+      <Filter>Graphics\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LambertianRenderPass.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OutlineRenderPass.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PostProcess.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RenderGraph.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BlurEffect.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OutlineComponent.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\SolidVertex.hlsl">
@@ -274,9 +286,6 @@
     <FxCompile Include="src\OutlineMaskVertex.hlsl">
       <Filter>Graphics\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="src\PostProcessVertex.hlsl">
-      <Filter>Graphics\Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="src\SimpleColPixel.hlsl">
       <Filter>Graphics\Shaders</Filter>
     </FxCompile>
@@ -292,11 +301,17 @@
     <FxCompile Include="src\SolidPixel.hlsl">
       <Filter>Graphics\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="src\PPGaussianBlur.hlsl">
-      <Filter>Graphics\Shaders</Filter>
+    <FxCompile Include="src\PostProcessVertex.hlsl">
+      <Filter>Graphics\Shaders\PostProcess</Filter>
     </FxCompile>
     <FxCompile Include="src\PP.hlsl">
-      <Filter>Graphics\Shaders</Filter>
+      <Filter>Graphics\Shaders\PostProcess</Filter>
+    </FxCompile>
+    <FxCompile Include="src\PPGaussianBlur.hlsl">
+      <Filter>Graphics\Shaders\PostProcess\Blur</Filter>
+    </FxCompile>
+    <FxCompile Include="src\PPAlphaGaussianBlur.hlsl">
+      <Filter>Graphics\Shaders\PostProcess\Blur</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

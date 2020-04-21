@@ -22,12 +22,13 @@ namespace jshRenderer {
 
 #endif
 
-	void SetCamera(jsh::CameraComponent* camera);
+	void SetCamera(jsh::Entity camera);
 	jsh::CameraComponent* GetMainCamera();
 
 	namespace primitives {
 		jsh::RenderTargetView& GetMainRenderTargetView();
 		jsh::DepthStencilState& GetDefaultDepthStencilState();
+		jsh::DepthStencilState& GetDisabledDepthStencilState();
 		jsh::Resource& GetDefaultDepthStencilView();
 
 		jsh::RenderTargetView& GetOffscreenRenderTargetView();
@@ -37,6 +38,9 @@ namespace jshRenderer {
 
 		jsh::Resource& GetCameraBuffer();
 		jsh::Resource& GetLightBuffer();
+
+		jsh::BlendState& GetTransparentBlendState();
+		jsh::BlendState& GetDefaultBlendState();
 	}
 
 }

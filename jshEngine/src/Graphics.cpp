@@ -91,7 +91,7 @@ namespace jshGraphics {
 		}
 
 		jshRenderer::Initialize();
-		InitializePostProcess();
+		jshRenderer::InitializePostProcess();
 
 		return result;
 	}

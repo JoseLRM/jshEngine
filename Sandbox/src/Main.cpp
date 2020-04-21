@@ -1,5 +1,7 @@
 #include "jshEngine.h"
 
+#include "SponzaState.h"
+
 struct State : public jsh::State {
 
 	void Initialize() override;
@@ -83,16 +85,16 @@ jsh::Mesh* CreateTerrain() {
 
 void State::Initialize()
 {
-	//std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/nano_textured/nanosuit.obj", "nanosuit");
+	std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/nano_textured/nanosuit.obj", "nanosuit");
 	//std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/Sponza/sponza.obj", "sponza");
-	std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/gobber/GoblinX.obj", "Goblin");
+	//std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/gobber/GoblinX.obj", "Goblin");
 
 	dragonModel->CreateEntity(jshScene::CreateEntity(jsh::NameComponent("Goblin")));
 	jsh::Entity cameraEntity = jshScene::CreateEntity(jsh::NameComponent("Camera"), jsh::CameraComponent(), jsh::LightComponent());
 
 	jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(cameraEntity);
 	camera->SetPerspectiveMatrix(70.f, 0.1f, 2000.f);
-	jshRenderer::SetCamera(camera);
+	jshRenderer::SetCamera(cameraEntity);
 	jsh::vec3 pos = jshScene::GetTransform(cameraEntity).GetLocalPosition();
 	pos.x = -1.f;
 	pos.z = -4.f;

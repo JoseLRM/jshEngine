@@ -28,6 +28,7 @@ typedef int BOOL;
 
 namespace jsh {
 
+#pragma region Vectors
 	template<typename T>
 	struct Vector2D {
 
@@ -430,6 +431,7 @@ namespace jsh {
 	typedef Vector4D<float>  vec4;
 	typedef Vector4D<int32>	 ivec4;
 	typedef Vector4D<uint32> uvec4;
+#pragma endregion
 
 	inline void QuaternionToEuler(vec4* q, vec3* e)
 	{
@@ -449,6 +451,12 @@ namespace jsh {
 		float siny_cosp = 2.f * (q->w * q->z + q->x * q->y);
 		float cosy_cosp = 1.f - 2.f * (q->y * q->y + q->z * q->z);
 		e->z = std::atan2(siny_cosp, cosy_cosp);
+	}
+
+	template<typename T>
+	constexpr T Gauss(T x, T sigma) noexcept
+	{
+		return ((T)1.f / sqrt((T)2.f * (T)PI * sigma * sigma)) * exp(-(x * x) / ((T)2.f * sigma * sigma));
 	}
 
 }

@@ -51,12 +51,16 @@ namespace jshLoader
 
 		float shininess = 1.f;
 		float specularIntensity = 1.f;
+		int transparent = 0.f;
 
 		aiGetMaterialFloat(material, AI_MATKEY_SHININESS, &shininess);
 		aiGetMaterialFloat(material, AI_MATKEY_SHININESS_STRENGTH, &specularIntensity);
+		aiGetMaterialInteger(material, AI_MATKEY_BLEND_FUNC, &transparent);
 
 		mesh->GetMaterial()->SetShininess(shininess);
 		mesh->GetMaterial()->SetShininess(specularIntensity);
+		
+		//mesh->SetTransparent(transparent == aiBlendMode_Default);
 
 		mesh->GetMaterial()->Create();
 

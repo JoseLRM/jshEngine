@@ -2,7 +2,7 @@
 
 #include "Graphics.h"
 
-namespace jshGraphics {
+namespace jshRenderer {
 
 #ifdef JSH_ENGINE
 	void InitializePostProcess();

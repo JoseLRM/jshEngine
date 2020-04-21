@@ -58,6 +58,7 @@ namespace jshGraphics {
 	void CreateResource(const JSH_TEXTURE2D_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Resource* tex);
 	void BindTexture(const jsh::Resource& texture, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 	void BindTexture(const jsh::RenderTargetView& rtv, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
+	void UnbindTexture(uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 
 	/////////////////////////VIEWPORT////////////////////////
 	void CreateViewport(float x, float y, float width, float height, jsh::Viewport* vp);
@@ -85,7 +86,7 @@ namespace jshGraphics {
 	void CreateRenderTargetViewFromBackBuffer(JSH_RENDER_TARGET_VIEW_DESC* desc, jsh::RenderTargetView* rtv);
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd);
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, const jsh::Resource& tex, jsh::CommandList cmd);
-	void ClearRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd);
+	void ClearRenderTargetView(const jsh::RenderTargetView& rtv, float r, float g, float b, float a, jsh::CommandList cmd);
 
 	const jsh::RenderState& GetRenderState();
 

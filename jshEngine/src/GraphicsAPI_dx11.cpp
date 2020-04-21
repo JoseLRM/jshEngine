@@ -587,6 +587,27 @@ namespace jshGraphics_dx11 {
 			break;
 		}
 	}
+	void UnbindTexture(uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
+	{
+		ID3D11ShaderResourceView* texture = nullptr;
+
+		switch (shaderType)
+		{
+		case JSH_SHADER_TYPE_VERTEX:
+			g_DeferredContext[cmd]->VSSetShaderResources(slot, 1u, &texture);
+			break;
+		case JSH_SHADER_TYPE_PIXEL:
+			g_DeferredContext[cmd]->PSSetShaderResources(slot, 1u, &texture);
+			break;
+		case JSH_SHADER_TYPE_GEOMETRY:
+			g_DeferredContext[cmd]->GSSetShaderResources(slot, 1u, &texture);
+			break;
+		case JSH_SHADER_TYPE_NULL:
+		default:
+			jshLogE("Invalid shader type");
+			break;
+		}
+	}
 
 	/////////////////////////VIEWPORT////////////////////////////////////////
 	void CreateViewport(float x, float y, float width, float height, jsh::Viewport* vp)
@@ -654,10 +675,10 @@ namespace jshGraphics_dx11 {
 		auto blendState = std::make_shared<BlendState_dx11>();
 		bs->internalAllocation = blendState;
 
-		D3D11_BLEND_DESC desc;
+		D3D11_BLEND_DESC desc = {};
 		desc.AlphaToCoverageEnable = d->AlphaToCoverageEnable;
 		desc.IndependentBlendEnable = d->IndependentBlendEnable;
-		for (uint8 i = 0; i < 8; ++i) {
+		for (uint8 i = 0; i < 1; ++i) {
 			desc.RenderTarget[i].BlendEnable = d->RenderTarget[i].BlendEnable;
 			desc.RenderTarget[i].BlendOp = ParseBlendOp(d->RenderTarget[i].BlendOp);
 			desc.RenderTarget[i].BlendOpAlpha = ParseBlendOp(d->RenderTarget[i].BlendOpAlpha);
@@ -809,10 +830,10 @@ namespace jshGraphics_dx11 {
 		assert(texture->depthStencilView.Get() != nullptr);
 		g_DeferredContext[cmd]->OMSetRenderTargets(1u, RTV->ptr.GetAddressOf(), texture->depthStencilView.Get());
 	}
-	void ClearRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd)
+	void ClearRenderTargetView(const jsh::RenderTargetView& rtv, float r, float g, float b, float a, jsh::CommandList cmd)
 	{
 		RenderTargetView_dx11* renderTargetView = ToInternal(rtv);
-		const float clearColor[] = { 0.f,0.f,0.f,1.f };
+		const float clearColor[] = { r, g, b, a };
 		g_DeferredContext[cmd]->ClearRenderTargetView(renderTargetView->ptr.Get(), clearColor);
 	}
 

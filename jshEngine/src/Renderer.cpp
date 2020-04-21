@@ -21,12 +21,16 @@ namespace jshRenderer {
 		//////////////////////DEFAULT PRIMITIVES////////////////////////
 		jsh::RenderTargetView	g_MainRenderTargetView;
 		jsh::DepthStencilState	g_DefaultDepthStencilState;
+		jsh::DepthStencilState	g_DisabledDepthStencilState;
 		jsh::Resource			g_DefaultDepthStencilView;
 
 		jsh::RenderTargetView	g_OffscreenRenderTargetView;
 
 		jsh::SamplerState		g_DefaultSamplerState;
 		jsh::Viewport			g_DefaultViewport;
+
+		jsh::BlendState			g_DefaultBlendState;
+		jsh::BlendState			g_TransparentBlendState;
 
 		////////////////////GLOBAL CBUFFERS///////////////////////////
 		Resource g_CameraBuffer;
@@ -54,6 +58,7 @@ namespace jshRenderer {
 		//////////////////////////GETTERS////////////////////////
 		jsh::RenderTargetView& GetMainRenderTargetView() { return g_MainRenderTargetView; }
 		jsh::DepthStencilState& GetDefaultDepthStencilState() { return g_DefaultDepthStencilState; }
+		jsh::DepthStencilState& GetDisabledDepthStencilState() { return g_DisabledDepthStencilState; }
 		jsh::Resource& GetDefaultDepthStencilView() { return g_DefaultDepthStencilView; }
 
 		jsh::RenderTargetView& GetOffscreenRenderTargetView() { return g_OffscreenRenderTargetView; }
@@ -63,11 +68,14 @@ namespace jshRenderer {
 
 		jsh::Resource& GetCameraBuffer() { return g_CameraBuffer; }
 		jsh::Resource& GetLightBuffer() { return g_LightBuffer; }
+
+		jsh::BlendState& GetTransparentBlendState() { return g_TransparentBlendState; }
+		jsh::BlendState& GetDefaultBlendState() { return g_DefaultBlendState; }
 	}
 
 	using namespace primitives;
 
-	CameraComponent* g_MainCamera = nullptr;
+	Entity g_MainCamera = INVALID_ENTITY;
 	RenderGraph g_RenderGraph;
 
 	bool Initialize()
@@ -85,7 +93,7 @@ namespace jshRenderer {
 			dsDesc.DepthEnable = true;
 			dsDesc.DepthFunc = JSH_COMPARISON_LESS;
 			dsDesc.DepthWriteMask = JSH_DEPTH_WRITE_MASK_ALL;
-			dsDesc.StencilEnable = FALSE;
+			dsDesc.StencilEnable = false;
 
 			JSH_TEXTURE2D_DESC dsResDesc;
 			jshZeroMemory(&dsResDesc, sizeof(JSH_TEXTURE2D_DESC));
@@ -104,6 +112,16 @@ namespace jshRenderer {
 			jshGraphics::CreateRenderTargetViewFromBackBuffer(&rtvDesc, &g_MainRenderTargetView);
 			jshGraphics::CreateDepthStencilState(&dsDesc, &g_DefaultDepthStencilState);
 			jshGraphics::CreateResource(&dsResDesc, nullptr, &g_DefaultDepthStencilView);
+		}
+
+		// DISABLED DSS
+		{
+			JSH_DEPTH_STENCIL_DESC desc;
+			jshZeroMemory(&desc, sizeof(JSH_DEPTH_STENCIL_DESC));
+			desc.DepthEnable = false;
+			desc.StencilEnable = false;
+			desc.DepthWriteMask = JSH_DEPTH_WRITE_MASK_ZERO;
+			jshGraphics::CreateDepthStencilState(&desc, &g_DisabledDepthStencilState);
 		}
 
 		// OFFSREEN RTV
@@ -139,6 +157,31 @@ namespace jshRenderer {
 			samplerDesc.Filter = JSH_FILTER_MIN_MAG_MIP_LINEAR;
 			jshGraphics::CreateSamplerState(&samplerDesc, &g_DefaultSamplerState);
 			jshGraphics::CreateViewport(0, 0, 1080, 720, &g_DefaultViewport);
+		}
+
+		// DEFAULT BLEND STATES
+		{
+			JSH_BLEND_DESC desc;
+			jshZeroMemory(&desc, sizeof(JSH_BLEND_DESC));
+			desc.RenderTarget[0].BlendEnable = true;
+			desc.RenderTarget[0].SrcBlend = JSH_BLEND_SRC_ALPHA;
+			desc.RenderTarget[0].DestBlend = JSH_BLEND_INV_SRC_ALPHA;
+			desc.RenderTarget[0].BlendOp = JSH_BLEND_OP_ADD;
+			desc.RenderTarget[0].RenderTargetWriteMask = JSH_COLOR_WRITE_ENABLE_ALL;
+
+			desc.RenderTarget[0].SrcBlendAlpha = JSH_BLEND_ONE;
+			desc.RenderTarget[0].DestBlendAlpha = JSH_BLEND_ZERO;
+			desc.RenderTarget[0].BlendOpAlpha = JSH_BLEND_OP_ADD;
+			
+			jshGraphics::CreateBlendState(&desc, &g_TransparentBlendState);
+		}
+		{
+			JSH_BLEND_DESC desc;
+			jshZeroMemory(&desc, sizeof(JSH_BLEND_DESC));
+			desc.RenderTarget[0].BlendEnable = false;
+			desc.RenderTarget[0].RenderTargetWriteMask = JSH_COLOR_WRITE_ENABLE_ALL;
+
+			jshGraphics::CreateBlendState(&desc, &g_DefaultBlendState);
 		}
 
 		// RENDER GRAPH
@@ -193,20 +236,22 @@ namespace jshRenderer {
 
 		CommandList cmd = jshGraphics::BeginCommandList();
 
-		jshGraphics::ClearRenderTargetView(g_OffscreenRenderTargetView, cmd);
-		jshGraphics::ClearRenderTargetView(g_MainRenderTargetView, cmd);
+		jshGraphics::ClearRenderTargetView(g_OffscreenRenderTargetView, 0.f, 0.f, 0.f, 1.f, cmd);
+		jshGraphics::ClearRenderTargetView(g_MainRenderTargetView, 0.f, 0.f, 0.f, 1.f, cmd);
 		jshGraphics::ClearDepthStencilView(g_DefaultDepthStencilView, cmd);
 
 		// UPDATE GLOBAL BUFFERS
 		{
-			if (g_MainCamera != nullptr) {
+			if (g_MainCamera != INVALID_ENTITY) {
 
 				// camera
-				Transform& cameraTransform = jshScene::GetTransform(g_MainCamera->entityID);
+				auto camera = jshScene::GetComponent<jsh::CameraComponent>(g_MainCamera);
 
-				g_MainCamera->UpdateMatrices();
-				g_CameraBufferData.vm = g_MainCamera->GetViewMatrix();
-				g_CameraBufferData.pm = g_MainCamera->GetProjectionMatrix();
+				Transform& cameraTransform = jshScene::GetTransform(g_MainCamera);
+
+				camera->UpdateMatrices();
+				g_CameraBufferData.vm = camera->GetViewMatrix();
+				g_CameraBufferData.pm = camera->GetProjectionMatrix();
 				const vec3 pos = cameraTransform.GetWorldPosition();
 				g_CameraBufferData.position = vec4(pos.x, pos.y, pos.z, 1.f);
 				jshGraphics::UpdateConstantBuffer(g_CameraBuffer, &g_CameraBufferData, cmd);
@@ -261,15 +306,14 @@ namespace jshRenderer {
 	}
 
 	///////////////////////SETTERS - GETTERS//////////////////////////
-	void SetCamera(jsh::CameraComponent* camera)
+	void SetCamera(jsh::Entity camera)
 	{
-		camera->UpdateMatrices();
 		g_MainCamera = camera;
 	}
 
 	jsh::CameraComponent* GetMainCamera()
 	{
-		return g_MainCamera;
+		return jshScene::GetComponent<CameraComponent>(g_MainCamera);
 	}
 
 #ifdef JSH_IMGUI

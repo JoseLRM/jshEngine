@@ -183,7 +183,9 @@ namespace jsh {
 		Material* m_Material	= nullptr;
 		Shader* m_Shader		= nullptr;
 
-		bool m_Modified = true;
+		bool m_Transparent		= false;
+
+		bool m_Modified			= true;
 
 #ifdef JSH_ENGINE
 	public:
@@ -199,6 +201,7 @@ namespace jsh {
 		void SetRawData(RawData* rawData) noexcept;
 		void SetMaterial(Material* material) noexcept;
 		void SetShader(Shader* shader) noexcept;
+		inline void SetTransparent(bool t) noexcept { m_Transparent = t; }
 
 		void UpdatePrimitives() noexcept;
 
@@ -206,6 +209,7 @@ namespace jsh {
 		inline Material* GetMaterial() const noexcept { return m_Material; }
 		inline Shader* GetShader() const noexcept { return m_Shader; }
 		Texture* GetTexture(JSH_TEXTURE_TYPE type) const noexcept;
+		inline bool IsTransparent() const noexcept { return m_Transparent; }
 
 	};
 

@@ -79,6 +79,19 @@ namespace jsh {
 		}
 
 		// CONSTANT BUFFER
+		{
+			jsh::vec4 aux;
+			JSH_BUFFER_DESC desc;
+			desc.BindFlags = JSH_BIND_CONSTANT_BUFFER;
+			desc.ByteWidth = sizeof(jsh::vec4);
+			desc.CPUAccessFlags = 0u;
+			desc.MiscFlags = 0u;
+			desc.StructureByteStride = 0u;
+			desc.Usage = JSH_USAGE_DEFAULT;
+			JSH_SUBRESOURCE_DATA sdata;
+			sdata.pSysMem = &aux;
+			jshGraphics::CreateResource(&desc, &sdata, &m_ColorBuffer);
+		}
 		m_InstanceBuffer.Create();
 		
 		m_pShader = jshGraphics::GetShader("OutlineMask");
@@ -88,63 +101,119 @@ namespace jsh {
 
 	void OutlineRenderPass::Load() 
 	{
-		m_Instances.clear(false);
-		
 		auto& list = jshScene::_internal::GetComponentsList()[OutlineComponent::ID];
+
+		m_Instances.clear();
+		m_Instances.reserve(list.size() / OutlineComponent::SIZE);
 		for (uint32 i = 0; i < list.size(); i += OutlineComponent::SIZE) {
 
 			OutlineComponent* outlineComp = reinterpret_cast<OutlineComponent*>(&list[i]);
 			MeshComponent* meshComp = jshScene::GetComponent<MeshComponent>(outlineComp->entityID);
 
-			if (meshComp == nullptr) continue;
+			if (meshComp == nullptr) {
+
+				//TODO: inheritance outline
+				
+				continue;
+			}
 			/*
 				TODO: crear una lista en Lambertican pass de los objetos que aparecen en pantalla y utilizar estos para
 				crear las instancias
 			*/
 
-			if (m_Instances.reserve_request()) m_Instances.reserve(5u);
-
-			OutlineInstance& instance = m_Instances[m_Instances.size()];
-			m_Instances.add_pos(1u);
+			m_Instances.emplace_back(OutlineInstance());
+			OutlineInstance& instance = m_Instances[m_Instances.size()-1];
 
 			instance.meshComp = meshComp;
-			instance.intensity = outlineComp->intensity;
+			instance.mode = outlineComp->InBoxMode();
+			instance.radius = outlineComp->radius;
+			instance.sigma = outlineComp->sigma;
 			instance.color = outlineComp->color;
 
 		}
+
+		std::sort(m_Instances.begin(), m_Instances.end());
 	}
 
 	void OutlineRenderPass::Render(CommandList cmd)
 	{
+		// TODO: 
+		//if (m_Instances.size() == 0) return;
+
+		// MASK
 		jshGraphics::SetTopology(JSH_TOPOLOGY_TRIANGLES, cmd);
 		jshGraphics::BindViewport(jshRenderer::primitives::GetDefaultViewport(), 0u, cmd);
 		jshGraphics::BindConstantBuffer(jshRenderer::primitives::GetCameraBuffer(), JSH_GFX_SLOT_CBUFFER_CAMERA, JSH_SHADER_TYPE_VERTEX, cmd);
 		m_InstanceBuffer.Bind(JSH_SHADER_TYPE_VERTEX, cmd);
-
-		jshGraphics::ClearRenderTargetView(m_RenderTargetView, cmd);
-
+		jshGraphics::BindRenderTargetView(m_RenderTargetView, jshRenderer::primitives::GetDefaultDepthStencilView(), cmd);
+		jshGraphics::BindDepthStencilState(m_MaskDepthStencilState, 1u, cmd);
+		jshGraphics::BindInputLayout(m_pShader->inputLayout, cmd);
+		jshGraphics::BindVertexShader(m_pShader->vs, cmd);
+		// TODO: Unbind pixelShader
+		//jshGraphics::BindPixelShader(m_pShader->ps, cmd);
+		
 		for (uint32 i = 0; i < m_Instances.size(); ++i) {
 			OutlineInstance& instance = m_Instances[i];
 
 			m_InstanceBuffer.UpdateBuffer(&XMMatrixTranspose(jshScene::GetTransform(instance.meshComp->entityID).GetWorldMatrix()), cmd);
-			//m_VCBuffer.color = instance.color;
-			//m_VCBuffer.intensity = instance.intensity;
-			//jshGraphics::UpdateConstantBuffer(m_CBuffer, &m_VCBuffer, cmd);
-
-			// mask
-			jshGraphics::BindRenderTargetView(m_RenderTargetView, jshRenderer::primitives::GetDefaultDepthStencilView(), cmd);
-			jshGraphics::BindDepthStencilState(m_MaskDepthStencilState, 1u, cmd);
-			jshGraphics::BindInputLayout(m_pShader->inputLayout, cmd);
-			jshGraphics::BindVertexShader(m_pShader->vs, cmd);
-			jshGraphics::BindPixelShader(m_pShader->ps, cmd);
 			instance.meshComp->mesh->GetRawData()->Bind(cmd);
-			
+
 			jshGraphics::DrawIndexed(instance.meshComp->mesh->GetRawData()->GetIndexCount(), cmd);
 
+		}
+
+		// DRAW
+		for (uint32 i = 0; i < m_Instances.size(); ++i) {
+			uint32 radius = m_Instances[i].radius;
+			uint32 mode = m_Instances[i].mode;
+			float sigma = m_Instances[i].sigma;
+
+			jshGraphics::UnbindTexture(0u, JSH_SHADER_TYPE_PIXEL, cmd);
+			jshGraphics::BindRenderTargetView(m_RenderTargetView, jshRenderer::primitives::GetDefaultDepthStencilView(), cmd);
+			jshGraphics::SetTopology(JSH_TOPOLOGY_TRIANGLES, cmd);
+			jshGraphics::BindViewport(jshRenderer::primitives::GetDefaultViewport(), 0u, cmd);
+			jshGraphics::BindConstantBuffer(jshRenderer::primitives::GetCameraBuffer(), JSH_GFX_SLOT_CBUFFER_CAMERA, JSH_SHADER_TYPE_VERTEX, cmd);
+			m_InstanceBuffer.Bind(JSH_SHADER_TYPE_VERTEX, cmd);
+			jshGraphics::ClearRenderTargetView(m_RenderTargetView, 0.f, 0.f, 0.f, 0.f, cmd);
+			jshGraphics::BindSamplerState(jshRenderer::primitives::GetDefaultSamplerState(), 0u, JSH_SHADER_TYPE_PIXEL, cmd);
+			jshGraphics::BindDepthStencilState(m_MaskDepthStencilState, 1u, cmd);
+			jshGraphics::BindInputLayout(m_pShader->inputLayout, cmd);
+			jshGraphics::BindDepthStencilState(jshRenderer::primitives::GetDisabledDepthStencilState(), 0u, cmd);
+			jshGraphics::BindVertexShader(m_pShader->vs, cmd);
+			jshGraphics::BindPixelShader(m_pShader->ps, cmd);
+			jshGraphics::BindConstantBuffer(m_ColorBuffer, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
+			jshGraphics::BindBlendState(jshRenderer::primitives::GetDefaultBlendState(), cmd);
+
+
+			for (; i < m_Instances.size(); ++i) {
+				OutlineInstance& instance = m_Instances[i];
+
+				if (instance.radius != radius || instance.mode != mode || (mode == 0 && instance.sigma != sigma)) {
+					i--;
+					break;
+				}
+
+				m_InstanceBuffer.UpdateBuffer(&XMMatrixTranspose(jshScene::GetTransform(instance.meshComp->entityID).GetWorldMatrix()), cmd);
+				instance.meshComp->mesh->GetRawData()->Bind(cmd);
+
+				// color buffer
+				vec4 color = vec4(instance.color.x, instance.color.y, instance.color.z, 1.f);
+				jshGraphics::UpdateConstantBuffer(m_ColorBuffer, &color, cmd);
+
+				jshGraphics::DrawIndexed(instance.meshComp->mesh->GetRawData()->GetIndexCount(), cmd);
+			}
+
 			// blur
+			if (mode) {
+				m_BlurRenderPass.SetAlphaBoxMode(radius);
+			}
+			else {
+				m_BlurRenderPass.SetAlphaGaussianMode(radius, sigma);
+			}
+
 			m_BlurRenderPass.Render(
-				m_RenderTargetView, 
-				jshRenderer::primitives::GetMainRenderTargetView(), 
+				m_RenderTargetView,
+				jshRenderer::primitives::GetOffscreenRenderTargetView(),
 				&m_DrawDepthStencilState,
 				&jshRenderer::primitives::GetDefaultDepthStencilView(),
 				1u,
@@ -152,6 +221,32 @@ namespace jsh {
 
 		}
 
+
+		// PP
+		jshGraphics::UnbindTexture(0u, JSH_SHADER_TYPE_PIXEL, cmd);
+		jshGraphics::BindViewport(jshRenderer::primitives::GetDefaultViewport(), 0u, cmd);
+		jshGraphics::BindSamplerState(jshRenderer::primitives::GetDefaultSamplerState(), 0u, JSH_SHADER_TYPE_PIXEL, cmd);
+		jshGraphics::BindBlendState(jshRenderer::primitives::GetDefaultBlendState(), cmd);
+
+		static bool enable = false;
+		static bool gaussian = false;
+		static int radius = 4;
+		static float sigma = 5.f;
+		if (ImGui::Begin("Blur")) {
+			ImGui::Checkbox("Blur effect", &enable);
+			ImGui::Checkbox("Gaussian", &gaussian);
+			ImGui::SliderInt("Radius", &radius, 0, 16);
+			ImGui::SliderFloat("Sigma", &sigma, 0.f, 20.f);
+		}
+		ImGui::End();
+
+		if(gaussian) m_BlurRenderPass.SetGaussianMode(radius, sigma);
+		else m_BlurRenderPass.SetBoxMode(radius);
+
+		jshGraphics::BindBlendState(jshRenderer::primitives::GetDefaultBlendState(), cmd);
+
+		if (enable) m_BlurRenderPass.Render(jshRenderer::primitives::GetOffscreenRenderTargetView(), jshRenderer::primitives::GetMainRenderTargetView(), nullptr, nullptr, 0u, cmd);
+		else jshRenderer::PostProcess(jshRenderer::primitives::GetOffscreenRenderTargetView(), jshRenderer::primitives::GetMainRenderTargetView(), nullptr, nullptr, 0u, nullptr, cmd);
 	}
 
 }

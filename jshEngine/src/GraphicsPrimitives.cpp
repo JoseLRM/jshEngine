@@ -107,6 +107,10 @@ namespace jshGraphics {
 	{
 		jshGraphics_dx11::BindTexture(rtv, slot, shaderType, cmd);
 	}
+	void UnbindTexture(uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
+	{
+		jshGraphics_dx11::UnbindTexture(slot, shaderType, cmd);
+	}
 
 	/////////////////////////VIEWPORT////////////////////////
 	void CreateViewport(float x, float y, float width, float height, jsh::Viewport* vp)
@@ -180,9 +184,9 @@ namespace jshGraphics {
 		jshGraphics_dx11::BindRenderTargetView(rtv, tex, cmd);
 		g_State.renderTargetView[0] = rtv;
 	}
-	void ClearRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd)
+	void ClearRenderTargetView(const jsh::RenderTargetView& rtv, float r, float g, float b, float a, jsh::CommandList cmd)
 	{
-		jshGraphics_dx11::ClearRenderTargetView(rtv, cmd);
+		jshGraphics_dx11::ClearRenderTargetView(rtv, r, g, b, a, cmd);
 	}
 
 	const RenderState& GetRenderState()

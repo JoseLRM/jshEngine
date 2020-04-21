@@ -4,7 +4,7 @@
 
 using namespace jsh;
 
-namespace jshGraphics {
+namespace jshRenderer {
 
 	// static
 	Resource g_VertexBuffer;
@@ -43,6 +43,10 @@ namespace jshGraphics {
 		std::shared_ptr<PixelShader> gaussianBlur = std::make_shared<PixelShader>();
 		jshGraphics::Save("GaussianBlurPixel", gaussianBlur);
 		jshGraphics::CreatePixelShader(L"PPGaussianBlur.cso", gaussianBlur.get());
+
+		std::shared_ptr<PixelShader> alphaGaussianBlur = std::make_shared<PixelShader>();
+		jshGraphics::Save("AlphaGaussianBlurPixel", alphaGaussianBlur);
+		jshGraphics::CreatePixelShader(L"PPAlphaGaussianBlur.cso", alphaGaussianBlur.get());
 	}
 
 	void PostProcess(const jsh::RenderTargetView& input, const jsh::RenderTargetView& output, jsh::DepthStencilState* dss, jsh::Resource* dsv, uint32 stencilRef, jsh::PixelShader* ps, jsh::CommandList cmd)
@@ -58,9 +62,6 @@ namespace jshGraphics {
 		jshGraphics::BindTexture(input, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
 
 		jshGraphics::SetTopology(JSH_TOPOLOGY_TRIANGLE_STRIP, cmd);
-
-		jshGraphics::BindSamplerState(jshRenderer::primitives::GetDefaultSamplerState(), 0, JSH_SHADER_TYPE_PIXEL, cmd);
-		jshGraphics::BindViewport(jshRenderer::primitives::GetDefaultViewport(), 0, cmd);
 
 		jshGraphics::BindVertexBuffer(g_VertexBuffer, 0u, cmd);
 		jshGraphics::BindInputLayout(g_InputLayout, cmd);

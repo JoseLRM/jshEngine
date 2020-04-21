@@ -833,6 +833,8 @@ namespace jshGraphics {
 				bool normal = mesh->HasTexture(JSH_TEXTURE_NORMAL_MAP);
 				bool specular = mesh->HasTexture(JSH_TEXTURE_SPECULAR_MAP);
 
+				bool transparent = mesh->IsTransparent();
+
 				ImGui::Checkbox("DiffuseMapping", &diffuse);
 				mesh->EnableTexture(JSH_TEXTURE_DIFFUSE_MAP, diffuse);
 
@@ -841,6 +843,9 @@ namespace jshGraphics {
 
 				ImGui::Checkbox("SpecularMapping", &specular);
 				mesh->EnableTexture(JSH_TEXTURE_SPECULAR_MAP, specular);
+
+				ImGui::Checkbox("Transparent", & transparent);
+				mesh->SetTransparent(transparent);
 
 				mesh->UpdatePrimitives();
 			}

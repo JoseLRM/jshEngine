@@ -754,7 +754,7 @@ namespace jshScene {
 				if (m_SelectedEntity != entity) {
 					if (m_SelectedEntity != INVALID_ENTITY) {
 						if (jshScene::GetComponent<OutlineComponent>(m_SelectedEntity) != nullptr) {
-							jshScene::RemoveComponent<OutlineComponent>(m_SelectedEntity);
+							//jshScene::RemoveComponent<OutlineComponent>(m_SelectedEntity);
 						}
 					}
 					if (jshScene::GetComponent<OutlineComponent>(entity) == nullptr) {
@@ -798,7 +798,7 @@ namespace jshScene {
 			if (m_SelectedEntity < 0 || m_SelectedEntity >= g_Entities.size()) m_SelectedEntity = INVALID_ENTITY;
 
 			ImGui::NextColumn();
-
+			
 			if (m_SelectedEntity != INVALID_ENTITY) {
 
 				NameComponent* nameComponent = (NameComponent*)GetComponent(m_SelectedEntity, NameComponent::ID);
@@ -813,15 +813,15 @@ namespace jshScene {
 				EntityData& entityData = g_EntityData[m_SelectedEntity];
 
 				entityData.transform.ShowInfo();
-
+				
 				for (auto& it : entityData.indices) {
-
 					uint16 compID = it.first;
 					size_t index = it.second;
 
 					BaseComponent* comp = (BaseComponent*)(&(g_Components[compID][index]));
 					comp->ShowInfo();
 
+					ImGui::NewLine();
 				}
 			}
 

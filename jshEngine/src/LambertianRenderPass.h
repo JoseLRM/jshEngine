@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RenderGraph.h"
+#include "BlurEffect.h"
 
 namespace jsh {
 
@@ -15,12 +16,25 @@ namespace jsh {
 		struct MeshInstance {
 			Mesh* mesh;
 			Transform* pTransform;
+
+			bool operator<(const MeshInstance& other)
+			{
+				if (mesh->IsTransparent()) {
+					if (other.mesh->IsTransparent()) return mesh < other.mesh;
+					else return true;
+				}
+				else {
+					if (other.mesh->IsTransparent()) return false;
+					else return mesh < other.mesh;
+				}
+			}
 		};
 
-		jsh::vector<MeshInstance> m_Instances;
+		std::vector<MeshInstance> m_Instances;
 
 		Resource m_MeshBuffer;
 		InstanceBuffer m_InstanceBuffer;
+		BlurEffect m_BlurEffect;
 
 	public:
 		LambertianRenderPass();

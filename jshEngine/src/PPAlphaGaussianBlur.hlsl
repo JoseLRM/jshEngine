@@ -24,11 +24,16 @@ float4 main(float2 texCoord : TexCoord) : SV_TARGET
 	if (horizontal) xOffset = offset;
 	else yOffset = offset;
 
-	float4 color = float4(0.f, 0.f, 0.f, 0.f);
+	float alpha = 0.f;
+	float3 color = float3(0.f, 0.f, 0.f);
 	for (int32 i = -count + 1; i < count; ++i) {
 		float2 coords = float2(texCoord.x + xOffset * i, texCoord.y + yOffset * i);
-		color += tex.Sample(sam, coords) * coefficients[abs(i)];
+
+		float4 texColor = tex.Sample(sam, coords);
+		
+		alpha += texColor.w * coefficients[abs(i)];
+		color = max(texColor.xyz, color);
 	}
 
-	return color;
+	return float4(color, alpha);
 }

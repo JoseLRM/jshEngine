@@ -7,18 +7,31 @@ namespace jsh {
 	class BlurEffect {
 
 		RenderTargetView  m_AuxRTV;
-		Resource m_GaussianBuffer;
+		Resource m_BlurBuffer;
+		Resource m_CoefficientsBuffer;
+		SamplerState m_SamplerState;
+		BlendState m_BlendStateAlpha;
 
+		uint32 m_Radius = 4;
+		float m_Sigma = 10.f;
 		uint8 m_BlurMode = 0;
 		/*
 			Blur mode 0 = Gaussian Blur
+			Blur mode 1 = Alpha Gaussian Blur
+			Blur mode 2 = Box Blur
+			Blur mode 3 = Alpha Box Blur
 		*/
 
-		struct alignas(16) GaussianData {
+		struct alignas(16) BlurData {
 			float offset;
 			int32 count;
 			BOOL horizontal;
-			float coefficients[17];
+
+		private:
+			float aux;
+		};
+		struct alignas(16) CoefficientsData {
+			XMFLOAT4 coefficients[16];
 		};
 
 	public:
@@ -27,6 +40,32 @@ namespace jsh {
 		void Create();
 		void Render(RenderTargetView& input, RenderTargetView& output, DepthStencilState* dss, Resource* dsv, uint32 stencilRef, CommandList cmd);
 
+		inline void SetGaussianMode(uint32 radius, float sigma) noexcept 
+		{
+			m_BlurMode = 0;
+			m_Radius = radius;
+			m_Sigma = sigma;
+		}
+		inline void SetAlphaGaussianMode(uint32 radius, float sigma) noexcept
+		{
+			m_BlurMode = 1;
+			m_Radius = radius;
+			m_Sigma = sigma;
+		}
+		inline void SetBoxMode(uint32 radius) noexcept 
+		{
+			m_BlurMode = 2;
+			m_Radius = radius;
+		}
+		inline void SetAlphaBoxMode(uint32 radius) noexcept 
+		{
+			m_BlurMode = 3;
+			m_Radius = radius;
+		}
+
+	private:
+		void LoadCoefficientsBoxMode(CoefficientsData& c, uint32 count) const noexcept;
+		void LoadCoefficientsGaussianMode(CoefficientsData& c, uint32 count) const noexcept;
 	};
 
 }
