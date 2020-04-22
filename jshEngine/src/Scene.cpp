@@ -12,7 +12,6 @@ namespace jshScene {
 	std::vector<EntityData> g_EntityData;
 	jsh::vector<Entity> g_FreeEntityData;
 
-	jsh::vector<size_t> g_ComponentsSize;
 	std::vector<std::vector<byte>> g_Components;
 
 	std::map<uint16, System*> g_UpdatedSystems;
@@ -61,15 +60,11 @@ namespace jshScene {
 
 	void Initialize() noexcept
 	{
-		g_Components.reserve(BaseComponent::GetComponentsCount());
-		for (uint16 id = 0; id < BaseComponent::GetComponentsCount(); ++id) {
+		g_Components.reserve(GetComponentsCount());
+		for (uint16 id = 0; id < GetComponentsCount(); ++id) {
 			g_Components.push_back(std::vector<byte>());
 		}
 		CreateEntity(); // allocate invalid Entity :)
-
-		if (g_ComponentsSize.empty()) {
-			g_ComponentsSize.resize(BaseComponent::GetComponentsCount());
-		}
 	}
 
 	void Close() noexcept
@@ -90,17 +85,14 @@ namespace jshScene {
 			entity = g_FreeEntityData.back();
 			g_FreeEntityData.pop_back();
 
-			EntityData& entityData = g_EntityData[entity];
-			entityData.handleIndex = g_Entities.size();
+			g_EntityData[entity].handleIndex = g_Entities.size();
 		}
 		else {
 			entity = Entity(g_EntityData.size());
 
-			EntityData entityData;
-			entityData.handleIndex = g_Entities.size();
-
 			if (g_EntityData.capacity() == g_EntityData.size()) g_EntityData.reserve(10u);
-			g_EntityData.push_back(entityData);
+			g_EntityData.push_back(EntityData());
+			g_EntityData.back().handleIndex = g_Entities.size();
 		}
 
 		g_EntityData[entity].transform.entity = entity;
@@ -141,22 +133,21 @@ namespace jshScene {
 
 	Entity CreateSEntity(Entity parent) noexcept
 	{
-		EntityData& parentData = g_EntityData[parent];
+		Entity entity;
 
 		// update parents count
 		jsh::vector<Entity> parentsToUpdate;
 		parentsToUpdate.push_back(parent, 3);
 		while (!parentsToUpdate.empty()) {
 
-			Entity e = parentsToUpdate.back();
+			Entity parentToUpdate = parentsToUpdate.back();
 			parentsToUpdate.pop_back();
-			EntityData& eData = g_EntityData[e];
-			eData.sonsCount++;
+			EntityData& parentToUpdateEd = g_EntityData[parentToUpdate];
+			parentToUpdateEd.sonsCount++;
 
-			if (eData.parent != INVALID_ENTITY) parentsToUpdate.push_back(eData.parent, 3);
+			if (parentToUpdateEd.parent != INVALID_ENTITY) parentsToUpdate.push_back(parentToUpdateEd.parent, 3);
 		}
 
-		Entity entity;
 		if (g_FreeEntityData.size() != 0) {
 			entity = g_FreeEntityData.back();
 			g_FreeEntityData.pop_back();
@@ -168,6 +159,7 @@ namespace jshScene {
 			g_EntityData.push_back(EntityData());
 		}
 
+		EntityData& parentData = g_EntityData[parent];
 		EntityData& entityData = g_EntityData[entity];
 		entityData.parent = parent;
 		size_t index = parentData.handleIndex + parentData.sonsCount;
@@ -269,7 +261,7 @@ namespace jshScene {
 				Entity p = updateInheritance.back();
 				updateInheritance.pop_back();
 
-				EntityData& pData = g_EntityData[entity];
+				EntityData& pData = g_EntityData[p];
 				pData.sonsCount -= cant;
 
 				if (pData.parent != INVALID_ENTITY) updateInheritance.push_back(pData.parent, 3);
@@ -290,6 +282,7 @@ namespace jshScene {
 			RemoveComponents(ed);
 			ed.handleIndex = 0;
 			ed.parent = INVALID_ENTITY;
+			ed.sonsCount = 0u;
 			g_FreeEntityData.push_back_nr(e);
 		}
 
@@ -300,6 +293,51 @@ namespace jshScene {
 			g_EntityData[g_Entities[i]].handleIndex = i;
 		}
 
+	}
+
+	jsh::Entity DuplicateEntity(jsh::Entity duplicated)
+	{
+		return DuplicateEntity(duplicated, g_EntityData[duplicated].parent);
+	}
+
+	namespace _internal {
+		jsh::Entity DuplicateEntity(jsh::Entity duplicated, jsh::Entity parent)
+		{
+			Entity copy;
+
+			if (parent == INVALID_ENTITY) copy = CreateEntity();
+			else copy = CreateSEntity(parent);
+
+			EntityData& duplicatedEd = g_EntityData[duplicated];
+			EntityData& copyEd = g_EntityData[copy];
+
+			for (auto& it : duplicatedEd.indices) {
+				uint16 ID = it.first;
+				size_t SIZE = GetComponentSize(ID);
+
+				auto& list = g_Components[ID];
+
+				size_t index = list.size();
+				list.resize(index + SIZE);
+
+				BaseComponent* comp = GetComponent(duplicated, ID);
+				memcpy(&list[index], comp, SIZE);
+
+				((BaseComponent*)(&list[index]))->entity = copy;
+				copyEd.indices[ID] = index;
+			}
+
+			copyEd.transform = duplicatedEd.transform;
+			copyEd.transform.entity = copy;
+
+			for (uint32 i = 0; i < g_EntityData[duplicated].sonsCount; ++i) {
+				Entity toCopy = g_Entities[g_EntityData[duplicated].handleIndex + i + 1];
+				DuplicateEntity(toCopy, copy);
+				i += g_EntityData[toCopy].sonsCount;
+			}
+
+			return copy;
+		}
 	}
 
 	void GetEntitySons(Entity entity, jsh::vector<Entity>& entities) noexcept
@@ -325,16 +363,13 @@ namespace jshScene {
 	namespace _internal {
 		void AddComponent(Entity entity, BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept
 		{
-			comp->entityID = entity;
 			auto& list = g_Components[componentID];
 			size_t index = list.size();
-
-			// register the size
-			if (list.empty()) g_ComponentsSize[componentID] = componentSize;
 
 			// allocate the component
 			list.resize(list.size() + componentSize);
 			memcpy(&list[index], comp, componentSize);
+			((BaseComponent*)& list[index])->entity = entity;
 
 			// set index in entity
 			g_EntityData[entity].indices[componentID] = index;
@@ -344,9 +379,6 @@ namespace jshScene {
 		{
 			auto& list = g_Components[componentID];
 			size_t index = list.size();
-
-			// register the size
-			if (list.empty()) g_ComponentsSize[componentID] = componentSize;
 
 			// allocate the components
 			list.resize(list.size() + componentSize * entities.size());
@@ -360,7 +392,7 @@ namespace jshScene {
 				memcpy(&list[currentIndex], comp, componentSize);
 				// set entity in component
 				BaseComponent* component = (BaseComponent*)(&list[currentIndex]);
-				component->entityID = currentEntity;
+				component->entity = currentEntity;
 				// set index in entity
 				g_EntityData[currentEntity].indices[componentID] = currentIndex;
 			}
@@ -382,7 +414,7 @@ namespace jshScene {
 				// set back data in index
 				memcpy(&list[index], &list[list.size() - componentSize], componentSize);
 
-				Entity otherEntity = ((BaseComponent*)(&list[index]))->entityID;
+				Entity otherEntity = ((BaseComponent*)(&list[index]))->entity;
 				g_EntityData[otherEntity].indices[componentID] = index;
 			}
 
@@ -395,7 +427,7 @@ namespace jshScene {
 			size_t componentSize, index;
 			for (auto& it : entityData.indices) {
 				componentID = it.first;
-				componentSize = g_ComponentsSize[componentID];
+				componentSize = jshScene::GetComponentSize(componentID);
 				index = it.second;
 				auto& list = g_Components[componentID];
 
@@ -403,7 +435,7 @@ namespace jshScene {
 					// set back data in index
 					memcpy(&list[index], &list[list.size() - componentSize], componentSize);
 
-					Entity otherEntity = ((BaseComponent*)(&list[index]))->entityID;
+					Entity otherEntity = ((BaseComponent*)(&list[index]))->entity;
 					g_EntityData[otherEntity].indices[componentID] = index;
 				}
 
@@ -513,7 +545,7 @@ namespace jshScene {
 			// if one request is empty, exit
 			auto& list = g_Components[idOfBestList];
 			if (list.size() == 0) return;
-			size_t sizeOfBestList = g_ComponentsSize[idOfBestList];
+			size_t sizeOfBestList = jshScene::GetComponentSize(idOfBestList);
 
 			// reserve memory for the pointers
 			jsh::vector<BaseComponent*> components;
@@ -570,7 +602,7 @@ namespace jshScene {
 					components[indexOfBestList] = compOfBestList;
 
 					// entity
-					Entity entity = compOfBestList->entityID;
+					Entity entity = compOfBestList->entity;
 					EntityData& entityData = g_EntityData[entity];
 					bool isValid = true;
 
@@ -626,7 +658,7 @@ namespace jshScene {
 			// if one request is empty, exit
 			auto& list = g_Components[idOfBestList];
 			if (list.size() == 0) return;
-			size_t sizeOfBestList = g_ComponentsSize[idOfBestList];
+			size_t sizeOfBestList = jshScene::GetComponentSize(idOfBestList);
 
 			// for all the entities
 			BaseComponent* compOfBestList;
@@ -674,7 +706,7 @@ namespace jshScene {
 
 					compOfBestList = (BaseComponent*)(&list[i]);
 					components[indexOfBestList] = compOfBestList;
-					EntityData& entityData = g_EntityData[compOfBestList->entityID];
+					EntityData& entityData = g_EntityData[compOfBestList->entity];
 
 					bool isValid = true;
 
@@ -708,7 +740,7 @@ namespace jshScene {
 			if (system->IsIndividualSystem()) {
 				jshTask::Async(componentsList.size(), jshTask::ThreadCount(), [&componentsList, system, dt](ThreadArgs args) {
 
-					system->UpdateEntity(componentsList[args.index][0]->entityID, componentsList[args.index], dt);
+					system->UpdateEntity(componentsList[args.index][0]->entity, componentsList[args.index], dt);
 
 				});
 
@@ -731,7 +763,8 @@ namespace jshScene {
 
 namespace jshScene {
 
-	jsh::Entity m_SelectedEntity = INVALID_ENTITY;
+	jsh::Entity g_SelectedEntity = INVALID_ENTITY;
+	bool g_RemoveOutline = false;
 
 	namespace _internal {
 		void ImGuiAddEntity(jsh::Entity entity)
@@ -744,23 +777,25 @@ namespace jshScene {
 			bool active;
 			NameComponent* nameComponent = (NameComponent*)GetComponent(entity, NameComponent::ID);
 			if (nameComponent) {
-				active = ImGui::TreeNodeEx(nameComponent->name.c_str(), treeFlags);
+				active = ImGui::TreeNodeEx((std::string(nameComponent->name) + "[" + std::to_string(entity) + "]").c_str(), treeFlags);
 			}
 			else {
-				active = ImGui::TreeNodeEx(("Entity " + std::to_string(entity)).c_str(), treeFlags);
+				active = ImGui::TreeNodeEx(("Entity[" + std::to_string(entity) + "]").c_str(), treeFlags);
 			}
 
 			if (ImGui::IsItemClicked()) {
-				if (m_SelectedEntity != entity) {
-					if (m_SelectedEntity != INVALID_ENTITY) {
-						if (jshScene::GetComponent<OutlineComponent>(m_SelectedEntity) != nullptr) {
-							//jshScene::RemoveComponent<OutlineComponent>(m_SelectedEntity);
+				if (g_SelectedEntity != entity) {
+					if (g_SelectedEntity != INVALID_ENTITY) {
+						if (jshScene::GetComponent<OutlineComponent>(g_SelectedEntity) != nullptr) {
+							if(g_RemoveOutline) jshScene::RemoveComponent<OutlineComponent>(g_SelectedEntity);
 						}
 					}
 					if (jshScene::GetComponent<OutlineComponent>(entity) == nullptr) {
 						jshScene::AddComponent(entity, OutlineComponent());
+						g_RemoveOutline = true;
 					}
-					m_SelectedEntity = entity;
+					else g_RemoveOutline = false;
+					g_SelectedEntity = entity;
 				}
 			}
 			if (active) {
@@ -780,53 +815,151 @@ namespace jshScene {
 	bool ShowImGuiEntityWindow()
 	{
 		bool result = true;
+		static bool showEntityData = false;
+
+		if (showEntityData) {
+			if (ImGui::Begin("EntityData")) {
+				for (uint32 i = 0; i < g_EntityData.size(); ++i) {
+					EntityData& ed = g_EntityData[i];
+					ImGui::Text("Entity index = %u", ed.handleIndex);
+					ImGui::Text("Sons count = %u", ed.sonsCount);
+					ImGui::Text("Parent = %u", ed.parent);
+
+					ImGui::Separator();
+				}
+			}
+			ImGui::End();
+		}
+
 		if (ImGui::Begin("Entities")) {
-			ImGui::Columns(2);
-
-			for (size_t i = 1; i < g_Entities.size(); ++i) {
-
-				Entity entity = g_Entities[i];
-				EntityData& entityData = g_EntityData[entity];
-
-				if (entityData.parent == INVALID_ENTITY) {
-					ImGuiAddEntity(entity);
-					i += entityData.sonsCount;
-				}
-
-			}
-
-			if (m_SelectedEntity < 0 || m_SelectedEntity >= g_Entities.size()) m_SelectedEntity = INVALID_ENTITY;
-
-			ImGui::NextColumn();
 			
-			if (m_SelectedEntity != INVALID_ENTITY) {
+			ImGui::BeginChild("Entities");
+			ImGui::Columns(2);
+			{
+				ImGui::BeginChild("Entities");
 
-				NameComponent* nameComponent = (NameComponent*)GetComponent(m_SelectedEntity, NameComponent::ID);
-				if (nameComponent) {
-					ImGui::Text(nameComponent->name.c_str());
+				for (size_t i = 1; i < g_Entities.size(); ++i) {
+
+					Entity entity = g_Entities[i];
+					EntityData& entityData = g_EntityData[entity];
+
+					if (entityData.parent == INVALID_ENTITY) {
+						ImGuiAddEntity(entity);
+						i += entityData.sonsCount;
+					}
+
 				}
-				else {
-					ImGui::Text(("Entity " + std::to_string(m_SelectedEntity)).c_str());
-				}
 
+				if (g_SelectedEntity < 0 || g_SelectedEntity >= g_EntityData.size()) g_SelectedEntity = INVALID_ENTITY;
 
-				EntityData& entityData = g_EntityData[m_SelectedEntity];
-
-				entityData.transform.ShowInfo();
-				
-				for (auto& it : entityData.indices) {
-					uint16 compID = it.first;
-					size_t index = it.second;
-
-					BaseComponent* comp = (BaseComponent*)(&(g_Components[compID][index]));
-					comp->ShowInfo();
-
-					ImGui::NewLine();
-				}
+				ImGui::EndChild();
 			}
 
 			ImGui::NextColumn();
-			if (ImGui::Button("Close")) result = false;
+
+			{
+				ImGui::BeginChild("Components");
+
+				if (g_SelectedEntity != INVALID_ENTITY) {
+
+					NameComponent* nameComponent = (NameComponent*)GetComponent(g_SelectedEntity, NameComponent::ID);
+					if (nameComponent) {
+						ImGui::Text("%s[%u]", nameComponent->name, g_SelectedEntity);
+					}
+					else {
+						ImGui::Text("Entity[%u]", g_SelectedEntity);
+					}
+
+					if (ImGui::Button("Destroy")) {
+						DestroyEntity(g_SelectedEntity);
+						g_SelectedEntity = INVALID_ENTITY;
+						g_RemoveOutline = false;
+					}
+					else {
+
+						if (ImGui::BeginCombo("Add", "Add Component")) {
+
+							for (uint16 ID = 0; ID < jshScene::GetComponentsCount(); ++ID) {
+								const char* NAME = jshScene::GetComponentName(ID);
+								if (GetComponent(g_SelectedEntity, ID) != nullptr) continue;
+								size_t SIZE = jshScene::GetComponentSize(ID);
+								if (ImGui::Button(NAME)) {
+									BaseComponent* bytes = reinterpret_cast<BaseComponent*>(malloc(SIZE));
+									jshScene::ConstructComponent(ID, bytes);
+									jshScene::_internal::AddComponent(g_SelectedEntity, bytes, ID, SIZE);
+								}
+							}
+
+							ImGui::EndCombo();
+						}
+						if (ImGui::BeginCombo("Rmv", "Remove Component")) {
+
+							EntityData& ed = g_EntityData[g_SelectedEntity];
+							for (auto& it : ed.indices) {
+								uint16 ID = it.first;
+								const char* NAME = jshScene::GetComponentName(ID);
+								size_t SIZE = jshScene::GetComponentSize(ID);
+								if (ImGui::Button(NAME)) {
+									RemoveComponent(g_SelectedEntity, ID, SIZE);
+									break;
+								}
+							}
+
+							ImGui::EndCombo();
+						}
+						if (ImGui::Button("Duplicate")) {
+							jshScene::DuplicateEntity(g_SelectedEntity);
+						}
+						if (ImGui::Button("Create Child")) {
+							jshScene::CreateSEntity(g_SelectedEntity);
+						}
+
+						EntityData& entityData = g_EntityData[g_SelectedEntity];
+
+						entityData.transform.ShowInfo();
+
+						ImGui::Separator();
+						ImGui::Separator();
+
+						ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+
+						for (auto& it : entityData.indices) {
+
+							uint16 compID = it.first;
+							size_t index = it.second;
+
+							BaseComponent* comp = (BaseComponent*)(&(g_Components[compID][index]));
+
+							ImGui::Separator();
+							bool remove = false;
+							if (ImGui::TreeNodeEx(GetComponentName(compID), flags)) {
+								comp->ShowInfo();
+								ImGui::TreePop();
+							}
+
+							if (remove) {
+								RemoveComponent(g_SelectedEntity, compID, GetComponentSize(compID));
+								break;
+							}
+							ImGui::Separator();
+						}
+					}
+				}
+
+				ImGui::EndChild();
+			}
+
+			ImGui::NextColumn();
+
+			ImGui::EndChild();
+			if (ImGui::Button("Create")) {
+				jshScene::CreateEntity();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Show EntityData")) {
+				showEntityData = !showEntityData;
+			}
+			
 		}
 		ImGui::End();
 		return result;

@@ -2,6 +2,7 @@
 
 #include "Window.h"
 #include "Input.h"
+#include "Renderer.h"
 
 namespace jsh {
 
@@ -18,7 +19,7 @@ namespace jsh {
 
 		uint8 front = 0u;
 		uint8 right = 0u;
-		jsh::Transform& trans = jshScene::GetTransform(entityID);
+		jsh::Transform& trans = jshScene::GetTransform(entity);
 		float direction = trans.GetLocalRotation().y;
 		jsh::vec3 pos = trans.GetLocalPosition();
 
@@ -106,7 +107,7 @@ namespace jsh {
 			SetPerspectiveMatrix(m_Fov, m_Near, m_Far);
 
 			XMVECTOR direction = XMVectorSet(0.f, 0.f, 1.f, 0.f);
-			auto& transform = jshScene::GetTransform(entityID);
+			auto& transform = jshScene::GetTransform(entity);
 			vec3 rotation = transform.GetLocalRotation();
 			vec3 position = transform.GetLocalPosition();
 
@@ -119,5 +120,29 @@ namespace jsh {
 			transform.SetRotation(rotation);
 		}
 	}
+
+#ifdef  JSH_IMGUI
+		void CameraComponent::ShowInfo()
+		{
+			if (m_IsOrthographic) {
+				ImGui::DragFloat("Width", &m_Width, 1.f, 0.01f, FLT_MAX);
+				ImGui::DragFloat("Height", &m_Height, 1.f, 0.01f, FLT_MAX);
+				if (ImGui::Button("Adjust")) {
+					m_Height = m_Width / GetAspectRatio();
+				}
+			}
+			else {
+				ImGui::DragFloat("Fov", &m_Fov, 0.25f, 0.01f, FLT_MAX);
+				ImGui::DragFloat("Near", &m_Near, 0.05f, 0.01f, FLT_MAX);
+				ImGui::DragFloat("Far", &m_Far, 1.f, 0.01f, FLT_MAX);
+			}
+			if (ImGui::Button("Change Projection")) {
+				m_IsOrthographic = !m_IsOrthographic;
+			}
+
+			if (ImGui::Button("Set Main Camera")) jshRenderer::SetCamera(entity);
+		}
+
+#endif 
 
 }

@@ -16,6 +16,8 @@ namespace jshScene {
 		std::vector<jsh::EntityData>& GetEntityDataList();
 		std::vector<std::vector<byte>>& GetComponentsList();
 
+		jsh::Entity DuplicateEntity(jsh::Entity duplicate, jsh::Entity parent);
+
 		void AddComponent(jsh::Entity entity, jsh::BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept;
 		void AddComponents(jsh::vector<jsh::Entity>& entities, jsh::BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept;
 
@@ -111,6 +113,8 @@ namespace jshScene {
 		_internal::AddComponents(*entities, component, args...);
 		if (notAlloc) delete entities;
 	}
+
+	jsh::Entity DuplicateEntity(jsh::Entity entity);
 
 	void GetEntitySons(jsh::Entity entity, jsh::vector<jsh::Entity>& entities) noexcept;
 	jsh::Entity GetEntityParent(jsh::Entity entity);

@@ -94,19 +94,20 @@ namespace jsh {
 
 		PixelShader* blurPS = nullptr;
 
-		bool gaussian = m_BlurMode == 0 || m_BlurMode == 1;
-		bool alphaMode = m_BlurMode == 1 || m_BlurMode == 3;
+		bool alphaMode = m_BlurMode == 1 || m_BlurMode == 3 || m_BlurMode == 4;
 		
 		if (alphaMode) {
-			blurPS = (PixelShader*)jshGraphics::Get("AlphaGaussianBlurPixel");
+			blurPS = (PixelShader*)jshGraphics::Get("AlphaBlurPixel");
 			jshGraphics::BindBlendState(m_BlendStateAlpha, cmd);
 		}
 		else {
-			blurPS = (PixelShader*)jshGraphics::Get("GaussianBlurPixel");
+			blurPS = (PixelShader*)jshGraphics::Get("BlurPixel");
 			jshGraphics::BindBlendState(jshRenderer::primitives::GetDefaultBlendState(), cmd);
 		}
 
 		jshGraphics::ClearRenderTargetView(m_AuxRTV, 0.f, 0.f, 0.f, 0.f, cmd);
+
+		if (m_Radius > 16) m_Radius = 16;
 
 		BlurData blurData;
 		blurData.count = m_Radius;
@@ -114,8 +115,9 @@ namespace jsh {
 		blurData.offset = 1.f / 1080.f;
 
 		CoefficientsData coefficientsData;
-		if (gaussian) LoadCoefficientsGaussianMode(coefficientsData, blurData.count);
-		else LoadCoefficientsBoxMode(coefficientsData, blurData.count);
+		if (m_BlurMode == 0 || m_BlurMode == 1) LoadCoefficientsGaussianMode(coefficientsData);
+		else if (m_BlurMode == 2 || m_BlurMode == 3) LoadCoefficientsBoxMode(coefficientsData);
+		else LoadCoefficientsSolidMode(coefficientsData);
 
 		jshGraphics::UpdateConstantBuffer(m_BlurBuffer, &blurData, cmd);
 		jshGraphics::UpdateConstantBuffer(m_CoefficientsBuffer, &coefficientsData, cmd);
@@ -136,28 +138,31 @@ namespace jsh {
 
 	}
 
-	void BlurEffect::LoadCoefficientsBoxMode(CoefficientsData& c, uint32 count) const noexcept
+	void BlurEffect::LoadCoefficientsSolidMode(CoefficientsData& c) const noexcept
 	{
-		if (count > 16) count = 16;
-		float value = 0.5f / count;
-		for (uint32 i = 0; i < count; ++i) {
+		for (uint32 i = 0; i < m_Radius; ++i) {
+			c.coefficients[i].x = 1.f;
+		}
+	}
+	void BlurEffect::LoadCoefficientsBoxMode(CoefficientsData& c) const noexcept
+	{
+		float value = 0.5f / m_Radius;
+		for (uint32 i = 0; i < m_Radius; ++i) {
 			c.coefficients[i].x = value;
 		}
 	}
-	void BlurEffect::LoadCoefficientsGaussianMode(CoefficientsData& c, uint32 count) const noexcept
+	void BlurEffect::LoadCoefficientsGaussianMode(CoefficientsData& c) const noexcept
 	{
-		if (count > 16) count = 16;
-
 		float co = 0.f;
 
-		for (uint32 x = 0; x < count; ++x) {
+		for (uint32 x = 0; x < m_Radius; ++x) {
 			c.coefficients[x].x = jsh::Gauss((float)x, m_Sigma);
 			co += c.coefficients[x].x;
 		}
 
-		float realCo = (co / (float)count) * ((float)count * 2 - 1);
+		float realCo = (co / (float)m_Radius) * ((float)m_Radius * 2 - 1);
 
-		for (uint32 i = 0; i < count; ++i) {
+		for (uint32 i = 0; i < m_Radius; ++i) {
 			c.coefficients[i].x /= realCo;
 		}
 	}

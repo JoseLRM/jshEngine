@@ -124,6 +124,8 @@
     <ClCompile Include="src\AssetLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\NameComponent.h" />
+    <ClInclude Include="src\config.h" />
     <ClInclude Include="include\jshEngine.h" />
     <ClInclude Include="src\LightComponent.h" />
     <ClInclude Include="src\MeshComponent.h" />
@@ -174,7 +176,7 @@
     <ClInclude Include="src\Math.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="src\PPAlphaGaussianBlur.hlsl">
+    <FxCompile Include="src\PPAlphaBlur.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -228,7 +230,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="src\PPGaussianBlur.hlsl">
+    <FxCompile Include="src\PPBlur.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>

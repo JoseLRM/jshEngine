@@ -7,7 +7,7 @@ namespace jsh {
 
 	struct MeshComponent : public Component<MeshComponent> {
 
-		Mesh* mesh;
+		Mesh* mesh = nullptr;
 
 		MeshComponent() : mesh(nullptr) {}
 		MeshComponent(Mesh* mesh) : mesh(mesh) {}

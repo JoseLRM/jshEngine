@@ -108,24 +108,20 @@ namespace jsh {
 		for (uint32 i = 0; i < list.size(); i += OutlineComponent::SIZE) {
 
 			OutlineComponent* outlineComp = reinterpret_cast<OutlineComponent*>(&list[i]);
-			MeshComponent* meshComp = jshScene::GetComponent<MeshComponent>(outlineComp->entityID);
+			MeshComponent* meshComp = jshScene::GetComponent<MeshComponent>(outlineComp->entity);
 
-			if (meshComp == nullptr) {
-
-				//TODO: inheritance outline
-				
-				continue;
-			}
+			if (meshComp == nullptr || meshComp->mesh == nullptr) continue;
 			/*
 				TODO: crear una lista en Lambertican pass de los objetos que aparecen en pantalla y utilizar estos para
 				crear las instancias
+				//TODO: inheritance outline
 			*/
 
 			m_Instances.emplace_back(OutlineInstance());
 			OutlineInstance& instance = m_Instances[m_Instances.size()-1];
 
 			instance.meshComp = meshComp;
-			instance.mode = outlineComp->InBoxMode();
+			instance.mode = outlineComp->GetBlurMode();
 			instance.radius = outlineComp->radius;
 			instance.sigma = outlineComp->sigma;
 			instance.color = outlineComp->color;
@@ -155,7 +151,7 @@ namespace jsh {
 		for (uint32 i = 0; i < m_Instances.size(); ++i) {
 			OutlineInstance& instance = m_Instances[i];
 
-			m_InstanceBuffer.UpdateBuffer(&XMMatrixTranspose(jshScene::GetTransform(instance.meshComp->entityID).GetWorldMatrix()), cmd);
+			m_InstanceBuffer.UpdateBuffer(&XMMatrixTranspose(jshScene::GetTransform(instance.meshComp->entity).GetWorldMatrix()), cmd);
 			instance.meshComp->mesh->GetRawData()->Bind(cmd);
 
 			jshGraphics::DrawIndexed(instance.meshComp->mesh->GetRawData()->GetIndexCount(), cmd);
@@ -193,7 +189,7 @@ namespace jsh {
 					break;
 				}
 
-				m_InstanceBuffer.UpdateBuffer(&XMMatrixTranspose(jshScene::GetTransform(instance.meshComp->entityID).GetWorldMatrix()), cmd);
+				m_InstanceBuffer.UpdateBuffer(&XMMatrixTranspose(jshScene::GetTransform(instance.meshComp->entity).GetWorldMatrix()), cmd);
 				instance.meshComp->mesh->GetRawData()->Bind(cmd);
 
 				// color buffer
@@ -204,11 +200,17 @@ namespace jsh {
 			}
 
 			// blur
-			if (mode) {
-				m_BlurRenderPass.SetAlphaBoxMode(radius);
-			}
-			else {
+			switch (mode)
+			{
+			case 0:
 				m_BlurRenderPass.SetAlphaGaussianMode(radius, sigma);
+				break;
+			case 1:
+				m_BlurRenderPass.SetAlphaBoxMode(radius);
+				break;
+			case 2:
+				m_BlurRenderPass.SetSolidMode(radius);
+				break;
 			}
 
 			m_BlurRenderPass.Render(

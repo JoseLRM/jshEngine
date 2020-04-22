@@ -274,7 +274,7 @@ namespace jshRenderer {
 
 					Light& light = g_LightBufferData.lights[count++];
 					light.color = lightComp->color;
-					light.lightPos = *(vec4*)& jshScene::GetTransform(lightComp->entityID).GetWorldPosition();
+					light.lightPos = *(vec4*)& jshScene::GetTransform(lightComp->entity).GetWorldPosition();
 					light.data.x = lightComp->quadraticAttenuation;
 					light.data.y = lightComp->constantAttenuation;
 					light.data.z = lightComp->intensity;

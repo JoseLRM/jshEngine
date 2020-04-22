@@ -41,25 +41,7 @@ namespace jsh {
 
 #ifdef  JSH_IMGUI
 	public:
-		void ShowInfo() override
-		{
-			if (m_IsOrthographic) {
-				ImGui::DragFloat("Width", &m_Width, 1.f, 0.01f, FLT_MAX);
-				ImGui::DragFloat("Height", &m_Height, 1.f, 0.01f, FLT_MAX);
-				if (ImGui::Button("Adjust")) {
-					m_Height = m_Width / GetAspectRatio();
-				}
-			}
-			else {
-				ImGui::DragFloat("Fov", &m_Fov, 0.25f, 0.01f, FLT_MAX);
-				ImGui::DragFloat("Near", &m_Near, 0.05f, 0.01f, FLT_MAX);
-				ImGui::DragFloat("Far", &m_Far, 1.f, 0.01f, FLT_MAX);
-			}
-			if (ImGui::Button("Change Projection")) {
-				m_IsOrthographic = !m_IsOrthographic;
-			}
-		}
-
+		void ShowInfo() override;
 #endif 
 
 	};

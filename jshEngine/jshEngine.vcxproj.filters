@@ -31,8 +31,8 @@
     <Filter Include="Graphics\Shaders\PostProcess">
       <UniqueIdentifier>{5057376d-493b-4720-8404-435d1abfc864}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Graphics\Shaders\PostProcess\Blur">
-      <UniqueIdentifier>{b8134a6f-9a99-4f45-9194-26e7c574a1d3}</UniqueIdentifier>
+    <Filter Include="Configuration">
+      <UniqueIdentifier>{2bb9e235-2a1b-4260-89db-586035df0215}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -96,9 +96,6 @@
     <ClCompile Include="src\Engine.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="src\Exception.cpp">
-      <Filter>System</Filter>
-    </ClCompile>
     <ClCompile Include="src\stb\stb_lib.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
@@ -122,6 +119,9 @@
     </ClCompile>
     <ClCompile Include="src\BlurEffect.cpp">
       <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Exception.cpp">
+      <Filter>Configuration</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -224,16 +224,10 @@
     <ClInclude Include="src\State.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="src\Exception.h">
-      <Filter>System</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine.h">
       <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="src\Debug.h">
-      <Filter>System</Filter>
-    </ClInclude>
-    <ClInclude Include="src\common.h">
       <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="include\jshEngine.h">
@@ -267,7 +261,19 @@
       <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\OutlineComponent.h">
-      <Filter>Renderer</Filter>
+      <Filter>System\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\config.h">
+      <Filter>Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common.h">
+      <Filter>Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Exception.h">
+      <Filter>Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NameComponent.h">
+      <Filter>System\ECS</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -307,11 +313,11 @@
     <FxCompile Include="src\PP.hlsl">
       <Filter>Graphics\Shaders\PostProcess</Filter>
     </FxCompile>
-    <FxCompile Include="src\PPGaussianBlur.hlsl">
-      <Filter>Graphics\Shaders\PostProcess\Blur</Filter>
+    <FxCompile Include="src\PPBlur.hlsl">
+      <Filter>Graphics\Shaders\PostProcess</Filter>
     </FxCompile>
-    <FxCompile Include="src\PPAlphaGaussianBlur.hlsl">
-      <Filter>Graphics\Shaders\PostProcess\Blur</Filter>
+    <FxCompile Include="src\PPAlphaBlur.hlsl">
+      <Filter>Graphics\Shaders\PostProcess</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

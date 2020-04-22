@@ -571,8 +571,8 @@ namespace jsh {
 		if (node->mesh != nullptr) {
 			MeshComponent* meshComp = jshScene::GetComponent<MeshComponent>(parent);
 			meshComp->mesh = node->mesh;
-			jshScene::GetComponent<NameComponent>(parent)->name = node->name;
-			jshScene::GetTransform(meshComp->entityID) = node->transform;
+			jshScene::GetComponent<NameComponent>(parent)->SetName(node->name);
+			jshScene::GetTransform(meshComp->entity) = node->transform;
 		}
 
 		uint32 cant = node->sons.size();

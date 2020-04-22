@@ -20,6 +20,7 @@ namespace jsh {
 			Blur mode 1 = Alpha Gaussian Blur
 			Blur mode 2 = Box Blur
 			Blur mode 3 = Alpha Box Blur
+			Blur mode 4 = Solid blur
 		*/
 
 		struct alignas(16) BlurData {
@@ -40,6 +41,11 @@ namespace jsh {
 		void Create();
 		void Render(RenderTargetView& input, RenderTargetView& output, DepthStencilState* dss, Resource* dsv, uint32 stencilRef, CommandList cmd);
 
+		inline void SetSolidMode(uint32 radius)
+		{
+			m_BlurMode = 4;
+			m_Radius = radius;
+		}
 		inline void SetGaussianMode(uint32 radius, float sigma) noexcept 
 		{
 			m_BlurMode = 0;
@@ -64,8 +70,9 @@ namespace jsh {
 		}
 
 	private:
-		void LoadCoefficientsBoxMode(CoefficientsData& c, uint32 count) const noexcept;
-		void LoadCoefficientsGaussianMode(CoefficientsData& c, uint32 count) const noexcept;
+		void LoadCoefficientsBoxMode(CoefficientsData& c) const noexcept;
+		void LoadCoefficientsGaussianMode(CoefficientsData& c) const noexcept;
+		void LoadCoefficientsSolidMode(CoefficientsData& c) const noexcept;
 	};
 
 }

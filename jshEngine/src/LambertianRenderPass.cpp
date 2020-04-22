@@ -36,8 +36,9 @@ namespace jsh {
 		for (uint32 i = 0; i < meshList.size(); i += MeshComponent::SIZE) {
 
 			MeshComponent* meshComp = reinterpret_cast<MeshComponent*>(&meshList[i]);
-			Transform& transform = jshScene::GetTransform(meshComp->entityID);
+			Transform& transform = jshScene::GetTransform(meshComp->entity);
 
+			if (meshComp->mesh == nullptr) continue;
 			assert(meshComp->mesh->GetShader() != nullptr && meshComp->mesh->GetRawData() != nullptr);
 
 			// TODO: Frustum culling

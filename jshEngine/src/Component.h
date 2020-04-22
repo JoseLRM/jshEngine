@@ -4,56 +4,50 @@
 #include "vector.h"
 
 namespace jsh {
+	struct BaseComponent;
+}
+
+namespace jshScene {
+
+	namespace _internal {
+		uint16 GetComponentID();
+		size_t SetComponentSize(uint16 ID, size_t size);
+		const char* SetComponentNameAndConstructor(uint16 ID, const char* name, const jsh::BaseComponent* ptr);
+	}
+
+	uint16 GetComponentsCount();
+
+	size_t GetComponentSize(uint16 ID);
+	const char* GetComponentName(uint16 ID);
+	void ConstructComponent(uint16 ID, jsh::BaseComponent* ptr);
+
+}
+
+namespace jsh {
 
 	struct BaseComponent {
-		uint32 entityID = 0;
-
-	private:
-		static uint16 s_IDcount;
-
-	protected:
-		static uint16 GetComponentID(size_t componentSize)
-		{
-			return s_IDcount++;
-		}
-
-	public:
-		static uint16 GetComponentsCount()
-		{
-			return s_IDcount;
-		}
+		uint32 entity = INVALID_ENTITY;
 
 	public:
 		jshImGui(virtual void ShowInfo() {});
 
 	};
 
-	template<class T>
+	template<typename T>
 	struct Component : public BaseComponent {
 		const static uint16 ID;
 		const static size_t SIZE;
+		const static const char* NAME;
+		const static T CONSTRUCTOR;
 	};
 
-	template<class T>
-	const uint16 jsh::Component<T>::ID(BaseComponent::GetComponentID(sizeof(T)));
-	template<class T>
-	const size_t Component<T>::SIZE(sizeof(T));
-
 }
-#define jshDefineTag(name) struct name : public jsh::Component<name> {}; template struct jsh::Component<name>
-#define jshDefineComponent(name) template struct jsh::Component<name>
 
-// core components
-namespace jsh {
+#pragma warning(disable : 4114)
+#define jshDefineComponent(name) template struct jsh::Component<name>; \
+const uint16 name::ID(jshScene::_internal::GetComponentID());\
+const size_t name::SIZE(jshScene::_internal::SetComponentSize(name::ID, sizeof(name))); \
+const name name::CONSTRUCTOR; \
+const const char* name::NAME(jshScene::_internal::SetComponentNameAndConstructor(name::ID, #name, (jsh::BaseComponent*)&name::CONSTRUCTOR))
 
-	struct NameComponent : jsh::Component<NameComponent> {
-		std::string name;
-
-		NameComponent() {}
-		NameComponent(const char* name) : name(name) {}
-		NameComponent(const std::string& str) : name(str) {}
-		NameComponent(std::string&& str) : name(name) {}
-	};
-	jshDefineComponent(NameComponent);
-
-}
+#define jshDefineTag(name) struct name : public jsh::Component<name> {}; jshDefineComponent(name)

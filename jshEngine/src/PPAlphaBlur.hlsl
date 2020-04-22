@@ -35,5 +35,7 @@ float4 main(float2 texCoord : TexCoord) : SV_TARGET
 		color = max(texColor.xyz, color);
 	}
 
+	alpha = min(alpha, 1.f);
+
 	return float4(color, alpha);
 }

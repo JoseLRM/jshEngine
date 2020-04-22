@@ -5,3 +5,4 @@
 #include "LightComponent.h"
 #include "MeshComponent.h"
 #include "OutlineComponent.h"
+#include "NameComponent.h"

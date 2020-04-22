@@ -1,7 +1,6 @@
 #pragma once
 
-#define JSH_DEBUG
-#define JSH_PLATFORM_WINDOWS
+#include "config.h"
 
 // debug macros
 #ifdef JSH_DEBUG
@@ -38,7 +37,6 @@
 #endif
 
 // includes
-#include "Math.h"
 #include <string>
 #include <memory>
 #include <sstream>
