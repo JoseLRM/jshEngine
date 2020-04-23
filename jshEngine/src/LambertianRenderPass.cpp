@@ -4,13 +4,20 @@
 #include "Engine.h"
 #include "Renderer.h"
 #include "PostProcess.h"
+#include "BloomEffect.h"
 
 namespace jsh {
 
 	LambertianRenderPass::LambertianRenderPass() {}
 
+	// temporal
+	BloomEffect bloomEffect;
+
 	void LambertianRenderPass::Create()
 	{
+		//temp
+		bloomEffect.Create();
+
 		{
 			MeshData aux;
 			JSH_BUFFER_DESC desc;
@@ -104,7 +111,20 @@ namespace jsh {
 			mesh->GetMaterial()->Bind(cmd, JSH_SHADER_TYPE_PIXEL);
 			jshGraphics::DrawIndexed(mesh->GetRawData()->GetIndexCount(), cmd);
 		}
-		
+
+		// temp
+		static int r;
+		static float s;
+		static float i;
+		static bool b;
+		if (ImGui::Begin("Bloom")) {
+			if (ImGui::Button("Bloom")) b = !b;
+			ImGui::SliderInt("Radius", &r, 0, 16);
+			ImGui::SliderFloat("Sigma", &s, 0.f, 50.f);
+			ImGui::SliderFloat("Intensity", &i, 0.f, 1.f);
+		}
+		ImGui::End();
+		if(b) bloomEffect.Render(offscreenRenderTargetView, i, r, s, cmd);
 	}
 
 }

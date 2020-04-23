@@ -123,6 +123,9 @@
     <ClCompile Include="src\Exception.cpp">
       <Filter>Configuration</Filter>
     </ClCompile>
+    <ClCompile Include="src\BloomEffect.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Window.h">
@@ -275,6 +278,9 @@
     <ClInclude Include="src\NameComponent.h">
       <Filter>System\ECS</Filter>
     </ClInclude>
+    <ClInclude Include="src\BloomEffect.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\SolidVertex.hlsl">
@@ -317,6 +323,9 @@
       <Filter>Graphics\Shaders\PostProcess</Filter>
     </FxCompile>
     <FxCompile Include="src\PPAlphaBlur.hlsl">
+      <Filter>Graphics\Shaders\PostProcess</Filter>
+    </FxCompile>
+    <FxCompile Include="PPBloom.hlsl">
       <Filter>Graphics\Shaders\PostProcess</Filter>
     </FxCompile>
   </ItemGroup>

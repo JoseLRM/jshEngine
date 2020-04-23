@@ -13,7 +13,7 @@ struct State : public jsh::State {
 
 int main()
 {
-	jshEngine::Initialize(new State());
+	jshEngine::Initialize(new SponzaState());
 	jshEngine::Run();
 	jshEngine::Close();
 

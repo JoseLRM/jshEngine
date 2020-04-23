@@ -47,6 +47,10 @@ namespace jshRenderer {
 		std::shared_ptr<PixelShader> alphaGaussianBlur = std::make_shared<PixelShader>();
 		jshGraphics::Save("AlphaBlurPixel", alphaGaussianBlur);
 		jshGraphics::CreatePixelShader(L"PPAlphaBlur.cso", alphaGaussianBlur.get());
+
+		std::shared_ptr<PixelShader> bloomEffect = std::make_shared<PixelShader>();
+		jshGraphics::Save("BloomEffectPixel", bloomEffect);
+		jshGraphics::CreatePixelShader(L"PPBloom.cso", bloomEffect.get());
 	}
 
 	void PostProcess(const jsh::RenderTargetView& input, const jsh::RenderTargetView& output, jsh::DepthStencilState* dss, jsh::Resource* dsv, uint32 stencilRef, jsh::PixelShader* ps, jsh::CommandList cmd)
