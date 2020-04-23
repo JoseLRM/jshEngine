@@ -1,5 +1,6 @@
 #include "Scene.h"
 #include "TaskSystem.h"
+#include "Timer.h"
 
 using namespace jsh;
 uint32 jsh::System::s_SystemCount = 0;
@@ -14,8 +15,7 @@ namespace jshScene {
 
 	std::vector<std::vector<byte>> g_Components;
 
-	std::map<uint16, System*> g_UpdatedSystems;
-	std::mutex g_UpdatedSystemsMutex;
+	PerformanceTest g_PerformanceTest;
 
 	namespace _internal {
 		jsh::vector<jsh::Entity>& GetEntitiesList()
@@ -45,16 +45,6 @@ namespace jshScene {
 			if (it != entity.indices.end()) return (BaseComponent*)(&(g_Components[componentID][it->second]));
 
 			return nullptr;
-		}
-		void SetUpdatePerformance(jsh::System* pSystem, jsh::Time beginTime) noexcept
-		{
-			pSystem->m_TimeCount += pSystem->m_LastTime;
-			pSystem->m_UpdatesCount++;
-			pSystem->m_LastTime = jshTimer::Now() - beginTime;
-
-			g_UpdatedSystemsMutex.lock();
-			g_UpdatedSystems[pSystem->m_SystemID] = pSystem;
-			g_UpdatedSystemsMutex.unlock();
 		}
 	}
 
@@ -295,11 +285,6 @@ namespace jshScene {
 
 	}
 
-	jsh::Entity DuplicateEntity(jsh::Entity duplicated)
-	{
-		return DuplicateEntity(duplicated, g_EntityData[duplicated].parent);
-	}
-
 	namespace _internal {
 		jsh::Entity DuplicateEntity(jsh::Entity duplicated, jsh::Entity parent)
 		{
@@ -449,8 +434,6 @@ namespace jshScene {
 
 	void UpdateSystem(System* system, float dt)
 	{
-		jsh::Time beginTime = jshTimer::Now();
-
 		if (system->GetExecuteType() == JSH_ECS_SYSTEM_SAFE
 			|| system->GetExecuteType() == JSH_ECS_SYSTEM_PARALLEL) {
 
@@ -461,7 +444,6 @@ namespace jshScene {
 		else {
 			if (system->IsIndividualSystem()) UpdateCollectiveAndMultithreadedSystem(system, dt);
 		}
-		SetUpdatePerformance(system, beginTime);
 	}
 
 	void UpdateSystems(System** systems, uint32 cant, float dt)
@@ -472,13 +454,8 @@ namespace jshScene {
 		for (uint32 i = 0; i < cant; ++i) {
 			pSystem = systems[i];
 			if (pSystem->GetExecuteType() == JSH_ECS_SYSTEM_SAFE) {
-
-				jsh::Time beginTime = jshTimer::Now();
-
 				if (pSystem->IsIndividualSystem()) UpdateIndividualSafeSystem(pSystem, dt);
 				else UpdateCollectiveAndMultithreadedSystem(pSystem, dt);
-
-				SetUpdatePerformance(pSystem, beginTime);
 			}
 		}
 
@@ -486,12 +463,7 @@ namespace jshScene {
 		for (uint32 i = 0; i < cant; ++i) {
 			pSystem = systems[i];
 			if (pSystem->GetExecuteType() == JSH_ECS_SYSTEM_MULTITHREADED) {
-
-				jsh::Time beginTime = jshTimer::Now();
-
 				if (pSystem->IsIndividualSystem()) UpdateCollectiveAndMultithreadedSystem(pSystem, dt);
-
-				SetUpdatePerformance(pSystem, beginTime);
 			}
 		}
 
@@ -502,16 +474,12 @@ namespace jshScene {
 				if (pSystem->IsIndividualSystem())
 					jshTask::Execute([pSystem, dt]() {
 
-					jsh::Time beginTime = jshTimer::Now();
 					UpdateIndividualSafeSystem(pSystem, dt);
-					SetUpdatePerformance(pSystem, beginTime);
 
 				});
 				else jshTask::Execute([pSystem, dt]() {
 
-					jsh::Time beginTime = jshTimer::Now();
 					UpdateCollectiveAndMultithreadedSystem(pSystem, dt);
-					SetUpdatePerformance(pSystem, beginTime);
 
 				});
 			}
@@ -520,9 +488,16 @@ namespace jshScene {
 		jshTask::Wait();
 	}
 
+	jsh::Time GetSystemPerformance(const jsh::System& system)
+	{
+		return g_PerformanceTest.Get(system.GetSystemID());
+	}
+
 	namespace _internal {
 		void UpdateIndividualSafeSystem(System* system, float dt)
 		{
+			g_PerformanceTest.Begin(system->GetSystemID());
+
 			// system requisites
 			auto& request = system->GetRequestedComponents();
 			auto& optional = system->GetOptionalComponents();
@@ -631,10 +606,13 @@ namespace jshScene {
 					system->UpdateEntity(entity, components.data(), dt);
 				}
 			}
+			g_PerformanceTest.End(system->GetSystemID());
 		}
 
 		void UpdateCollectiveAndMultithreadedSystem(System* system, float dt)
 		{
+			g_PerformanceTest.Begin(system->GetSystemID());
+
 			jsh::vector<BaseComponent**> componentsList;
 			// system requisites
 			auto& request = system->GetRequestedComponents();
@@ -754,6 +732,8 @@ namespace jshScene {
 			for (size_t i = 0; i < componentsList.size(); ++i) {
 				delete componentsList[i];
 			}
+
+			g_PerformanceTest.End(system->GetSystemID());
 		}
 	}
 }
@@ -969,14 +949,9 @@ namespace jshScene {
 	{
 		bool result = true;
 		if (ImGui::Begin("Systems")) {
-			for (uint32 i = 0; i < g_UpdatedSystems.size(); ++i) {
-				System* system = g_UpdatedSystems[i];
+			
+			
 
-				ImGui::Text(("[" + std::string(system->GetName()) + "] -> " +
-					std::to_string(system->m_TimeCount / system->m_UpdatesCount)).c_str());
-
-			}
-			if (ImGui::Button("Close")) result = false;
 		}
 		ImGui::End();
 		return result;

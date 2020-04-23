@@ -38,7 +38,7 @@ namespace jsh {
 	void RenderGraph::UpdateGraph()
 	{
 		m_Modified = false;
-		//TODO: 
+		//TODO: Render graph
 	}
 
 }

@@ -13,7 +13,6 @@ struct State : public jsh::State {
 
 int main()
 {
-
 	jshEngine::Initialize(new State());
 	jshEngine::Run();
 	jshEngine::Close();

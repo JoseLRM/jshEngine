@@ -40,8 +40,6 @@ namespace jshScene {
 		// systems
 		void UpdateIndividualSafeSystem(jsh::System* system, float deltaTime);
 		void UpdateCollectiveAndMultithreadedSystem(jsh::System* system, float deltaTime);
-
-		void SetUpdatePerformance(jsh::System* pSystem, jsh::Time beginTime) noexcept;
 	}
 
 	void Initialize() noexcept;
@@ -114,7 +112,10 @@ namespace jshScene {
 		if (notAlloc) delete entities;
 	}
 
-	jsh::Entity DuplicateEntity(jsh::Entity entity);
+	inline jsh::Entity DuplicateEntity(jsh::Entity duplicated)
+	{
+		return _internal::DuplicateEntity(duplicated, _internal::GetEntityDataList()[duplicated].parent);
+	}
 
 	void GetEntitySons(jsh::Entity entity, jsh::vector<jsh::Entity>& entities) noexcept;
 	jsh::Entity GetEntityParent(jsh::Entity entity);
@@ -125,6 +126,8 @@ namespace jshScene {
 	// system methods
 	void UpdateSystem(jsh::System* system, float dt);
 	void UpdateSystems(jsh::System** systems, uint32 cant, float dt);
+
+	jsh::Time GetSystemPerformance(const jsh::System& system);
 
 	// ---------------DEBUG-------------------------
 #if defined(JSH_IMGUI)

@@ -226,4 +226,49 @@ namespace jshEngine {
 		return g_FixedUpdateDeltaTime;
 	}
 
+	// VERSION
+	constexpr uint64 g_MajorVersion = 0u;
+	constexpr uint64 g_MinorVersion = 1u;
+	constexpr uint64 g_RevisionVersion = 0u;
+
+	uint64 GetMajorVersion()
+	{
+		return g_MajorVersion;
+	}
+	uint64 GetMinorVersion()
+	{
+		return g_MinorVersion;
+	}
+	uint64 GetRevisionVersion()
+	{
+		return g_RevisionVersion;
+	}
+
+	uint64 GetVersion()
+	{
+		return g_MajorVersion * 1000000u + g_MinorVersion * 1000u + g_RevisionVersion;
+	}
+	const char* GetVersionStr()
+	{
+		const static std::string ss = g_MajorVersion << '.' << g_MinorVersion << '.' << g_RevisionVersion;
+		return ss.c_str();
+	}
+	const wchar* GetVersionStrW()
+	{
+		const static std::wstring ss = std::to_wstring(g_MajorVersion) + L'.' + std::to_wstring(g_MinorVersion) + L'.' + std::to_wstring(g_RevisionVersion);
+		return ss.c_str();
+	}
+
+	// PROPERTIES
+	const char* GetName()
+	{
+		const static std::string name = "jshEngine " + std::string(GetVersionStr());
+		return name.c_str();
+	}
+	const wchar* GetNameW()
+	{
+		const static std::wstring name = L"jshEngine " + std::wstring(GetVersionStrW());
+		return name.c_str();
+	}
+
 }

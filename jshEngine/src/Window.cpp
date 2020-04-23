@@ -8,6 +8,7 @@
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_win32.h"
 #include "vector.h"
+#include "Engine.h"
 
 using namespace jsh;
 
@@ -136,7 +137,7 @@ namespace jshWindow {
 		AdjustWindowRect(&rect, style, false);
 
 	 	windowHandle = CreateWindowExW(
-			NULL, L"jshWindow", L"jshWindow", 
+			NULL, L"jshWindow", jshEngine::GetNameW(), 
 			style,
 			screenX, screenY, rect.right - rect.left, rect.bottom - rect.top, NULL, NULL, NULL, NULL
 		);

@@ -133,8 +133,7 @@ namespace jsh {
 
 	void OutlineRenderPass::Render(CommandList cmd)
 	{
-		// TODO: 
-		//if (m_Instances.size() == 0) return;
+		// TODO: if (m_Instances.size() == 0) return;
 
 		// MASK
 		jshGraphics::SetTopology(JSH_TOPOLOGY_TRIANGLES, cmd);

@@ -25,12 +25,7 @@ namespace jsh {
 		uint8 m_ExecuteType = JSH_ECS_SYSTEM_SAFE;
 
 		std::string m_Name;
-		uint16 m_SystemID;
-
-		// performance members
-		jsh::Time m_LastTime = 0.f;
-		jsh::Time m_TimeCount = 0.f;
-		uint32 m_UpdatesCount = 0u;
+		uint32 m_SystemID;
 
 	public:
 		System() {
@@ -72,6 +67,8 @@ namespace jsh {
 		{
 			return m_ExecuteType;
 		}
+
+		inline uint32 GetSystemID() const noexcept { return m_SystemID; }
 
 		inline jsh::vector<uint16>& GetRequestedComponents() noexcept { return m_RequestedComponents; }
 		inline jsh::vector<uint16>& GetOptionalComponents() noexcept { return m_OptionalComponents; }

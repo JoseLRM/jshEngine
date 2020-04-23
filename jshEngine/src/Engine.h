@@ -25,4 +25,17 @@ namespace jshEngine {
 	void SetFixedUpdateFrameRate(uint32 frameRate);
 	float GetFixedUpdateDeltaTime();
 
+	// version
+	uint64 GetMajorVersion();
+	uint64 GetMinorVersion();
+	uint64 GetRevisionVersion();
+
+	uint64 GetVersion();
+	const wchar* GetVersionStrW();
+	const char* GetVersionStr();
+
+	// properties
+	const wchar* GetNameW();
+	const char* GetName();
+
 }

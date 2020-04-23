@@ -77,6 +77,7 @@ namespace jshRenderer {
 
 	Entity g_MainCamera = INVALID_ENTITY;
 	RenderGraph g_RenderGraph;
+	PerformanceTest g_PerformanceTest;
 
 	bool Initialize()
 	{		
@@ -232,6 +233,8 @@ namespace jshRenderer {
 
 	void EndFrame()
 	{
+		g_PerformanceTest.Begin(0);
+
 		bool canRender = true;
 
 		CommandList cmd = jshGraphics::BeginCommandList();
@@ -295,6 +298,8 @@ namespace jshRenderer {
 		jshGraphics::End();
 		jshImGui(jshGraphics::EndImGui(g_MainRenderTargetView));
 
+		g_PerformanceTest.End(0);
+
 		uint32 interval = 0u;
 		if (g_VSYNC) interval = 1u;
 		jshGraphics::Present(interval);	
@@ -317,16 +322,31 @@ namespace jshRenderer {
 	}
 
 #ifdef JSH_IMGUI
+
+	void ShowPerformanceImGuiWindow()
+	{
+		if (ImGui::Begin("Renderer Performance")) {
+			ImGui::Text("%f", g_PerformanceTest.Get(0).GetSecondsf());
+		}
+		ImGui::End();
+	}
+
 	bool ShowImGuiWindow()
 	{
 		bool result = true;
+		static bool showPerformance = false;
+
 		if (ImGui::Begin("Renderer")) {
 
 			ImGui::Checkbox("VSYNC", &g_VSYNC);
+			if (ImGui::Button(showPerformance ? "Hide Performance" : "Show Performance")) showPerformance = !showPerformance;
 
 			if (ImGui::Button("Close")) result = false;
 		}
 		ImGui::End();
+
+		if (showPerformance) ShowPerformanceImGuiWindow();
+
 		return result;
 	}
 #endif
