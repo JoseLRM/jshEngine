@@ -13,7 +13,7 @@ struct State : public jsh::State {
 
 int main()
 {
-	jshEngine::Initialize(new SponzaState());
+	jshEngine::Initialize(new State());
 	jshEngine::Run();
 	jshEngine::Close();
 
@@ -84,11 +84,11 @@ jsh::Mesh* CreateTerrain() {
 
 void State::Initialize()
 {
-	std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/nano_textured/nanosuit.obj", "nanosuit");
-	//std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/Sponza/sponza.obj", "sponza");
-	//std::shared_ptr<jsh::Model> dragonModel = jshLoader::LoadModel("res/models/gobber/GoblinX.obj", "Goblin");
+	jsh::Model model;
+	jshLoader::LoadModel("res/models/nano_textured/nanosuit.obj", "nanosuit", &model);
+	//jshLoader::LoadModel("res/models/gobber/GoblinX.obj", "Goblin", &model);
 
-	dragonModel->CreateEntity(jshScene::CreateEntity(jsh::NameComponent("Goblin")));
+	model.CreateEntity(jshScene::CreateEntity(jsh::NameComponent("Goblin")));
 	jsh::Entity cameraEntity = jshScene::CreateEntity(jsh::NameComponent("Camera"), jsh::CameraComponent(), jsh::LightComponent());
 
 	jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(cameraEntity);

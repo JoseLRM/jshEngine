@@ -34,6 +34,12 @@
     <Filter Include="Configuration">
       <UniqueIdentifier>{2bb9e235-2a1b-4260-89db-586035df0215}</UniqueIdentifier>
     </Filter>
+    <Filter Include="System\Components">
+      <UniqueIdentifier>{37db13ba-119e-4e6f-b394-18b0bbeda61e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Effects">
+      <UniqueIdentifier>{8e711586-5004-414e-9116-0dd3365b9661}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Graphics.cpp">
@@ -48,13 +54,7 @@
     <ClCompile Include="src\Window.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="src\Transform.cpp">
-      <Filter>System\ECS</Filter>
-    </ClCompile>
     <ClCompile Include="src\Scene.cpp">
-      <Filter>System\ECS</Filter>
-    </ClCompile>
-    <ClCompile Include="src\CameraComponent.cpp">
       <Filter>System\ECS</Filter>
     </ClCompile>
     <ClCompile Include="src\Component.cpp">
@@ -117,13 +117,25 @@
     <ClCompile Include="src\RenderGraph.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\BlurEffect.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="src\Exception.cpp">
       <Filter>Configuration</Filter>
     </ClCompile>
+    <ClCompile Include="src\Transform.cpp">
+      <Filter>System\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PostProcessComponent.cpp">
+      <Filter>System\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CameraComponent.cpp">
+      <Filter>System\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BlurEffect.cpp">
+      <Filter>Renderer\Effects</Filter>
+    </ClCompile>
     <ClCompile Include="src\BloomEffect.cpp">
+      <Filter>Renderer\Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PostProcessRenderPass.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
   </ItemGroup>
@@ -143,9 +155,6 @@
     <ClInclude Include="src\GraphicsPrimitives.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="src\CameraComponent.h">
-      <Filter>System\ECS</Filter>
-    </ClInclude>
     <ClInclude Include="src\Component.h">
       <Filter>System\ECS</Filter>
     </ClInclude>
@@ -155,19 +164,10 @@
     <ClInclude Include="src\Entity.h">
       <Filter>System\ECS</Filter>
     </ClInclude>
-    <ClInclude Include="src\LightComponent.h">
-      <Filter>System\ECS</Filter>
-    </ClInclude>
-    <ClInclude Include="src\MeshComponent.h">
-      <Filter>System\ECS</Filter>
-    </ClInclude>
     <ClInclude Include="src\Scene.h">
       <Filter>System\ECS</Filter>
     </ClInclude>
     <ClInclude Include="src\System.h">
-      <Filter>System\ECS</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Transform.h">
       <Filter>System\ECS</Filter>
     </ClInclude>
     <ClInclude Include="src\TaskSystem.h">
@@ -260,12 +260,6 @@
     <ClInclude Include="src\RenderGraph.h">
       <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\BlurEffect.h">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\OutlineComponent.h">
-      <Filter>System\ECS</Filter>
-    </ClInclude>
     <ClInclude Include="src\config.h">
       <Filter>Configuration</Filter>
     </ClInclude>
@@ -275,10 +269,34 @@
     <ClInclude Include="src\Exception.h">
       <Filter>Configuration</Filter>
     </ClInclude>
+    <ClInclude Include="src\Transform.h">
+      <Filter>System\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PostProcessComponent.h">
+      <Filter>System\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LightComponent.h">
+      <Filter>System\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MeshComponent.h">
+      <Filter>System\Components</Filter>
+    </ClInclude>
     <ClInclude Include="src\NameComponent.h">
-      <Filter>System\ECS</Filter>
+      <Filter>System\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OutlineComponent.h">
+      <Filter>System\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CameraComponent.h">
+      <Filter>System\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BlurEffect.h">
+      <Filter>Renderer\Effects</Filter>
     </ClInclude>
     <ClInclude Include="src\BloomEffect.h">
+      <Filter>Renderer\Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PostProcessRenderPass.h">
       <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>
@@ -325,7 +343,10 @@
     <FxCompile Include="src\PPAlphaBlur.hlsl">
       <Filter>Graphics\Shaders\PostProcess</Filter>
     </FxCompile>
-    <FxCompile Include="PPBloom.hlsl">
+    <FxCompile Include="src\PPBloom.hlsl">
+      <Filter>Graphics\Shaders\PostProcess</Filter>
+    </FxCompile>
+    <FxCompile Include="src\PPColorCorrection.hlsl">
       <Filter>Graphics\Shaders\PostProcess</Filter>
     </FxCompile>
   </ItemGroup>

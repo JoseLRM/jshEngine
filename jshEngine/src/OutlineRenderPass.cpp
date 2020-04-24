@@ -133,7 +133,7 @@ namespace jsh {
 
 	void OutlineRenderPass::Render(CommandList cmd)
 	{
-		// TODO: if (m_Instances.size() == 0) return;
+		if (m_Instances.empty()) return;
 
 		// MASK
 		jshGraphics::SetTopology(JSH_TOPOLOGY_TRIANGLES, cmd);
@@ -221,33 +221,6 @@ namespace jsh {
 				cmd);
 
 		}
-
-
-		// PP
-		jshGraphics::UnbindTexture(0u, JSH_SHADER_TYPE_PIXEL, cmd);
-		jshGraphics::BindViewport(jshRenderer::primitives::GetDefaultViewport(), 0u, cmd);
-		jshGraphics::BindSamplerState(jshRenderer::primitives::GetDefaultSamplerState(), 0u, JSH_SHADER_TYPE_PIXEL, cmd);
-		jshGraphics::BindBlendState(jshRenderer::primitives::GetDefaultBlendState(), cmd);
-
-		static bool enable = false;
-		static bool gaussian = false;
-		static int radius = 4;
-		static float sigma = 5.f;
-		if (ImGui::Begin("Blur")) {
-			ImGui::Checkbox("Blur effect", &enable);
-			ImGui::Checkbox("Gaussian", &gaussian);
-			ImGui::SliderInt("Radius", &radius, 0, 16);
-			ImGui::SliderFloat("Sigma", &sigma, 0.f, 20.f);
-		}
-		ImGui::End();
-
-		if(gaussian) m_BlurRenderPass.SetGaussianMode(radius, sigma);
-		else m_BlurRenderPass.SetBoxMode(radius);
-
-		jshGraphics::BindBlendState(jshRenderer::primitives::GetDefaultBlendState(), cmd);
-
-		if (enable) m_BlurRenderPass.Render(jshRenderer::primitives::GetOffscreenRenderTargetView(), jshRenderer::primitives::GetMainRenderTargetView(), nullptr, nullptr, 0u, cmd);
-		else jshRenderer::PostProcess(jshRenderer::primitives::GetOffscreenRenderTargetView(), jshRenderer::primitives::GetMainRenderTargetView(), nullptr, nullptr, 0u, nullptr, cmd);
 	}
 
 }

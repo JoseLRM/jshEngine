@@ -9,38 +9,96 @@
 
 #include "stb/stb_lib.h"
 
+#include <limits>
+
 namespace jshLoader
 {
 
-	void LoadMesh(const aiMesh* aimesh, aiMaterial** const materials, jsh::Mesh* mesh, const char* path, const char* meshName)
+	/////////////////////////////////MODEL/////////////////////////////////////////
+	struct TransformedMesh {
+		jsh::Mesh* mesh;
+		jsh::Transform transform;
+	};
+
+	void LoadMesh(const aiMesh* aimesh, aiMaterial** const materials, TransformedMesh& transformedMesh, const char* path, const char* meshName)
 	{
+		jsh::Mesh* mesh = transformedMesh.mesh;
+		jsh::Transform& transform = transformedMesh.transform;
+
+		// Creation
 		mesh->SetRawData(jshGraphics::CreateRawData(meshName));
 		mesh->SetMaterial(jshGraphics::CreateMaterial(meshName));
-		// vertex buffer
-		aiVector3D* vertices = aimesh->mVertices;
-		aiVector3D* normals = aimesh->mNormals;
+		
+		// RAWDATA
+		{
+			// Vertex Buffer
+			jsh::vec3* positions = new jsh::vec3[aimesh->mNumVertices];
 
-		// index buffer
-		size_t cantOfIndices = aimesh->mNumFaces * 3;
-		uint32 indexCount = 0u;
-		uint32* iData = new uint32[cantOfIndices];
-		for (uint32 i = 0; i < aimesh->mNumFaces; ++i) {
-			aiFace& face = aimesh->mFaces[i];
-			if (face.mNumIndices != 3) continue;
-			iData[indexCount++] = face.mIndices[0];
-			iData[indexCount++] = face.mIndices[1];
-			iData[indexCount++] = face.mIndices[2];
-		}
+			jsh::vec3 minPos = jsh::vec3(std::numeric_limits<float>::max());
+			jsh::vec3 maxPos = jsh::vec3(std::numeric_limits<float>::min());
+			// find min and max positions
+			for (uint32 i = 0; i < aimesh->mNumVertices; ++i) {
+				aiVector3D& vec = aimesh->mVertices[i];
 
-		// texture coords
-		float* textureCoords = nullptr;
-		if (aimesh->HasTextureCoords(0)) {
-			uint32 cantTexCoords = aimesh->mNumVertices;
-			textureCoords = new float[cantTexCoords * 2u];
-			for (uint32 i = 0; i < cantTexCoords; ++i) {
-				textureCoords[i * 2u] = aimesh->mTextureCoords[0][i].x;
-				textureCoords[i * 2u + 1u] = 1.f - aimesh->mTextureCoords[0][i].y;
+				if (vec.x < minPos.x) minPos.x = vec.x;
+				else if (vec.x > maxPos.x) maxPos.x = vec.x;
+
+				if (vec.y < minPos.y) minPos.y = vec.y;
+				else if (vec.y > maxPos.y) maxPos.y = vec.y;
+
+				if (vec.z < minPos.z) minPos.z = vec.z;
+				else if (vec.z > maxPos.z) maxPos.z = vec.z;
 			}
+
+			jsh::vec3 volume = maxPos - minPos;
+			jsh::vec3 center = minPos + (volume / 2.f);
+
+			// center positions
+			for (uint32 i = 0; i < aimesh->mNumVertices; ++i) {
+				positions[i] = ((*(jsh::vec3*)&aimesh->mVertices[i]) - center);
+			}
+
+			// Transform
+			transform.SetPosition(center);
+
+			// Index Buffer
+			size_t cantOfIndices = size_t(aimesh->mNumFaces * 3);
+			uint32 indexCount = 0u;
+			uint32* iData = new uint32[cantOfIndices];
+			for (uint32 i = 0; i < aimesh->mNumFaces; ++i) {
+				aiFace& face = aimesh->mFaces[i];
+				if (face.mNumIndices != 3) continue;
+				iData[indexCount++] = face.mIndices[0];
+				iData[indexCount++] = face.mIndices[1];
+				iData[indexCount++] = face.mIndices[2];
+			}
+
+			// Texture Coords
+			float* textureCoords = nullptr;
+			if (aimesh->HasTextureCoords(0)) {
+				uint32 cantTexCoords = aimesh->mNumVertices;
+				textureCoords = new float[cantTexCoords * 2u];
+				for (uint32 i = 0; i < cantTexCoords; ++i) {
+					textureCoords[i * 2u] = aimesh->mTextureCoords[0][i].x;
+					textureCoords[i * 2u + 1u] = 1.f - aimesh->mTextureCoords[0][i].y;
+				}
+			}
+
+			// Set ptrs
+			jsh::RawData* rawData = mesh->GetRawData();
+			if (aimesh->HasTangentsAndBitangents()) {
+				rawData->SetTangents((float*)aimesh->mTangents);
+				rawData->SetBitangents((float*)aimesh->mBitangents);
+			}
+			if (textureCoords) mesh->GetRawData()->SetTextureCoords(textureCoords);
+			rawData->SetIndices(iData, indexCount);
+			rawData->SetPositionsAndNormals((float*)positions, (float*)aimesh->mNormals, aimesh->mNumVertices);
+
+			rawData->Create();
+
+			if (textureCoords) delete[] textureCoords;
+			delete iData;
+			delete positions;
 		}
 
 		// MATERIAL
@@ -91,21 +149,10 @@ namespace jshLoader
 		}
 
 		// MESH CREATION
-		jsh::RawData* rawData = mesh->GetRawData();
-		if (aimesh->HasTangentsAndBitangents()) {
-			rawData->SetTangents((float*)aimesh->mTangents);
-			rawData->SetBitangents((float*)aimesh->mBitangents);
-		}
-		if (textureCoords) mesh->GetRawData()->SetTextureCoords(textureCoords);
-		rawData->SetIndices(iData, indexCount);
-		rawData->SetPositionsAndNormals((float*)vertices, (float*)normals, aimesh->mNumVertices);
-		rawData->Create();
 		mesh->UpdatePrimitives();
-
-		if (textureCoords) delete[] textureCoords;
 	}
 
-	void AddNode(aiNode* ainode, jsh::MeshNode* node, jsh::Mesh** meshes)
+	void AddNode(aiNode* ainode, jsh::MeshNode* node, TransformedMesh* meshes)
 	{
 		node->sons.resize(ainode->mNumChildren);
 		XMMATRIX localMatrix = XMLoadFloat4x4((XMFLOAT4X4*)&ainode->mTransformation);
@@ -133,7 +180,15 @@ namespace jshLoader
 		ainode->mParent;
 		
 		if (ainode->mName.length > 0) node->name = ainode->mName.C_Str();
-		if (ainode->mNumMeshes > 0) node->mesh = meshes[ainode->mMeshes[0]];
+		if (ainode->mNumMeshes > 0) {
+			node->mesh = meshes[ainode->mMeshes[0]].mesh;
+
+			jsh::Transform& transform = node->transform;
+			jsh::Transform& meshTransform = meshes[ainode->mMeshes[0]].transform;
+
+			transform.SetPosition(transform.GetLocalPosition() + meshTransform.GetLocalPosition());
+			transform.SetRotation(transform.GetLocalRotation() + meshTransform.GetLocalRotation());
+		}
 
 		// recursion
 		for (uint32 i = 0; i < ainode->mNumChildren; ++i) {
@@ -143,7 +198,7 @@ namespace jshLoader
 		}
 	}
 
-	std::shared_ptr<jsh::Model> LoadModel(const char* absolutePath, const char* name)
+	bool LoadModel(const char* absolutePath, const char* name, jsh::Model* model)
 	{
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(absolutePath, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace | aiProcess_OptimizeMeshes);
@@ -165,7 +220,7 @@ namespace jshLoader
 
 		// MESHES
 		uint32 numOfMeshes = scene->mNumMeshes;
-		jsh::Mesh** meshes = new jsh::Mesh*[numOfMeshes];
+		TransformedMesh* meshes = new TransformedMesh[numOfMeshes];
 
 		for (uint32 i = 0; i < numOfMeshes; ++i) {
 			const aiMesh* mesh = scene->mMeshes[i];
@@ -181,19 +236,15 @@ namespace jshLoader
 			if (numOfMeshes != 0) meshName << '[' << std::to_string(i) << ']';
 
 			// mesh
-			meshes[i] = jshGraphics::CreateMesh(meshName.str().c_str());
+			meshes[i].mesh = jshGraphics::CreateMesh(meshName.str().c_str());
 			LoadMesh(mesh, scene->mMaterials, meshes[i], path, meshName.str().c_str());
 		}
 
 		// NODES
-		auto model = std::make_shared<jsh::Model>();
-
 		aiNode* aiRoot = scene->mRootNode;
 		if (aiRoot) {
 			AddNode(aiRoot, &model->root, meshes);
 		}
-
-		return model;
 	}
 
 	bool LoadTexture(const char* path, jsh::Resource* texture)

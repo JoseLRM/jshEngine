@@ -66,6 +66,8 @@ namespace jsh {
 		PixelShader* ps = reinterpret_cast<PixelShader*>(jshGraphics::Get("BloomEffectPixel"));
 		jshRenderer::PostProcess(input, m_RenderTargetView, nullptr, nullptr, 0u, ps, cmd);
 
+		jshGraphics::BindBlendState(jshRenderer::primitives::GetTransparentBlendState(), cmd);
+
 		jshGraphics::UnbindTexture(0u, JSH_SHADER_TYPE_PIXEL, cmd);
 		m_BlurEffect.Render(m_RenderTargetView, input, nullptr, nullptr, 0u, cmd);
 	}

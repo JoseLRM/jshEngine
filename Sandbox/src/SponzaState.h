@@ -12,8 +12,9 @@ public:
 	void Initialize() override
 	{
 		sponza = jshScene::CreateEntity(jsh::NameComponent("Sponza"));
-		auto model = jshLoader::LoadModel("res/models/Sponza/sponza.obj", "sponza");
-		model->CreateEntity(sponza);
+		jsh::Model model;
+		jshLoader::LoadModel("res/models/Sponza/sponza.obj", "sponza", &model);
+		model.CreateEntity(sponza);
 
 		jsh::CameraComponent cameraComp;
 		cameraComp.SetPerspectiveMatrix(90.f, 0.2f, 100000.f);

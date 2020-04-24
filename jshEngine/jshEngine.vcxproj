@@ -96,6 +96,8 @@
     <ClCompile Include="src\BloomEffect.cpp" />
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\CameraComponent.cpp" />
+    <ClCompile Include="src\PostProcessComponent.cpp" />
+    <ClCompile Include="src\PostProcessRenderPass.cpp" />
     <ClCompile Include="src\stb\stb_lib.cpp" />
     <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\Debug.cpp" />
@@ -136,6 +138,8 @@
     <ClInclude Include="src\common.h" />
     <ClInclude Include="src\CameraComponent.h" />
     <ClInclude Include="src\Components.h" />
+    <ClInclude Include="src\PostProcessComponent.h" />
+    <ClInclude Include="src\PostProcessRenderPass.h" />
     <ClInclude Include="src\stb\stb_lib.h" />
     <ClInclude Include="src\Transform.h" />
     <ClInclude Include="src\Debug.h" />
@@ -178,7 +182,7 @@
     <ClInclude Include="src\Math.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="PPBloom.hlsl">
+    <FxCompile Include="src\PPBloom.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -243,6 +247,14 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="src\PPBlur.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="src\PPColorCorrection.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>

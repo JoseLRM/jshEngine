@@ -8,6 +8,7 @@
 
 #include "LambertianRenderPass.h"
 #include "OutlineRenderPass.h"
+#include "PostProcessRenderPass.h"
 #include "RenderGraph.h"
 
 using namespace jsh;
@@ -193,8 +194,12 @@ namespace jshRenderer {
 			OutlineRenderPass* outlinePass = new OutlineRenderPass();
 			outlinePass->Create();
 
+			PostProcessRenderPass* postProcess = new PostProcessRenderPass();
+			postProcess->Create();
+
 			g_RenderGraph.AddPass(lambertianPass);
 			g_RenderGraph.AddPass(outlinePass);
+			g_RenderGraph.AddPass(postProcess);
 		}
 
 		// GLOBAL BUFFERS

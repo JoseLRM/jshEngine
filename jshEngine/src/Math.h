@@ -38,6 +38,7 @@ namespace jsh {
 		using vec = Vector2D<T>;
 
 		Vector2D() : x(), y() {}
+		Vector2D(T n) : x(n), y(n) {}
 		Vector2D(T x, T y) : x(x), y(y) {}
 
 		// sum
@@ -160,6 +161,7 @@ namespace jsh {
 		using vec = Vector3D<T>;
 
 		Vector3D() : x(), y(), z() {}
+		Vector3D(T n) : x(n), y(n), z(n) {}
 		Vector3D(T x, T y, T z) : x(x), y(y), z(z) {}
 
 		// sum
@@ -291,6 +293,7 @@ namespace jsh {
 		using vec = Vector4D<T>;
 
 		Vector4D() : x(), y(), z(), w() {}
+		Vector4D(T n) : x(n), y(n), z(n), w(n) {}
 		Vector4D(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) {}
 
 		// sum
