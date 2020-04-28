@@ -17,8 +17,10 @@ namespace jsh {
 	public:
 		void ShowInfo() override
 		{
-			if (mesh) {
-				if(ImGui::Button("Mesh")) jshDebug::ShowMeshImGuiWindow(mesh);
+			if (ImGui::BeginCombo("Select Mesh", "Select Mesh")) {
+				Mesh* m = jshGraphics::GetMeshImGui();
+				if (m != nullptr) mesh = m;
+				ImGui::EndCombo();
 			}
 		}
 #endif

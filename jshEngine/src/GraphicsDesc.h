@@ -287,6 +287,12 @@ struct JSH_BUFFER_DESC
 	uint32 StructureByteStride;
 };
 
+enum JSH_CPU_ACCESS_FLAG
+{
+	JSH_CPU_ACCESS_WRITE = 0x10000L,
+	JSH_CPU_ACCESS_READ = 0x20000L
+};
+
 struct JSH_SAMPLE_DESC
 {
 	uint32 Count;

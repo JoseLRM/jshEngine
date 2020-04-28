@@ -8,7 +8,7 @@ namespace jsh {
 	class PostProcessRenderPass : public RenderPass {
 
 		BloomEffect m_BloomEffect;
-		Resource m_ColorCorrectionBuffer;
+		Buffer m_ColorCorrectionBuffer;
 
 	public:
 		void Create() override;

@@ -23,7 +23,7 @@ namespace jsh {
 		desc.Usage = JSH_USAGE_DEFAULT;
 		JSH_SUBRESOURCE_DATA sdata;
 		sdata.pSysMem = &aux;
-		jshGraphics::CreateResource(&desc, &sdata, &m_Buffer);
+		jshGraphics::CreateBuffer(&desc, &sdata, &m_Buffer);
 	}
 	void InstanceBuffer::Bind(JSH_SHADER_TYPE shaderType, jsh::CommandList cmd) const
 	{
@@ -31,7 +31,7 @@ namespace jsh {
 	}
 	void InstanceBuffer::UpdateBuffer(XMMATRIX* tm, jsh::CommandList cmd)
 	{
-		jshGraphics::UpdateConstantBuffer(m_Buffer, tm, cmd);
+		jshGraphics::UpdateBuffer(m_Buffer, tm, 0u, cmd);
 	}
 
 	////////////////////////////MATERIAL///////////////////////////
@@ -46,7 +46,7 @@ namespace jsh {
 		desc.Usage = JSH_USAGE_DEFAULT;
 		JSH_SUBRESOURCE_DATA sres;
 		sres.pSysMem = &m_SpecularIntensity;
-		jshGraphics::CreateResource(&desc, &sres, &m_Buffer);
+		jshGraphics::CreateBuffer(&desc, &sres, &m_Buffer);
 	}
 
 	void Material::Bind(CommandList cmd, JSH_SHADER_TYPE shaderType)
@@ -60,88 +60,10 @@ namespace jsh {
 			data.specularIntensity = m_SpecularIntensity;
 			data.shininess = m_Shininess;
 
-			jshGraphics::UpdateConstantBuffer(m_Buffer, &data, cmd);
+			jshGraphics::UpdateBuffer(m_Buffer, &data, 0u, cmd);
 			m_Modified = false;
 		}
 		jshGraphics::BindConstantBuffer(m_Buffer, JSH_GFX_SLOT_CBUFFER_MATERIAL, shaderType, cmd);
-	}
-
-	////////////////////////////TEXTURE///////////////////////////
-	void Texture::Bind(JSH_SHADER_TYPE shaderType, jsh::CommandList cmd) const
-	{
-		switch (type)
-		{
-		case JSH_TEXTURE_DIFFUSE_MAP:
-			jshGraphics::BindTexture(resource, JSH_GFX_SLOT_TEXTURE2D_DIFFUSE, shaderType, cmd);
-			break;
-		case JSH_TEXTURE_NORMAL_MAP:
-			jshGraphics::BindTexture(resource, JSH_GFX_SLOT_TEXTURE2D_NORMAL, shaderType, cmd);
-			break;
-		case JSH_TEXTURE_SPECULAR_MAP:
-			jshGraphics::BindTexture(resource, JSH_GFX_SLOT_TEXTURE2D_SPECULAR, shaderType, cmd);
-			break;
-		case JSH_TEXTURE_ATLAS:
-			break;
-		}
-	}
-
-	////////////////////////////STATE///////////////////////////
-	void RenderState::SetDefault() noexcept
-	{
-		uint32 i = 0u;
-		uint32 j = 0u;
-
-		constexpr uint32 SHADER_TYPES_COUNT = 2;
-
-		// buffers
-		for (; i < JSH_GFX_VERTEX_BUFFERS_COUNT; ++i) {
-			vertexBuffer[i].internalAllocation.reset();
-		}
-		for (i = 0; i < SHADER_TYPES_COUNT; ++i) {
-			for (; j < JSH_GFX_CONSTANT_BUFFERS_COUNT; ++j) {
-				constantBuffer[i][j].internalAllocation.reset();
-			}
-		}
-		indexBuffer.internalAllocation.reset();
-
-		// shaders
-		vertexShader.internalAllocation.reset();
-		pixelShader.internalAllocation.reset();
-
-		inputLayout.internalAllocation.reset();
-
-		// textures
-		for (i = 0; i < SHADER_TYPES_COUNT; ++i) {
-			for (j = 0; j < JSH_GFX_TEXTURES_COUNT; ++j) {
-				texture[i][j].internalAllocation.reset();
-			}
-		}
-
-		// states
-		for (i = 0; i < SHADER_TYPES_COUNT; ++i) {
-			for (j = 0; j < JSH_GFX_SAMPLER_STATES_COUNT; ++j) {
-				samplerState[i][j] = jshRenderer::primitives::GetDefaultSamplerState();
-			}
-		}
-
-		depthStencilState = jshRenderer::primitives::GetDefaultDepthStencilState();
-		blendState.internalAllocation.reset();
-		rasterizerState.internalAllocation.reset();
-
-		renderTargetView[0] = jshRenderer::primitives::GetOffscreenRenderTargetView();
-		for (i = 1; i < JSH_GFX_RENDER_TARGETS_COUNT; ++i) {
-			renderTargetView[i].internalAllocation.reset();
-		}
-
-		// viewports
-		viewport[0] = jshRenderer::primitives::GetDefaultViewport();
-		for (i = 1; i < JSH_GFX_VIEWPORTS_COUNT; ++i) {
-			viewport[i].internalAllocation.reset();
-		}
-	}
-	void RenderState::Bind() const
-	{
-		
 	}
 
 	//////////////////////RAW DATA/////////////////////////////////
@@ -253,7 +175,7 @@ namespace jsh {
 		vertexDesc.Usage = JSH_USAGE_IMMUTABLE;
 		JSH_SUBRESOURCE_DATA vertexSData;
 		vertexSData.pSysMem = vData;
-		jshGraphics::CreateResource(&vertexDesc, &vertexSData, &m_VertexBuffer);
+		jshGraphics::CreateBuffer(&vertexDesc, &vertexSData, &m_VertexBuffer);
 
 		JSH_BUFFER_DESC indexDesc;
 		indexDesc.BindFlags = JSH_BIND_INDEX_BUFFER;
@@ -264,7 +186,7 @@ namespace jsh {
 		indexDesc.Usage = JSH_USAGE_IMMUTABLE;
 		JSH_SUBRESOURCE_DATA indexSData;
 		indexSData.pSysMem = m_pIndexData;
-		jshGraphics::CreateResource(&indexDesc, &indexSData, &m_IndexBuffer);
+		jshGraphics::CreateBuffer(&indexDesc, &indexSData, &m_IndexBuffer);
 
 		assert(m_VertexBuffer.IsValid());
 		assert(m_IndexBuffer.IsValid());
@@ -296,7 +218,7 @@ namespace jsh {
 		vertexDesc.Usage = JSH_USAGE_IMMUTABLE;
 		JSH_SUBRESOURCE_DATA vertexSData;
 		vertexSData.pSysMem = vData;
-		jshGraphics::CreateResource(&vertexDesc, &vertexSData, &m_VertexBuffer);
+		jshGraphics::CreateBuffer(&vertexDesc, &vertexSData, &m_VertexBuffer);
 
 		JSH_BUFFER_DESC indexDesc;
 		indexDesc.BindFlags = JSH_BIND_INDEX_BUFFER;
@@ -307,7 +229,7 @@ namespace jsh {
 		indexDesc.Usage = JSH_USAGE_IMMUTABLE;
 		JSH_SUBRESOURCE_DATA indexSData;
 		indexSData.pSysMem = m_pIndexData;
-		jshGraphics::CreateResource(&indexDesc, &indexSData, &m_IndexBuffer);
+		jshGraphics::CreateBuffer(&indexDesc, &indexSData, &m_IndexBuffer);
 
 		assert(m_VertexBuffer.IsValid());
 		assert(m_IndexBuffer.IsValid());
@@ -344,7 +266,7 @@ namespace jsh {
 		vertexDesc.Usage = JSH_USAGE_IMMUTABLE;
 		JSH_SUBRESOURCE_DATA vertexSData;
 		vertexSData.pSysMem = vData;
-		jshGraphics::CreateResource(&vertexDesc, &vertexSData, &m_VertexBuffer);
+		jshGraphics::CreateBuffer(&vertexDesc, &vertexSData, &m_VertexBuffer);
 
 		JSH_BUFFER_DESC indexDesc;
 		indexDesc.BindFlags = JSH_BIND_INDEX_BUFFER;
@@ -355,7 +277,7 @@ namespace jsh {
 		indexDesc.Usage = JSH_USAGE_IMMUTABLE;
 		JSH_SUBRESOURCE_DATA indexSData;
 		indexSData.pSysMem = m_pIndexData;
-		jshGraphics::CreateResource(&indexDesc, &indexSData, &m_IndexBuffer);
+		jshGraphics::CreateBuffer(&indexDesc, &indexSData, &m_IndexBuffer);
 
 		assert(m_VertexBuffer.IsValid());
 		assert(m_IndexBuffer.IsValid());
@@ -399,7 +321,7 @@ namespace jsh {
 		vertexDesc.Usage = JSH_USAGE_IMMUTABLE;
 		JSH_SUBRESOURCE_DATA vertexSData;
 		vertexSData.pSysMem = vData;
-		jshGraphics::CreateResource(&vertexDesc, &vertexSData, &m_VertexBuffer);
+		jshGraphics::CreateBuffer(&vertexDesc, &vertexSData, &m_VertexBuffer);
 
 		JSH_BUFFER_DESC indexDesc;
 		indexDesc.BindFlags = JSH_BIND_INDEX_BUFFER;
@@ -410,7 +332,7 @@ namespace jsh {
 		indexDesc.Usage = JSH_USAGE_IMMUTABLE;
 		JSH_SUBRESOURCE_DATA indexSData;
 		indexSData.pSysMem = m_pIndexData;
-		jshGraphics::CreateResource(&indexDesc, &indexSData, &m_IndexBuffer);
+		jshGraphics::CreateBuffer(&indexDesc, &indexSData, &m_IndexBuffer);
 
 		assert(m_VertexBuffer.IsValid());
 		assert(m_IndexBuffer.IsValid());
@@ -419,145 +341,6 @@ namespace jsh {
 	}
 
 	//////////////////////MESH/////////////////////////////////
-	void Mesh::Bind(CommandList cmd)
-	{
-		m_RawData->Bind(cmd);
-
-		if (m_DiffuseMapEnabled)	m_DiffuseMap->Bind(JSH_SHADER_TYPE_PIXEL, cmd);
-		if (m_NormalMapEnabled)		m_NormalMap->Bind(JSH_SHADER_TYPE_PIXEL, cmd);
-		if (m_SpecularMapEnabled)	m_SpecularMap->Bind(JSH_SHADER_TYPE_PIXEL, cmd);
-
-		jshGraphics::BindInputLayout(m_Shader->inputLayout, cmd);
-		jshGraphics::BindVertexShader(m_Shader->vs, cmd);
-		jshGraphics::BindPixelShader(m_Shader->ps, cmd);
-	}
-
-	void Mesh::SetTexture(Texture* texture) noexcept
-	{
-		switch (texture->type)
-		{
-		case JSH_TEXTURE_DIFFUSE_MAP:
-			if (texture->resource.IsValid()) {
-				m_DiffuseMap = texture;
-				m_DiffuseMapEnabled = true;
-				m_Modified = true;
-			}
-			return;
-		case JSH_TEXTURE_NORMAL_MAP:
-			if (texture->resource.IsValid()) {
-				m_NormalMap = texture;
-				m_NormalMapEnabled = true;
-				m_Modified = true;
-			}
-			return;
-		case JSH_TEXTURE_SPECULAR_MAP:
-			if (texture->resource.IsValid()) {
-				m_SpecularMap = texture;
-				m_SpecularMapEnabled = true;
-				m_Modified = true;
-			}
-			return;
-		default:
-			jshLogW("Invalid texture type");
-			return;
-		}
-	}
-	void Mesh::EnableTexture(JSH_TEXTURE_TYPE type, bool enable) noexcept
-	{
-		switch (type)
-		{
-		case JSH_TEXTURE_DIFFUSE_MAP:
-			if (enable && m_DiffuseMap) m_DiffuseMapEnabled = true;
-			else m_DiffuseMapEnabled = false;
-			m_Modified = true;
-			return;
-		case JSH_TEXTURE_NORMAL_MAP:
-			if (enable && m_NormalMap) m_NormalMapEnabled = true;
-			else m_NormalMapEnabled = false;
-			m_Modified = true;
-			return;
-		case JSH_TEXTURE_SPECULAR_MAP:
-			if (enable && m_SpecularMap) m_SpecularMapEnabled = true;
-			else m_SpecularMapEnabled = false;
-			m_Modified = true;
-			return;
-		default:
-			jshLogW("Invalid texture type");
-			return;
-		}
-	}
-	bool Mesh::HasTexture(JSH_TEXTURE_TYPE type)
-	{
-		switch (type)
-		{
-		case JSH_TEXTURE_DIFFUSE_MAP:
-			return m_DiffuseMapEnabled;
-		case JSH_TEXTURE_NORMAL_MAP:
-			return m_NormalMapEnabled;
-		case JSH_TEXTURE_SPECULAR_MAP:
-			return m_SpecularMapEnabled;
-		default:
-			jshLogW("Invalid texture type");
-			return false;
-		}
-	}
-
-	void Mesh::SetRawData(RawData* rawData) noexcept
-	{
-		assert(rawData != nullptr);
-		m_RawData = rawData;
-		m_Modified = true;
-	}
-	void Mesh::SetMaterial(Material* material) noexcept
-	{
-		assert(material != nullptr);
-		m_Material = material;
-	}
-	void Mesh::SetShader(Shader* shader) noexcept
-	{
-		assert(shader != nullptr);
-		m_Shader = shader;
-		m_Modified = true;
-	}
-
-	void Mesh::UpdatePrimitives() noexcept
-	{
-		if (m_Modified) {
-
-			m_Modified = false;
-
-			RawDataFlags flags = m_RawData->GetFlags();
-
-			if (flags & JSH_RAW_DATA_TEX_COORDS && flags & JSH_RAW_DATA_TANGENTS && (m_SpecularMapEnabled || m_NormalMapEnabled)) {
-				m_Shader = jshGraphics::GetShader("Normal");
-			}
-			else if (flags & JSH_RAW_DATA_TEX_COORDS && m_DiffuseMapEnabled) {
-				m_Shader = jshGraphics::GetShader("SimpleTex");
-			}
-			else if (flags & JSH_RAW_DATA_COLORS) {
-				m_Shader = jshGraphics::GetShader("SimpleCol");
-			}
-			else {
-				m_Shader = jshGraphics::GetShader("Solid");
-			}
-		}
-	}
-
-	Texture* Mesh::GetTexture(JSH_TEXTURE_TYPE type) const noexcept
-	{
-		switch (type)
-		{
-		case JSH_TEXTURE_DIFFUSE_MAP:
-			return m_DiffuseMap;
-		case JSH_TEXTURE_NORMAL_MAP:
-			return m_NormalMap;
-		case JSH_TEXTURE_SPECULAR_MAP:
-			return m_SpecularMap;
-		default:
-			jshLogW("Invalid texture type");
-			return nullptr;
-		}
-	}
 
 	//////////////////////MODEL/////////////////////////////////
 	Model::Model() : root() {}
@@ -619,157 +402,102 @@ namespace jshGraphics {
 	std::map<std::string, Shader*> g_Shader;
 	std::map<std::string, Texture*> g_Texture;
 
+#define CreateObject(name, obj, map) \
+std::string n = name; \
+if (map.find(n) == map.end()) { \
+	map[n] = obj; \
+} \
+else { \
+	jshLogW("Duplicated graphics object, name '%s'", name); \
+} 
+
+#define GetObject(name, map) \
+auto it = map.find(name); \
+if (it == map.end()) { \
+	return nullptr; \
+} \
+else { \
+	return (*it).second; \
+}
+
+#define RemoveObject(name, map) \
+auto it = map.find(name); \
+if (it != map.end()) { \
+	delete (*it).second; \
+	map.erase(name); \
+}
+
 	jsh::Mesh* CreateMesh(const char* name)
 	{
-		std::string n = name;
 		Mesh* mesh = new Mesh();
-		if (g_Mesh.find(n) == g_Mesh.end()) {
-			g_Mesh[n] = mesh;
-		}
-		else {
-			jshLogW("Duplicated mesh, name '%s'", name);
-		}
+		CreateObject(name, mesh, g_Mesh);
 		return mesh;
 	}
 	jsh::RawData* CreateRawData(const char* name)
 	{
-		std::string n = name;
 		RawData* rawData = new RawData();
-		if (g_RawData.find(n) == g_RawData.end()) {
-			g_RawData[n] = rawData;
-		}
-		else {
-			jshLogW("Duplicated rawData, name '%s'", name);
-		}
+		CreateObject(name, rawData, g_RawData);
 		return rawData;
 	}
 	jsh::Material* CreateMaterial(const char* name)
 	{
-		std::string n = name;
 		Material* material = new Material();
-		if (g_Material.find(n) == g_Material.end()) {
-			g_Material[n] = material;
-		}
-		else {
-			jshLogW("Duplicated material, name '%s'", name);
-		}
+		CreateObject(name, material, g_Material);
 		return material;
 	}
 	jsh::Shader* CreateShader(const char* name)
 	{
-		std::string n = name;
 		Shader* shader = new Shader();
-		if (g_Shader.find(n) == g_Shader.end()) {
-			g_Shader[n] = shader;
-		}
-		else {
-			jshLogW("Duplicated shader, name '%s'", name);
-		}
+		CreateObject(name, shader, g_Shader);
 		return shader;
 	}
 	jsh::Texture* CreateTexture(const char* name)
 	{
-		std::string n = name;
 		Texture* texture = new Texture();
-		if (g_Texture.find(n) == g_Texture.end()) {
-			g_Texture[n] = texture;
-		}
-		else {
-			jshLogW("Duplicated texture, name '%s'", name);
-		}
+		CreateObject(name, texture, g_Texture);
 		return texture;
 	}
 
 	jsh::Mesh* GetMesh(const char* name)
 	{
-		auto it = g_Mesh.find(name);
-		if (it == g_Mesh.end()) {
-			return nullptr;
-		}
-		else {
-			return (*it).second;
-		}
+		GetObject(name, g_Mesh);
 	}
 	jsh::RawData* GetRawData(const char* name)
 	{
-		auto it = g_RawData.find(name);
-		if (it == g_RawData.end()) {
-			return nullptr;
-		}
-		else {
-			return (*it).second;
-		}
+GetObject(name, g_RawData);
 	}
 	jsh::Material* GetMaterial(const char* name)
 	{
-		auto it = g_Material.find(name);
-		if (it == g_Material.end()) {
-			return nullptr;
-		}
-		else {
-			return (*it).second;
-		}
+		GetObject(name, g_Material);
 	}
 	jsh::Shader* GetShader(const char* name)
 	{
-		auto it = g_Shader.find(name);
-		if (it == g_Shader.end()) {
-			return nullptr;
-		}
-		else {
-			return (*it).second;
-		}
+		GetObject(name, g_Shader);
 	}
 	jsh::Texture* GetTexture(const char* name)
 	{
-		auto it = g_Texture.find(name);
-		if (it == g_Texture.end()) {
-			return nullptr;
-		}
-		else {
-			return (*it).second;
-		}
+		GetObject(name, g_Texture);
 	}
 
 	void RemoveMesh(const char* name)
 	{
-		auto it = g_Mesh.find(name);
-		if (it != g_Mesh.end()) {
-			delete (*it).second;
-			g_Mesh.erase(name);
-		}
+		RemoveObject(name, g_Mesh);
 	}
 	void RemoveRawData(const char* name)
 	{
-		auto it = g_RawData.find(name);
-		if (it != g_RawData.end()) {
-			delete (*it).second;
-			g_RawData.erase(name);
-		}
+		RemoveObject(name, g_RawData);
 	}
 	void RemoveMaterial(const char* name)
 	{
-		auto it = g_Material.find(name);
-		if (it != g_Material.end()) {
-			delete (*it).second;
-			g_Material.erase(name);
-		}
+		RemoveObject(name, g_Material);
 	}
 	void RemoveShader(const char* name)
 	{
-		auto it = g_Shader.find(name);
-		if (it != g_Shader.end()) {
-			delete (*it).second;
-			g_Shader.erase(name);
-		}
+		RemoveObject(name, g_Shader);
 	}
 	void RemoveTexture(const char* name)
 	{
-		auto it = g_Texture.find(name);
-		if (it != g_Texture.end()) {
-			delete (*it).second;
-			g_Texture.erase(name);
-		}
+		RemoveObject(name, g_Texture);
 	}
 
 	void ClearObjects()
@@ -796,58 +524,63 @@ namespace jshGraphics {
 
 #ifdef JSH_IMGUI
 
-	const char* g_SelectedMesh = nullptr;
-	bool ShowMeshImGuiWindow(jsh::Mesh* mesh)
+	template<typename Obj>
+	bool ShowObjImGuiWindow(const char* typeName, std::map<std::string, Obj*>& map, const char*& selectedObj, void(*fn)())
 	{
-		for (auto& it : g_Mesh) {
-			if (it.second == mesh) {
-				g_SelectedMesh = it.first.c_str();
-				break;
-			}
-		}
-
+		static char name[32];
 		bool result = true;
-		if (ImGui::Begin("Meshes")) {
+		if (ImGui::Begin(typeName)) {
 
 			ImGui::Columns(2);
 
-			for (auto& it : g_Mesh) {
+			for (auto& it : map) {
 
 				const char* cstr = it.first.c_str();
 
-				bool selected = cstr == g_SelectedMesh;
+				bool selected = cstr == selectedObj;
 
 				if (ImGui::Selectable(it.first.c_str(), selected)) {
-					g_SelectedMesh = cstr;
+					selectedObj = cstr;
+					for (uint32 i = 0; i < 32; ++i) {
+						if (i < it.first.size()) name[i] = it.first[i];
+						else name[i] = '\0';
+					}
 				}
 			}
 
 			ImGui::NextColumn();
 
-			if (g_SelectedMesh != nullptr) {
-				ImGui::Text(g_SelectedMesh);
+			if (selectedObj != nullptr) {
+				ImGui::Text(selectedObj);
+				fn();
 
-				Mesh* mesh = g_Mesh[g_SelectedMesh];
-				
-				bool diffuse = mesh->HasTexture(JSH_TEXTURE_DIFFUSE_MAP);
-				bool normal = mesh->HasTexture(JSH_TEXTURE_NORMAL_MAP);
-				bool specular = mesh->HasTexture(JSH_TEXTURE_SPECULAR_MAP);
+				ImGui::InputText("Name", name, 32);
 
-				bool transparent = mesh->IsTransparent();
+				if (ImGui::Button("Update")) {
+					std::string newStr = name;
+					bool update = true;
+					if (newStr.size() == 0) update = false;
+					for (auto& it : map) {
+						if (newStr == it.first) {
+							update = false;
+						}
+					}
 
-				ImGui::Checkbox("DiffuseMapping", &diffuse);
-				mesh->EnableTexture(JSH_TEXTURE_DIFFUSE_MAP, diffuse);
-
-				ImGui::Checkbox("NormalMapping", &normal);
-				mesh->EnableTexture(JSH_TEXTURE_NORMAL_MAP, normal);
-
-				ImGui::Checkbox("SpecularMapping", &specular);
-				mesh->EnableTexture(JSH_TEXTURE_SPECULAR_MAP, specular);
-
-				ImGui::Checkbox("Transparent", & transparent);
-				mesh->SetTransparent(transparent);
-
-				mesh->UpdatePrimitives();
+					if (update) {
+						Obj* obj = map[selectedObj];
+						map[newStr] = obj;
+						map.erase(selectedObj);
+						for (auto& it : map) {
+							if (it.first == newStr) {
+								selectedObj = it.first.c_str();
+							}
+						}
+					}
+				}
+				if (ImGui::Button("Remove")) {
+					delete map[selectedObj];
+					map.erase(selectedObj);
+				}
 			}
 
 			ImGui::NextColumn();
@@ -856,53 +589,109 @@ namespace jshGraphics {
 		}
 		ImGui::End();
 		return result;
+	}
+
+	const char* g_SelectedMesh = nullptr;
+	void MeshInfo()
+	{
+		Mesh* mesh = g_Mesh[g_SelectedMesh];
+
+		bool diffuse = mesh->HasDiffuseMap();
+		bool normal = mesh->HasNormalMap();
+		bool specular = mesh->HasSpecularMap();
+
+		bool transparent = mesh->IsTransparent();
+
+		ImGui::Checkbox("DiffuseMapping", &diffuse);
+		mesh->EnableDiffuseMap(diffuse);
+
+		ImGui::Checkbox("NormalMapping", &normal);
+		mesh->EnableNormalMap(normal);
+
+		ImGui::Checkbox("SpecularMapping", &specular);
+		mesh->EnableSpecularMap(specular);
+
+		ImGui::Checkbox("Transparent", &transparent);
+		mesh->SetTransparent(transparent);
+
+		mesh->UpdatePrimitives();
+	}
+	bool ShowMeshImGuiWindow()
+	{
+		return ShowObjImGuiWindow<jsh::Mesh>("Meshes", g_Mesh, g_SelectedMesh, MeshInfo);
 	}
 
 	const char* g_SelectedRawData = nullptr;
-	bool ShowRawDataImGuiWindow(jsh::RawData* rawData)
+	void RawDataInfo()
 	{
-		for (auto& it : g_RawData) {
-			if (it.second == rawData) {
-				g_SelectedRawData = it.first.c_str();
-				break;
-			}
-		}
-
-		bool result = true;
-		if (ImGui::Begin("RawData")) {
-
-			ImGui::Columns(2);
-
-			for (auto& it : g_RawData) {
-				
-				const char* cstr = it.first.c_str();
-
-				bool selected = cstr == g_SelectedRawData;
-
-				if (ImGui::Selectable(it.first.c_str(), selected)) {
-					g_SelectedRawData = cstr;
-				}
-			}
-
-			ImGui::NextColumn();
-
-			if (g_SelectedRawData != nullptr) {
-				ImGui::Text(g_SelectedRawData);
-
-				RawData* rawData = g_RawData[g_SelectedRawData];
-
-				ImGui::Text((std::string("Index Count: ") + std::to_string(rawData->GetIndexCount())).c_str());
-				ImGui::Text((std::string("Triangles: ") + std::to_string(rawData->GetIndexCount() / 3)).c_str());
-
-			}
-
-			ImGui::NextColumn();
-
-			if (ImGui::Button("Close")) result = false;
-		}
-		ImGui::End();
-		return result;
+		RawData* rawData = g_RawData[g_SelectedRawData];
+		
+		ImGui::Text("Index Count = %u", rawData->GetIndexCount());
 	}
+	bool ShowRawDataImGuiWindow()
+	{
+		return ShowObjImGuiWindow("RawData", g_RawData, g_SelectedRawData, RawDataInfo);
+	}
+
+	const char* g_SelectedMaterial = nullptr;
+	void MaterialInfo()
+	{
+
+	}
+	bool ShowMaterialImGuiWindow()
+	{
+		return ShowObjImGuiWindow("Materials", g_Material, g_SelectedMaterial, MaterialInfo);
+	}
+
+	const char* g_SelectedShader = nullptr;
+	void ShaderInfo()
+	{
+
+	}
+	bool ShowShaderImGuiWindow()
+	{
+		return ShowObjImGuiWindow("Shaders", g_Shader, g_SelectedShader, ShaderInfo);
+	}
+
+	const char* g_SelectedTexture = nullptr;
+	void TextureInfo()
+	{
+
+	}
+	bool ShowTextureImGuiWindow()
+	{
+		return ShowObjImGuiWindow("Textures", g_Texture, g_SelectedTexture, TextureInfo);
+	}
+
+	template<typename Obj>
+	Obj* GetObjImGui(std::map<std::string, Obj*>& map)
+	{
+		for (auto& it : map) {
+			if (ImGui::Button(it.first.c_str())) return it.second;
+		}
+	}
+
+	jsh::Mesh* GetMeshImGui()
+	{
+		return GetObjImGui(g_Mesh);
+	}
+	jsh::RawData* GetRawDataImGui()
+	{
+		return GetObjImGui(g_RawData);
+	}
+	jsh::Material* GetMaterialImGui()
+	{
+		return GetObjImGui(g_Material);
+	}
+	jsh::Shader* GetShaderImGui()
+	{
+		return GetObjImGui(g_Shader);
+	}
+	jsh::Texture* GetTextureImGui()
+	{
+		return GetObjImGui(g_Texture);
+	}
+
 #endif
 
 }

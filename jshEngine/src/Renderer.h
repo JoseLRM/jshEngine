@@ -1,46 +1,31 @@
 #pragma once
 
-#include "common.h"
-#include "GraphicsObjects.h"
+#include "RenderGraph.h"
 
 namespace jsh {
-	class CameraComponent;
-}
 
-namespace jshRenderer {
+	class Renderer {
+	protected:
+		RenderGraph m_RenderGraph;
 
-#ifdef JSH_ENGINE
-	bool Initialize();
-	bool Close();
+		Entity m_MainCamera = 0;
 
-	void BeginFrame();
-	void EndFrame();
+	public:
+		inline void SetMainCamera(Entity cam) noexcept { m_MainCamera = cam; }
+		inline Entity GetMainCamera() const noexcept { return m_MainCamera; }
+
+		virtual bool Initialize() = 0;
+
+		virtual void Begin() = 0;
+		virtual void Render() = 0;
+		virtual void End() = 0;
+
+		virtual bool Close() = 0;
 
 #ifdef JSH_IMGUI
-	bool ShowImGuiWindow();
+		void ShowInfo() {}
 #endif
 
-#endif
-
-	void SetCamera(jsh::Entity camera);
-	jsh::CameraComponent* GetMainCamera();
-
-	namespace primitives {
-		jsh::RenderTargetView& GetMainRenderTargetView();
-		jsh::DepthStencilState& GetDefaultDepthStencilState();
-		jsh::DepthStencilState& GetDisabledDepthStencilState();
-		jsh::Resource& GetDefaultDepthStencilView();
-
-		jsh::RenderTargetView& GetOffscreenRenderTargetView();
-
-		jsh::SamplerState& GetDefaultSamplerState();
-		jsh::Viewport& GetDefaultViewport();
-
-		jsh::Resource& GetCameraBuffer();
-		jsh::Resource& GetLightBuffer();
-
-		jsh::BlendState& GetTransparentBlendState();
-		jsh::BlendState& GetDefaultBlendState();
-	}
+	};
 
 }

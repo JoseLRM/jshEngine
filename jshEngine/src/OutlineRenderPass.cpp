@@ -90,7 +90,7 @@ namespace jsh {
 			desc.Usage = JSH_USAGE_DEFAULT;
 			JSH_SUBRESOURCE_DATA sdata;
 			sdata.pSysMem = &aux;
-			jshGraphics::CreateResource(&desc, &sdata, &m_ColorBuffer);
+			jshGraphics::CreateBuffer(&desc, &sdata, &m_ColorBuffer);
 		}
 		m_InstanceBuffer.Create();
 		
@@ -135,12 +135,14 @@ namespace jsh {
 	{
 		if (m_Instances.empty()) return;
 
+		Buffer& cameraBuffer = m_pRenderGraph->GetCameraBuffer();
+
 		// MASK
 		jshGraphics::SetTopology(JSH_TOPOLOGY_TRIANGLES, cmd);
-		jshGraphics::BindViewport(jshRenderer::primitives::GetDefaultViewport(), 0u, cmd);
-		jshGraphics::BindConstantBuffer(jshRenderer::primitives::GetCameraBuffer(), JSH_GFX_SLOT_CBUFFER_CAMERA, JSH_SHADER_TYPE_VERTEX, cmd);
+		jshGraphics::BindViewport(jshGraphics::primitives::GetDefaultViewport(), 0u, cmd);
+		jshGraphics::BindConstantBuffer(cameraBuffer, JSH_GFX_SLOT_CBUFFER_CAMERA, JSH_SHADER_TYPE_VERTEX, cmd);
 		m_InstanceBuffer.Bind(JSH_SHADER_TYPE_VERTEX, cmd);
-		jshGraphics::BindRenderTargetView(m_RenderTargetView, jshRenderer::primitives::GetDefaultDepthStencilView(), cmd);
+		jshGraphics::BindRenderTargetView(m_RenderTargetView, jshGraphics::primitives::GetDefaultDepthStencilView(), cmd);
 		jshGraphics::BindDepthStencilState(m_MaskDepthStencilState, 1u, cmd);
 		jshGraphics::BindInputLayout(m_pShader->inputLayout, cmd);
 		jshGraphics::BindVertexShader(m_pShader->vs, cmd);
@@ -164,20 +166,20 @@ namespace jsh {
 			float sigma = m_Instances[i].sigma;
 
 			jshGraphics::UnbindTexture(0u, JSH_SHADER_TYPE_PIXEL, cmd);
-			jshGraphics::BindRenderTargetView(m_RenderTargetView, jshRenderer::primitives::GetDefaultDepthStencilView(), cmd);
+			jshGraphics::BindRenderTargetView(m_RenderTargetView, jshGraphics::primitives::GetDefaultDepthStencilView(), cmd);
 			jshGraphics::SetTopology(JSH_TOPOLOGY_TRIANGLES, cmd);
-			jshGraphics::BindViewport(jshRenderer::primitives::GetDefaultViewport(), 0u, cmd);
-			jshGraphics::BindConstantBuffer(jshRenderer::primitives::GetCameraBuffer(), JSH_GFX_SLOT_CBUFFER_CAMERA, JSH_SHADER_TYPE_VERTEX, cmd);
+			jshGraphics::BindViewport(jshGraphics::primitives::GetDefaultViewport(), 0u, cmd);
+			jshGraphics::BindConstantBuffer(cameraBuffer, JSH_GFX_SLOT_CBUFFER_CAMERA, JSH_SHADER_TYPE_VERTEX, cmd);
 			m_InstanceBuffer.Bind(JSH_SHADER_TYPE_VERTEX, cmd);
 			jshGraphics::ClearRenderTargetView(m_RenderTargetView, 0.f, 0.f, 0.f, 0.f, cmd);
-			jshGraphics::BindSamplerState(jshRenderer::primitives::GetDefaultSamplerState(), 0u, JSH_SHADER_TYPE_PIXEL, cmd);
+			jshGraphics::BindSamplerState(jshGraphics::primitives::GetDefaultSamplerState(), 0u, JSH_SHADER_TYPE_PIXEL, cmd);
 			jshGraphics::BindDepthStencilState(m_MaskDepthStencilState, 1u, cmd);
 			jshGraphics::BindInputLayout(m_pShader->inputLayout, cmd);
-			jshGraphics::BindDepthStencilState(jshRenderer::primitives::GetDisabledDepthStencilState(), 0u, cmd);
+			jshGraphics::BindDepthStencilState(jshGraphics::primitives::GetDisabledDepthStencilState(), 0u, cmd);
 			jshGraphics::BindVertexShader(m_pShader->vs, cmd);
 			jshGraphics::BindPixelShader(m_pShader->ps, cmd);
 			jshGraphics::BindConstantBuffer(m_ColorBuffer, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
-			jshGraphics::BindBlendState(jshRenderer::primitives::GetDefaultBlendState(), cmd);
+			jshGraphics::BindBlendState(jshGraphics::primitives::GetDefaultBlendState(), cmd);
 
 
 			for (; i < m_Instances.size(); ++i) {
@@ -193,7 +195,7 @@ namespace jsh {
 
 				// color buffer
 				vec4 color = vec4(instance.color.x, instance.color.y, instance.color.z, 1.f);
-				jshGraphics::UpdateConstantBuffer(m_ColorBuffer, &color, cmd);
+				jshGraphics::UpdateBuffer(m_ColorBuffer, &color, 0u, cmd);
 
 				jshGraphics::DrawIndexed(instance.meshComp->mesh->GetRawData()->GetIndexCount(), cmd);
 			}
@@ -214,9 +216,9 @@ namespace jsh {
 
 			m_BlurRenderPass.Render(
 				m_RenderTargetView,
-				jshRenderer::primitives::GetOffscreenRenderTargetView(),
+				jshGraphics::primitives::GetOffscreenRenderTargetView(),
 				&m_DrawDepthStencilState,
-				&jshRenderer::primitives::GetDefaultDepthStencilView(),
+				&jshGraphics::primitives::GetDefaultDepthStencilView(),
 				1u,
 				cmd);
 

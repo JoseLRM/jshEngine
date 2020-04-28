@@ -127,25 +127,25 @@ namespace jshLoader
 			aiString path0;
 			material->GetTexture(aiTextureType_DIFFUSE, 0, &path0);
 			jsh::Texture* diffuseMap = jshGraphics::CreateTexture((std::string(meshName) + "[diffuse]").c_str());
-			diffuseMap->type = JSH_TEXTURE_DIFFUSE_MAP;
 			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &diffuseMap->resource);
-			mesh->SetTexture(diffuseMap);
+			diffuseMap->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
+			mesh->SetDiffuseMap(diffuseMap);
 		}
 		if (material->GetTextureCount(aiTextureType_NORMALS) != 0) {
 			aiString path0;
 			material->GetTexture(aiTextureType_NORMALS, 0, &path0);
 			jsh::Texture* normalMap = jshGraphics::CreateTexture((std::string(meshName) + "[normal]").c_str());
-			normalMap->type = JSH_TEXTURE_NORMAL_MAP;
 			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &normalMap->resource);
-			mesh->SetTexture(normalMap);
+			normalMap->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
+			mesh->SetNormalMap(normalMap);
 		}
 		if (material->GetTextureCount(aiTextureType_SPECULAR) != 0) {
 			aiString path0;
 			material->GetTexture(aiTextureType_SPECULAR, 0, &path0);
 			jsh::Texture* specularMap = jshGraphics::CreateTexture((std::string(meshName) + "[specular]").c_str());
-			specularMap->type = JSH_TEXTURE_SPECULAR_MAP;
 			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &specularMap->resource);
-			mesh->SetTexture(specularMap);
+			specularMap->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
+			mesh->SetSpecularMap(specularMap);
 		}
 
 		// MESH CREATION
@@ -247,7 +247,7 @@ namespace jshLoader
 		}
 	}
 
-	bool LoadTexture(const char* path, jsh::Resource* texture)
+	bool LoadTexture(const char* path, jsh::TextureRes* texture)
 	{
 		int width, height, bits;
 		byte* data = stbi_load(path, &width, &height, &bits, 4);
@@ -274,7 +274,7 @@ namespace jshLoader
 		sData.pSysMem = data;
 		sData.SysMemPitch = width * 4;
 
-		jshGraphics::CreateResource(&desc, &sData, texture);
+		jshGraphics::CreateTextureRes(&desc, &sData, texture);
 
 		stbi_image_free(data);
 

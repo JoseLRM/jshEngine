@@ -34,7 +34,7 @@ namespace jsh {
 		RenderTargetView m_RenderTargetView;
 		DepthStencilState m_MaskDepthStencilState;
 		DepthStencilState m_DrawDepthStencilState;
-		Resource m_ColorBuffer;
+		Buffer m_ColorBuffer;
 
 		Shader* m_pShader;
 

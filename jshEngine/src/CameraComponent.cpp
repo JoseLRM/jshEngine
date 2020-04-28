@@ -3,6 +3,7 @@
 #include "Window.h"
 #include "Input.h"
 #include "Renderer.h"
+#include "Engine.h"
 
 namespace jsh {
 
@@ -85,12 +86,14 @@ namespace jsh {
 		m_Fov = fov;
 		m_Near = near;
 		m_Far = far;
+		m_IsOrthographic = false;
 	}
 	void CameraComponent::SetOrthographicMatrix(float width, float height) noexcept
 	{
 		m_ProjectionMatrix = XMMatrixTranspose(XMMatrixOrthographicLH(width, height, 0.f, 1.f));
 		m_Width = width;
 		m_Height = height;
+		m_IsOrthographic = true;
 	}
 
 	float CameraComponent::GetAspectRatio() const noexcept
@@ -102,6 +105,7 @@ namespace jsh {
 	{
 		if (IsOrthographic()) {
 			SetOrthographicMatrix(m_Width, m_Height);
+			m_ViewMatrix = XMMatrixTranspose(XMMatrixIdentity());
 		}
 		else {
 			SetPerspectiveMatrix(m_Fov, m_Near, m_Far);
@@ -140,7 +144,7 @@ namespace jsh {
 				m_IsOrthographic = !m_IsOrthographic;
 			}
 
-			if (ImGui::Button("Set Main Camera")) jshRenderer::SetCamera(entity);
+			if (ImGui::Button("Set Main Camera")) jshEngine::GetRenderer()->SetMainCamera(entity);
 		}
 
 #endif 

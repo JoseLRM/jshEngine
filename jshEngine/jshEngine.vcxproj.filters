@@ -40,12 +40,15 @@
     <Filter Include="Renderer\Effects">
       <UniqueIdentifier>{8e711586-5004-414e-9116-0dd3365b9661}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Renderer\RenderPasses">
+      <UniqueIdentifier>{2b18eac4-5b70-4432-879c-dcd0981a7a8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics\Objects">
+      <UniqueIdentifier>{3471d63c-4a0a-45e1-9f7e-e3980b702fc0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Graphics.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GraphicsObjects.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="src\GraphicsPrimitives.cpp">
@@ -102,16 +105,7 @@
     <ClCompile Include="src\GraphicsAPI_dx11.cpp">
       <Filter>Graphics\DirectX11</Filter>
     </ClCompile>
-    <ClCompile Include="src\LambertianRenderPass.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\OutlineRenderPass.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="src\PostProcess.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Renderer.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\RenderGraph.cpp">
@@ -135,8 +129,29 @@
     <ClCompile Include="src\BloomEffect.cpp">
       <Filter>Renderer\Effects</Filter>
     </ClCompile>
+    <ClCompile Include="src\OutlineRenderPass.cpp">
+      <Filter>Renderer\RenderPasses</Filter>
+    </ClCompile>
     <ClCompile Include="src\PostProcessRenderPass.cpp">
+      <Filter>Renderer\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GraphicsObjects.cpp">
+      <Filter>Graphics\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer3D.cpp">
       <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering3DPass.cpp">
+      <Filter>Renderer\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering2DPass.cpp">
+      <Filter>Renderer\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer2D.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh.cpp">
+      <Filter>Graphics\Objects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -147,9 +162,6 @@
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\GraphicsDesc.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\GraphicsObjects.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\GraphicsPrimitives.h">
@@ -221,9 +233,6 @@
     <ClInclude Include="src\vector.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="src\memory_pool.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="src\State.h">
       <Filter>System</Filter>
     </ClInclude>
@@ -244,12 +253,6 @@
     </ClInclude>
     <ClInclude Include="src\GraphicsAPI_dx11.h">
       <Filter>Graphics\DirectX11</Filter>
-    </ClInclude>
-    <ClInclude Include="src\LambertianRenderPass.h">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\OutlineRenderPass.h">
-      <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\PostProcess.h">
       <Filter>Renderer</Filter>
@@ -296,7 +299,49 @@
     <ClInclude Include="src\BloomEffect.h">
       <Filter>Renderer\Effects</Filter>
     </ClInclude>
+    <ClInclude Include="src\OutlineRenderPass.h">
+      <Filter>Renderer\RenderPasses</Filter>
+    </ClInclude>
     <ClInclude Include="src\PostProcessRenderPass.h">
+      <Filter>Renderer\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SpriteComponent.h">
+      <Filter>System\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\batch_pool.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GraphicsObjects.h">
+      <Filter>Graphics\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RawData.h">
+      <Filter>Graphics\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Mesh.h">
+      <Filter>Graphics\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Material.h">
+      <Filter>Graphics\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Shader.h">
+      <Filter>Graphics\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer3D.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MeshBatch.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SpriteBatch.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering2DPass.h">
+      <Filter>Renderer\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering3DPass.h">
+      <Filter>Renderer\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer2D.h">
       <Filter>Renderer</Filter>
     </ClInclude>
   </ItemGroup>
@@ -348,6 +393,12 @@
     </FxCompile>
     <FxCompile Include="src\PPColorCorrection.hlsl">
       <Filter>Graphics\Shaders\PostProcess</Filter>
+    </FxCompile>
+    <FxCompile Include="src\SpriteVertex.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\SpritePixel.hlsl">
+      <Filter>Graphics\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

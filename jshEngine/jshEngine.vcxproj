@@ -94,24 +94,27 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\BloomEffect.cpp" />
+    <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\Renderer2D.cpp" />
+    <ClCompile Include="src\Rendering2DPass.cpp" />
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\CameraComponent.cpp" />
     <ClCompile Include="src\PostProcessComponent.cpp" />
     <ClCompile Include="src\PostProcessRenderPass.cpp" />
+    <ClCompile Include="src\Renderer3D.cpp" />
     <ClCompile Include="src\stb\stb_lib.cpp" />
     <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\Debug.cpp" />
     <ClCompile Include="src\Component.cpp" />
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\Exception.cpp" />
-    <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\GraphicsAPI_dx11.cpp" />
     <ClCompile Include="src\Graphics.cpp" />
     <ClCompile Include="src\GraphicsObjects.cpp" />
     <ClCompile Include="src\GraphicsPrimitives.cpp" />
     <ClCompile Include="src\RenderGraph.cpp" />
     <ClCompile Include="src\BlurEffect.cpp" />
-    <ClCompile Include="src\LambertianRenderPass.cpp" />
+    <ClCompile Include="src\Rendering3DPass.cpp" />
     <ClCompile Include="src\OutlineRenderPass.cpp" />
     <ClCompile Include="src\PostProcess.cpp" />
     <ClCompile Include="src\ImGui\imgui.cpp" />
@@ -127,7 +130,14 @@
     <ClCompile Include="src\AssetLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\batch_pool.h" />
     <ClInclude Include="src\BloomEffect.h" />
+    <ClInclude Include="src\Renderer2D.h" />
+    <ClInclude Include="src\Rendering2DPass.h" />
+    <ClInclude Include="src\SpriteBatch.h" />
+    <ClInclude Include="src\Material.h" />
+    <ClInclude Include="src\Mesh.h" />
+    <ClInclude Include="src\MeshBatch.h" />
     <ClInclude Include="src\NameComponent.h" />
     <ClInclude Include="src\config.h" />
     <ClInclude Include="include\jshEngine.h" />
@@ -140,6 +150,10 @@
     <ClInclude Include="src\Components.h" />
     <ClInclude Include="src\PostProcessComponent.h" />
     <ClInclude Include="src\PostProcessRenderPass.h" />
+    <ClInclude Include="src\RawData.h" />
+    <ClInclude Include="src\Renderer3D.h" />
+    <ClInclude Include="src\Shader.h" />
+    <ClInclude Include="src\SpriteComponent.h" />
     <ClInclude Include="src\stb\stb_lib.h" />
     <ClInclude Include="src\Transform.h" />
     <ClInclude Include="src\Debug.h" />
@@ -158,7 +172,7 @@
     <ClInclude Include="src\GraphicsPrimitives.h" />
     <ClInclude Include="src\RenderGraph.h" />
     <ClInclude Include="src\BlurEffect.h" />
-    <ClInclude Include="src\LambertianRenderPass.h" />
+    <ClInclude Include="src\Rendering3DPass.h" />
     <ClInclude Include="src\OutlineRenderPass.h" />
     <ClInclude Include="src\PostProcess.h" />
     <ClInclude Include="src\ImGui\imconfig.h" />
@@ -178,7 +192,6 @@
     <ClInclude Include="src\vector.h" />
     <ClInclude Include="src\Window.h" />
     <ClInclude Include="src\WinLib.h" />
-    <ClInclude Include="src\memory_pool.h" />
     <ClInclude Include="src\Math.h" />
   </ItemGroup>
   <ItemGroup>
@@ -309,6 +322,22 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="src\SpritePixel.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="src\SpriteVertex.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

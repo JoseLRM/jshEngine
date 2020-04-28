@@ -21,7 +21,7 @@ namespace jsh {
 			desc.Usage = JSH_USAGE_DEFAULT;
 			JSH_SUBRESOURCE_DATA sdata;
 			sdata.pSysMem = &aux;
-			jshGraphics::CreateResource(&desc, &sdata, &m_ColorCorrectionBuffer);
+			jshGraphics::CreateBuffer(&desc, &sdata, &m_ColorCorrectionBuffer);
 		}
 	}
 
@@ -32,13 +32,13 @@ namespace jsh {
 
 	void PostProcessRenderPass::Render(CommandList cmd)
 	{
-		RenderTargetView& offscreenRTV = jshRenderer::primitives::GetOffscreenRenderTargetView();
-		RenderTargetView& mainRTV = jshRenderer::primitives::GetMainRenderTargetView();
+		RenderTargetView& offscreenRTV = jshGraphics::primitives::GetOffscreenRenderTargetView();
+		RenderTargetView& mainRTV = jshGraphics::primitives::GetMainRenderTargetView();
 
-		jshGraphics::BindViewport(jshRenderer::primitives::GetDefaultViewport(), 0u, cmd);
-		jshGraphics::BindSamplerState(jshRenderer::primitives::GetDefaultSamplerState(), 0u, JSH_SHADER_TYPE_PIXEL, cmd);
+		jshGraphics::BindViewport(jshGraphics::primitives::GetDefaultViewport(), 0u, cmd);
+		jshGraphics::BindSamplerState(jshGraphics::primitives::GetDefaultSamplerState(), 0u, JSH_SHADER_TYPE_PIXEL, cmd);
 
-		CameraComponent* camera = jshRenderer::GetMainCamera();
+		CameraComponent* camera = m_pRenderGraph->GetCurrentCamera();
 		PostProcessComponent* PP = jshScene::GetComponent<PostProcessComponent>(camera->entity);
 
 		if (PP) {
@@ -51,13 +51,13 @@ namespace jsh {
 			ccData.x = PP->GetContrast();
 			ccData.y = PP->GetBrightness();
 
-			jshGraphics::UpdateConstantBuffer(m_ColorCorrectionBuffer, &ccData, cmd);
+			jshGraphics::UpdateBuffer(m_ColorCorrectionBuffer, &ccData, 0u, cmd);
 			jshGraphics::BindConstantBuffer(m_ColorCorrectionBuffer, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
 
-			jshRenderer::PostProcess(offscreenRTV, mainRTV, nullptr, nullptr, 0u, reinterpret_cast<PixelShader*>(jshGraphics::Get("ColorCorrectionPixel")), cmd);
+			jshGraphics::PostProcess(offscreenRTV, mainRTV, nullptr, nullptr, 0u, reinterpret_cast<PixelShader*>(jshGraphics::Get("ColorCorrectionPixel")), cmd);
 		}
 		else {
-			jshRenderer::PostProcess(offscreenRTV, mainRTV, nullptr, nullptr, 0u, nullptr, cmd);
+			jshGraphics::PostProcess(offscreenRTV, mainRTV, nullptr, nullptr, 0u, nullptr, cmd);
 		}
 		
 	}

@@ -8,7 +8,7 @@ namespace jsh {
 
 		BlurEffect m_BlurEffect;
 		RenderTargetView m_RenderTargetView;
-		Resource m_BloomBuffer;
+		Buffer m_BloomBuffer;
 
 	public:
 		void Create();

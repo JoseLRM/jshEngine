@@ -1,7 +1,6 @@
 #include "Graphics.h"
 
 #include "GraphicsAPI_dx11.h"
-#include "memory_pool.h"
 #include "PostProcess.h"
 #include "Debug.h"
 #include <map>
@@ -90,8 +89,27 @@ namespace jshGraphics {
 			jshGraphics::CreateInputLayout(desc, 1u, outlineShader->vs, &outlineShader->inputLayout);
 		}
 
-		jshRenderer::Initialize();
-		jshRenderer::InitializePostProcess();
+		{
+			Shader* spriteShader = jshGraphics::CreateShader("Sprite");
+			jshGraphics::CreateVertexShader(L"SpriteVertex.cso", &spriteShader->vs);
+			jshGraphics::CreatePixelShader(L"SpritePixel.cso", &spriteShader->ps);
+
+			const JSH_INPUT_ELEMENT_DESC desc[] = {
+				{"Position", 0, JSH_FORMAT_R32G32_FLOAT, 0, true, 0u, 0u},
+				{"TM", 0, JSH_FORMAT_R32G32B32A32_FLOAT, 1, false, 0u, 1u},
+				{"TM", 1, JSH_FORMAT_R32G32B32A32_FLOAT, 1, false, 4 * sizeof(float), 1u},
+				{"TM", 2, JSH_FORMAT_R32G32B32A32_FLOAT, 1, false, 8 * sizeof(float), 1u},
+				{"TM", 3, JSH_FORMAT_R32G32B32A32_FLOAT, 1, false, 12 * sizeof(float), 1u},
+				{"Color", 0, JSH_FORMAT_R32G32B32A32_FLOAT, 1, false, 16 * sizeof(float), 1u},
+				{"TexCoord", 0, JSH_FORMAT_R32G32B32A32_FLOAT, 1, false, 20 * sizeof(float), 1u},
+				{"TextureID", 0, JSH_FORMAT_R16_UINT, 1, false, 24 * sizeof(float), 1u},
+			};
+
+			jshGraphics::CreateInputLayout(desc, 8u, spriteShader->vs, &spriteShader->inputLayout);
+		}
+
+		jshGraphics::primitives::Initialize();
+		jshGraphics::InitializePostProcess();
 
 		return result;
 	}
@@ -111,11 +129,13 @@ namespace jshGraphics {
 
 	void Begin()
 	{
+		jshImGui(jshGraphics::BeginImGui());
 		jshGraphics_dx11::Begin();
 	}
 	void End()
 	{
 		jshGraphics_dx11::End();
+		jshImGui(jshGraphics::EndImGui(jshGraphics::primitives::GetMainRenderTargetView()));
 	}
 	void Present(uint32 interval)
 	{
@@ -148,12 +168,6 @@ namespace jshGraphics {
 	}
 
 	///////////////GRAPHICS API//////////////////////////////////////
-
-	void UpdateConstantBuffer(jsh::Resource buffer, void* data, CommandList cmd)
-	{
-		jshGraphics_dx11::UpdateConstantBuffer(buffer, data, cmd);
-	}
-
 	//////////////////DRAW CALLS//////////////////
 	void DrawIndexed(uint32 indicesCount, CommandList cmd)
 	{
@@ -163,5 +177,8 @@ namespace jshGraphics {
 	{
 		jshGraphics_dx11::Draw(vertexCount, cmd);
 	}
-
+	void DrawInstanced(uint32 vertexPerInstance, uint32 instances, uint32 startVertex, uint32 startInstance, jsh::CommandList cmd)
+	{
+		jshGraphics_dx11::DrawInstanced(vertexPerInstance, instances, startVertex, startInstance, cmd);
+	}
 }

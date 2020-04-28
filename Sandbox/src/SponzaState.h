@@ -23,7 +23,7 @@ public:
 		lightComp.constantAttenuation = 500.f;
 		jsh::Entity camera = jshScene::CreateEntity(cameraComp, lightComp);
 
-		jshRenderer::SetCamera(camera);
+		jshEngine::GetRenderer()->SetMainCamera(camera);
 	}
 	void Update(float dt) override
 	{
@@ -33,7 +33,7 @@ public:
 			if (actived) jshWindow::HideMouse();
 			else jshWindow::ShowMouse();
 		}
-		if (actived) jshRenderer::GetMainCamera()->UpdateFirstPerson(0.5f, 0.5f, 350.f, 350.f, dt);
+		if (actived) jshScene::GetComponent<jsh::CameraComponent>(jshEngine::GetRenderer()->GetMainCamera())->UpdateFirstPerson(0.5f, 0.5f, 350.f, 350.f, dt);
 	}
 
 };

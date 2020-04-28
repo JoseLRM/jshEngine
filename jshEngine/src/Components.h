@@ -7,3 +7,4 @@
 #include "OutlineComponent.h"
 #include "NameComponent.h"
 #include "PostProcessComponent.h"
+#include "SpriteComponent.h"

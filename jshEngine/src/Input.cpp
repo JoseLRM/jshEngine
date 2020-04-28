@@ -128,10 +128,8 @@ namespace jshInput {
 	}
 	void MousePos(uint16 x, uint16 y)
 	{
-		g_RPos.x = g_Pos.x;
-		g_RPos.y = g_Pos.y;
-		g_Pos.x = ((float)x / jshWindow::GetWidth()) * 2.f - 1.f;
-		g_Pos.y = ((float)y / jshWindow::GetHeight()) * 2.f - 1.f;
+		g_Pos.x = ((float)x / jshWindow::GetWidth()) - 0.5f;
+		g_Pos.y = -(((float)y / jshWindow::GetHeight()) - 0.5f);
 	}
 
 	void MouseDragged(int dx, int dy)

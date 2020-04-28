@@ -116,6 +116,14 @@ namespace jshScene {
 	{
 		return _internal::DuplicateEntity(duplicated, _internal::GetEntityDataList()[duplicated].parent);
 	}
+	inline void SetLayer(jsh::Entity entity, jsh::Layer* layer)
+	{
+		_internal::GetEntityDataList()[entity].layer = layer;
+	}
+	inline jsh::Layer* GetLayer(jsh::Entity entity)
+	{
+		return _internal::GetEntityDataList()[entity].layer;
+	}
 
 	void GetEntitySons(jsh::Entity entity, jsh::vector<jsh::Entity>& entities) noexcept;
 	jsh::Entity GetEntityParent(jsh::Entity entity);
@@ -129,6 +137,12 @@ namespace jshScene {
 
 	jsh::Time GetSystemPerformance(const jsh::System& system);
 
+	// Layers
+	void CreateLayer(const char* name, int16 value);
+	jsh::Layer* GetLayer(const char* name);
+	void DestroyLayer(const char* name);
+	uint32 GetLayerCount();
+
 	// ---------------DEBUG-------------------------
 #if defined(JSH_IMGUI)
 	namespace _internal {
@@ -139,3 +153,5 @@ namespace jshScene {
 #endif
 
 }
+
+#define JSH_DEFAULT_LAYER jshScene::GetLayer("Default")

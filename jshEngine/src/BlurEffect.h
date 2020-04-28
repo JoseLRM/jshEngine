@@ -7,8 +7,8 @@ namespace jsh {
 	class BlurEffect {
 
 		RenderTargetView  m_AuxRTV;
-		Resource m_BlurBuffer;
-		Resource m_CoefficientsBuffer;
+		Buffer m_BlurBuffer;
+		Buffer m_CoefficientsBuffer;
 		SamplerState m_SamplerState;
 		BlendState m_BlendStateAlpha;
 
@@ -39,7 +39,7 @@ namespace jsh {
 		BlurEffect();
 
 		void Create();
-		void Render(RenderTargetView& input, RenderTargetView& output, DepthStencilState* dss, Resource* dsv, uint32 stencilRef, CommandList cmd);
+		void Render(RenderTargetView& input, RenderTargetView& output, DepthStencilState* dss, TextureRes* dsv, uint32 stencilRef, CommandList cmd);
 
 		inline void SetSolidMode(uint32 radius)
 		{

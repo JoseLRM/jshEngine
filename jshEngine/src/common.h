@@ -2,18 +2,6 @@
 
 #include "config.h"
 
-// debug macros
-#ifdef JSH_DEBUG
-
-#define JSH_IMGUI
-#define JSH_CONSOLE
-
-#else
-
-#define NDEBUG
-
-#endif
-
 #include <assert.h>
 
 // imgui macros

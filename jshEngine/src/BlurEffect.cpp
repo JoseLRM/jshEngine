@@ -44,7 +44,7 @@ namespace jsh {
 			desc.Usage = JSH_USAGE_DEFAULT;
 			JSH_SUBRESOURCE_DATA sdata;
 			sdata.pSysMem = &aux;
-			jshGraphics::CreateResource(&desc, &sdata, &m_BlurBuffer);
+			jshGraphics::CreateBuffer(&desc, &sdata, &m_BlurBuffer);
 		}
 		// coefficients buffer
 		{
@@ -58,7 +58,7 @@ namespace jsh {
 			desc.Usage = JSH_USAGE_DEFAULT;
 			JSH_SUBRESOURCE_DATA sdata;
 			sdata.pSysMem = &aux;
-			jshGraphics::CreateResource(&desc, &sdata, &m_CoefficientsBuffer);
+			jshGraphics::CreateBuffer(&desc, &sdata, &m_CoefficientsBuffer);
 		}
 		// sampler state
 		{
@@ -88,7 +88,7 @@ namespace jsh {
 		}
 	}
 
-	void BlurEffect::Render(RenderTargetView& input, RenderTargetView& output, DepthStencilState* dss, Resource* dsv, uint32 stencilRef, CommandList cmd)
+	void BlurEffect::Render(RenderTargetView& input, RenderTargetView& output, DepthStencilState* dss, TextureRes* dsv, uint32 stencilRef, CommandList cmd)
 	{
 		assert(input.IsValid() && output.IsValid());
 
@@ -102,7 +102,7 @@ namespace jsh {
 		}
 		else {
 			blurPS = (PixelShader*)jshGraphics::Get("BlurPixel");
-			jshGraphics::BindBlendState(jshRenderer::primitives::GetDefaultBlendState(), cmd);
+			jshGraphics::BindBlendState(jshGraphics::primitives::GetDefaultBlendState(), cmd);
 		}
 
 		jshGraphics::ClearRenderTargetView(m_AuxRTV, 0.f, 0.f, 0.f, 0.f, cmd);
@@ -119,22 +119,22 @@ namespace jsh {
 		else if (m_BlurMode == 2 || m_BlurMode == 3) LoadCoefficientsBoxMode(coefficientsData);
 		else LoadCoefficientsSolidMode(coefficientsData);
 
-		jshGraphics::UpdateConstantBuffer(m_BlurBuffer, &blurData, cmd);
-		jshGraphics::UpdateConstantBuffer(m_CoefficientsBuffer, &coefficientsData, cmd);
+		jshGraphics::UpdateBuffer(m_BlurBuffer, &blurData, 0u, cmd);
+		jshGraphics::UpdateBuffer(m_CoefficientsBuffer, &coefficientsData,0u, cmd);
 		jshGraphics::BindConstantBuffer(m_BlurBuffer, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
 		jshGraphics::BindConstantBuffer(m_CoefficientsBuffer, 1u, JSH_SHADER_TYPE_PIXEL, cmd);
 
 		jshGraphics::BindSamplerState(m_SamplerState, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
 		
-		jshRenderer::PostProcess(input, m_AuxRTV, nullptr, nullptr, 0u, blurPS, cmd);		
+		jshGraphics::PostProcess(input, m_AuxRTV, nullptr, nullptr, 0u, blurPS, cmd);		
 
 		blurData.offset = 1.f / 720.f;
 		blurData.horizontal = false;
-		jshGraphics::UpdateConstantBuffer(m_BlurBuffer, &blurData, cmd);
+		jshGraphics::UpdateBuffer(m_BlurBuffer, &blurData, 0u, cmd);
 
-		if(alphaMode) jshGraphics::BindBlendState(jshRenderer::primitives::GetTransparentBlendState(), cmd);
+		if(alphaMode) jshGraphics::BindBlendState(jshGraphics::primitives::GetTransparentBlendState(), cmd);
 
-		jshRenderer::PostProcess(m_AuxRTV, output, dss, dsv, stencilRef, blurPS, cmd);
+		jshGraphics::PostProcess(m_AuxRTV, output, dss, dsv, stencilRef, blurPS, cmd);
 
 	}
 

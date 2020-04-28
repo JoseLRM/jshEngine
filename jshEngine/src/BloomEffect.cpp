@@ -43,7 +43,7 @@ namespace jsh {
 			desc.Usage = JSH_USAGE_DEFAULT;
 			JSH_SUBRESOURCE_DATA sdata;
 			sdata.pSysMem = &aux;
-			jshGraphics::CreateResource(&desc, &sdata, &m_BloomBuffer);
+			jshGraphics::CreateBuffer(&desc, &sdata, &m_BloomBuffer);
 		}
 
 		m_BlurEffect.Create();
@@ -54,19 +54,19 @@ namespace jsh {
 		m_BlurEffect.SetAlphaGaussianMode(radius, sigma);
 
 		jshGraphics::ClearRenderTargetView(m_RenderTargetView, 0.f, 0.f, 0.f, 0.f, cmd);
-		jshGraphics::BindBlendState(jshRenderer::primitives::GetDefaultBlendState(), cmd);
-		jshGraphics::BindViewport(jshRenderer::primitives::GetDefaultViewport(), 0u, cmd);
+		jshGraphics::BindBlendState(jshGraphics::primitives::GetDefaultBlendState(), cmd);
+		jshGraphics::BindViewport(jshGraphics::primitives::GetDefaultViewport(), 0u, cmd);
 
 		jshGraphics::BindConstantBuffer(m_BloomBuffer, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
 		
 		jsh::vec4 i;
 		i.x = intensity;
-		jshGraphics::UpdateConstantBuffer(m_BloomBuffer, &i, cmd);
+		jshGraphics::UpdateBuffer(m_BloomBuffer, &i, 0, cmd);
 
 		PixelShader* ps = reinterpret_cast<PixelShader*>(jshGraphics::Get("BloomEffectPixel"));
-		jshRenderer::PostProcess(input, m_RenderTargetView, nullptr, nullptr, 0u, ps, cmd);
+		jshGraphics::PostProcess(input, m_RenderTargetView, nullptr, nullptr, 0u, ps, cmd);
 
-		jshGraphics::BindBlendState(jshRenderer::primitives::GetTransparentBlendState(), cmd);
+		jshGraphics::BindBlendState(jshGraphics::primitives::GetTransparentBlendState(), cmd);
 
 		jshGraphics::UnbindTexture(0u, JSH_SHADER_TYPE_PIXEL, cmd);
 		m_BlurEffect.Render(m_RenderTargetView, input, nullptr, nullptr, 0u, cmd);

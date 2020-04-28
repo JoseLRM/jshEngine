@@ -12,11 +12,12 @@
 namespace jsh {
 
 	class System {
+	public:
+		static uint32 s_SystemCount;
+
 #ifdef JSH_ENGINE
 	public:
 #endif
-		static uint32 s_SystemCount;
-
 		jsh::vector<uint16> m_RequestedComponents;
 		jsh::vector<uint16> m_OptionalComponents;
 

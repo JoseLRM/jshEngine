@@ -43,8 +43,6 @@ namespace jshDebug {
 
 #ifdef JSH_IMGUI
 	void ShowImGuiWindow();
-
-	void ShowMeshImGuiWindow(jsh::Mesh* mesh);
 #endif
 
 }

@@ -6,6 +6,7 @@
 
 namespace jsh {
 	class State;
+	class Renderer;
 }
 
 namespace jshEngine {
@@ -20,6 +21,13 @@ namespace jshEngine {
 
 	uint32 GetFPS();
 	float GetDeltaTime();
+
+	// renderer
+	void SetRenderer(jsh::Renderer* renderer);
+	void SetDefaultRenderer2D();
+	void SetDefaultRenderer3D();
+
+	jsh::Renderer* GetRenderer();
 
 	// fixedUpdate methods
 	void SetFixedUpdateFrameRate(uint32 frameRate);

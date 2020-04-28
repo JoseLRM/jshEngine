@@ -4,8 +4,6 @@
 
 namespace jsh {
 
-	struct RenderState;
-
 	typedef uint32 CommandList;
 
 	struct GraphicsPrimitive {
@@ -14,6 +12,12 @@ namespace jsh {
 	};
 
 	struct Resource : public GraphicsPrimitive {};
+	struct Buffer : public Resource {
+		JSH_BUFFER_DESC desc;
+	};
+	struct TextureRes : public Resource {
+		JSH_TEXTURE2D_DESC desc;
+	};
 
 	struct InputLayout : public GraphicsPrimitive {};
 
@@ -38,11 +42,13 @@ namespace jshGraphics {
 	jsh::CommandList BeginCommandList();
 
 	/////////////////////////BUFFER//////////////////////
-	void CreateResource(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Resource* buffer);
+	void CreateBuffer(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Buffer* buffer);
 
-	void BindVertexBuffer(const jsh::Resource& buffer, uint32 slot, jsh::CommandList cmd);
-	void BindIndexBuffer(const jsh::Resource& buffer, jsh::CommandList cmd);
-	void BindConstantBuffer(const jsh::Resource& buffer, uint32 slot, JSH_SHADER_TYPE constShaderType, jsh::CommandList cmd);
+	void BindVertexBuffer(const jsh::Buffer& buffer, uint32 slot, jsh::CommandList cmd);
+	void BindIndexBuffer(const jsh::Buffer& buffer, jsh::CommandList cmd);
+	void BindConstantBuffer(const jsh::Buffer& buffer, uint32 slot, JSH_SHADER_TYPE constShaderType, jsh::CommandList cmd);
+
+	void UpdateBuffer(jsh::Buffer& res, void* data, uint32 size, jsh::CommandList cmd);
 
 	/////////////////////////INPUTLAYOUT////////////////////////
 	void CreateInputLayout(const JSH_INPUT_ELEMENT_DESC* descriptors, uint32 cant, jsh::VertexShader& vs, jsh::InputLayout* il);
@@ -55,8 +61,8 @@ namespace jshGraphics {
 	void BindPixelShader(const jsh::PixelShader& ps, jsh::CommandList cmd);
 
 	/////////////////////////TEXTURE////////////////////////
-	void CreateResource(const JSH_TEXTURE2D_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Resource* tex);
-	void BindTexture(const jsh::Resource& texture, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
+	void CreateTextureRes(const JSH_TEXTURE2D_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::TextureRes* tex);
+	void BindTexture(const jsh::TextureRes& texture, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 	void BindTexture(const jsh::RenderTargetView& rtv, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 	void UnbindTexture(uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 
@@ -75,7 +81,7 @@ namespace jshGraphics {
 	/////////////////////////DEPTHSTENCIL STATE////////////////////////
 	void CreateDepthStencilState(const JSH_DEPTH_STENCIL_DESC* desc, jsh::DepthStencilState* dss);
 	void BindDepthStencilState(const jsh::DepthStencilState& dsState, uint32 stencilRef, jsh::CommandList cmd);
-	void ClearDepthStencilView(const jsh::Resource& tex, jsh::CommandList cmd);
+	void ClearDepthStencilView(const jsh::TextureRes& tex, jsh::CommandList cmd);
 
 	/////////////////////////RASTERIZER STATE////////////////////////
 	void CreateRasterizerState(const JSH_RASTERIZER_DESC* desc, jsh::RasterizerState* rs);
@@ -85,9 +91,45 @@ namespace jshGraphics {
 	void CreateRenderTargetView(const JSH_RENDER_TARGET_VIEW_DESC* desc, const JSH_TEXTURE2D_DESC* texDesc, jsh::RenderTargetView* rtv);
 	void CreateRenderTargetViewFromBackBuffer(JSH_RENDER_TARGET_VIEW_DESC* desc, jsh::RenderTargetView* rtv);
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd);
-	void BindRenderTargetView(const jsh::RenderTargetView& rtv, const jsh::Resource& tex, jsh::CommandList cmd);
+	void BindRenderTargetView(const jsh::RenderTargetView& rtv, const jsh::TextureRes& tex, jsh::CommandList cmd);
 	void ClearRenderTargetView(const jsh::RenderTargetView& rtv, float r, float g, float b, float a, jsh::CommandList cmd);
 
-	const jsh::RenderState& GetRenderState();
+	//////////////////////////DEFAULT PRIMITIVES///////////////////////
+	class primitives {
+		static jsh::Buffer s_QuadBuffer;
 
+		static jsh::RenderTargetView s_MainRenderTargetView;
+		static jsh::DepthStencilState s_DefaultDepthStencilState;
+		static jsh::DepthStencilState s_DisabledDepthStencilState;
+
+		static jsh::TextureRes s_DefaultDepthStencilView;
+		static jsh::RenderTargetView s_OffscreenRenderTargetView;
+
+		static jsh::SamplerState s_DefaultSamplerState;
+		static jsh::Viewport s_DefaultViewport;
+
+		static jsh::BlendState s_TransparentBlendState;
+		static jsh::BlendState s_DefaultBlendState;
+
+#ifdef JSH_ENGINE
+	public:
+#endif
+		static void Initialize();
+
+	public:
+		inline static jsh::Buffer& GetQuadBuffer() { return s_QuadBuffer; }
+		
+		inline static jsh::RenderTargetView& GetMainRenderTargetView() { return s_MainRenderTargetView; }
+		inline static jsh::DepthStencilState& GetDefaultDepthStencilState() { return s_DefaultDepthStencilState; }
+		inline static jsh::DepthStencilState& GetDisabledDepthStencilState() { return s_DisabledDepthStencilState; }
+		inline static jsh::TextureRes& GetDefaultDepthStencilView() { return s_DefaultDepthStencilView; }
+
+		inline static jsh::RenderTargetView& GetOffscreenRenderTargetView() { return s_OffscreenRenderTargetView; }
+
+		inline static jsh::SamplerState& GetDefaultSamplerState() { return s_DefaultSamplerState; }
+		inline static jsh::Viewport& GetDefaultViewport() { return s_DefaultViewport; }
+
+		inline static jsh::BlendState& GetTransparentBlendState() { return s_TransparentBlendState; }
+		inline static jsh::BlendState& GetDefaultBlendState() { return s_TransparentBlendState; }
+	};
 }

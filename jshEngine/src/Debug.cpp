@@ -63,9 +63,10 @@ namespace jshDebug {
 	bool g_ShowEntities = false;
 	bool g_ShowSystems = false;
 	bool g_ShowMeshes = false;
-	jsh::Mesh* g_InitialMesh = nullptr;
 	bool g_ShowRawData = false;
-	jsh::RawData* g_InitialRawData = nullptr;
+	bool g_ShowMaterials = false;
+	bool g_ShowShaders = false;
+	bool g_ShowTextures = false;
 	bool g_ShowRenderer = false;
 	bool g_ShowImGuiDemo = false;
 
@@ -77,8 +78,16 @@ namespace jshDebug {
 			if (ImGui::Button("Task System")) g_ShowTaskSystem = !g_ShowTaskSystem;
 			if (ImGui::Button("Entities")) g_ShowEntities = !g_ShowEntities;
 			if (ImGui::Button("Systems")) g_ShowSystems = !g_ShowSystems;
-			if (ImGui::Button("Meshes")) g_ShowMeshes = !g_ShowMeshes;
-			if (ImGui::Button("RawData")) g_ShowRawData = !g_ShowRawData;
+
+			if (ImGui::BeginMenu("Gfx Objects")) {
+				if (ImGui::Button("Meshes")) g_ShowMeshes = !g_ShowMeshes;
+				if (ImGui::Button("RawData")) g_ShowRawData = !g_ShowRawData;
+				if (ImGui::Button("Materials")) g_ShowMaterials = !g_ShowMaterials;
+				if (ImGui::Button("Shaders")) g_ShowShaders = !g_ShowShaders;
+				if (ImGui::Button("Textures")) g_ShowTextures = !g_ShowTextures;
+
+				ImGui::EndMenu();
+			}
 			if (ImGui::Button("Renderer")) g_ShowRenderer = !g_ShowRenderer;
 
 			if (ImGui::Button("ImGui Demo")) g_ShowImGuiDemo = !g_ShowImGuiDemo;
@@ -95,22 +104,18 @@ namespace jshDebug {
 		if (g_ShowTaskSystem) g_ShowTaskSystem = jshTask::ShowImGuiWindow();
 		if (g_ShowEntities) g_ShowEntities = jshScene::ShowImGuiEntityWindow();
 		if (g_ShowSystems) g_ShowSystems = jshScene::ShowImGuiSystemsWindow();
-		if (g_ShowMeshes) {
-			g_ShowMeshes = jshGraphics::ShowMeshImGuiWindow(g_InitialMesh);
-			g_InitialMesh = nullptr;
+		if (g_ShowMeshes) g_ShowMeshes = jshGraphics::ShowMeshImGuiWindow();
+		if (g_ShowRawData) g_ShowRawData = jshGraphics::ShowRawDataImGuiWindow();
+		if (g_ShowMaterials) g_ShowMaterials = jshGraphics::ShowMaterialImGuiWindow();
+		if (g_ShowShaders) g_ShowShaders = jshGraphics::ShowShaderImGuiWindow();
+		if (g_ShowTextures) g_ShowTextures = jshGraphics::ShowTextureImGuiWindow();
+		if (g_ShowRenderer) {
+			if (ImGui::Begin("Renderer")) {
+				jshEngine::GetRenderer()->ShowInfo();
+			}
+			ImGui::End();
 		}
-		if (g_ShowRawData) {
-			g_ShowRawData = jshGraphics::ShowRawDataImGuiWindow(g_InitialRawData);
-			g_InitialRawData = nullptr;
-		}
-		if (g_ShowRenderer) g_ShowRenderer = jshRenderer::ShowImGuiWindow();
 		if (g_ShowImGuiDemo) ImGui::ShowDemoWindow(&g_ShowImGuiDemo);
-	}
-
-	void ShowMeshImGuiWindow(jsh::Mesh* mesh)
-	{
-		g_ShowMeshes = true;
-		g_InitialMesh = mesh;
 	}
 
 #endif

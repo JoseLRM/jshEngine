@@ -9,15 +9,13 @@ using namespace jsh;
 
 namespace jshGraphics {
 
-	RenderState g_State;
-
 	/////////////////////////BUFFER//////////////////////
-	void CreateResource(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Resource* buffer)
+	void CreateBuffer(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Buffer* buffer)
 	{
 		switch (jshGraphics::GetAPI()) {
 
 		case JSH_GRAPHCS_API_DIRECTX11:
-			jshGraphics_dx11::CreateResource(desc, sdata, buffer);
+			jshGraphics_dx11::CreateBuffer(desc, sdata, buffer);
 			return;
 		case JSH_GRAPHCS_API_NULL:
 		default:
@@ -25,7 +23,7 @@ namespace jshGraphics {
 		}
 	}
 
-	void BindVertexBuffer(const jsh::Resource& buffer, uint32 slot, CommandList cmd)
+	void BindVertexBuffer(const jsh::Buffer& buffer, uint32 slot, CommandList cmd)
 	{
 		switch (jshGraphics::GetAPI())
 		{
@@ -39,7 +37,7 @@ namespace jshGraphics {
 			return;
 		}
 	}
-	void BindIndexBuffer(const jsh::Resource& buffer, CommandList cmd)
+	void BindIndexBuffer(const jsh::Buffer& buffer, CommandList cmd)
 	{
 		switch (jshGraphics::GetAPI())
 		{
@@ -52,7 +50,7 @@ namespace jshGraphics {
 			return;
 		}
 	}
-	void BindConstantBuffer(const jsh::Resource& buffer, uint32 slot, JSH_SHADER_TYPE shaderType, CommandList cmd)
+	void BindConstantBuffer(const jsh::Buffer& buffer, uint32 slot, JSH_SHADER_TYPE shaderType, CommandList cmd)
 	{
 		switch (jshGraphics::GetAPI())
 		{
@@ -64,6 +62,10 @@ namespace jshGraphics {
 			throw jshGfxNullAPIException;
 			return;
 		}
+	}
+	void UpdateBuffer(jsh::Buffer& res, void* data, uint32 size, jsh::CommandList cmd)
+	{
+		jshGraphics_dx11::UpdateBuffer(res, data, size, cmd);
 	}
 
 	/////////////////////////INPUTLAYOUT//////////////////////
@@ -95,11 +97,11 @@ namespace jshGraphics {
 	}
 
 	/////////////////////////TEXTURE////////////////////////
-	void CreateResource(const JSH_TEXTURE2D_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Resource* tex)
+	void CreateTextureRes(const JSH_TEXTURE2D_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::TextureRes* tex)
 	{
-		jshGraphics_dx11::CreateResource(desc, sdata, tex);
+		jshGraphics_dx11::CreateTextureRes(desc, sdata, tex);
 	}
-	void BindTexture(const Resource& texture, uint32 slot, JSH_SHADER_TYPE shaderType, CommandList cmd)
+	void BindTexture(const TextureRes& texture, uint32 slot, JSH_SHADER_TYPE shaderType, CommandList cmd)
 	{
 		jshGraphics_dx11::BindTexture(texture, slot, shaderType, cmd);
 	}
@@ -150,7 +152,7 @@ namespace jshGraphics {
 	{
 		jshGraphics_dx11::BindDepthStencilState(dsState, stencilRef, cmd);
 	}
-	void ClearDepthStencilView(const jsh::Resource& tex, jsh::CommandList cmd)
+	void ClearDepthStencilView(const jsh::TextureRes& tex, jsh::CommandList cmd)
 	{
 		jshGraphics_dx11::ClearDepthStencilView(tex, cmd);
 	}
@@ -177,21 +179,158 @@ namespace jshGraphics {
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd)
 	{
 		jshGraphics_dx11::BindRenderTargetView(rtv, cmd);
-		g_State.renderTargetView[0] = rtv;
 	}
-	void BindRenderTargetView(const jsh::RenderTargetView& rtv, const jsh::Resource& tex, jsh::CommandList cmd)
+	void BindRenderTargetView(const jsh::RenderTargetView& rtv, const jsh::TextureRes& tex, jsh::CommandList cmd)
 	{
 		jshGraphics_dx11::BindRenderTargetView(rtv, tex, cmd);
-		g_State.renderTargetView[0] = rtv;
 	}
 	void ClearRenderTargetView(const jsh::RenderTargetView& rtv, float r, float g, float b, float a, jsh::CommandList cmd)
 	{
 		jshGraphics_dx11::ClearRenderTargetView(rtv, r, g, b, a, cmd);
 	}
 
-	const RenderState& GetRenderState()
+	//////////////////////////DEFAULT PRIMITIVES///////////////////////
+	void primitives::Initialize()
 	{
-		return g_State;
+		// QUAD 2D BUFFER
+		{
+			float data[] = {
+				-0.5f,  0.5f,
+				 0.5f,  0.5f,
+				-0.5f, -0.5f,
+				 0.5f, -0.5f
+			};
+
+			JSH_BUFFER_DESC desc;
+			desc.BindFlags = JSH_BIND_VERTEX_BUFFER;
+			desc.ByteWidth = 8 * sizeof(float);
+			desc.CPUAccessFlags = 0u;
+			desc.MiscFlags = 0u;
+			desc.StructureByteStride = 2 * sizeof(float);
+			desc.Usage = JSH_USAGE_IMMUTABLE;
+			JSH_SUBRESOURCE_DATA sdata;
+			sdata.pSysMem = data;
+			jshGraphics::CreateBuffer(&desc, &sdata, &s_QuadBuffer);
+		}
+		// MAIN FRAME BUFFER
+		{
+			JSH_RENDER_TARGET_VIEW_DESC rtvDesc;
+			jshZeroMemory(&rtvDesc, sizeof(JSH_RENDER_TARGET_VIEW_DESC));
+			rtvDesc.Format = JSH_FORMAT_B8G8R8A8_UNORM;
+			rtvDesc.ViewDimension = JSH_RTV_DIMENSION_TEXTURE2D;
+			rtvDesc.Texture2D.MipSlice = 0u;
+
+			JSH_DEPTH_STENCIL_DESC dsDesc;
+			jshZeroMemory(&dsDesc, sizeof(JSH_DEPTH_STENCIL_DESC));
+			dsDesc.DepthEnable = true;
+			dsDesc.DepthFunc = JSH_COMPARISON_LESS;
+			dsDesc.DepthWriteMask = JSH_DEPTH_WRITE_MASK_ALL;
+			dsDesc.StencilEnable = false;
+
+			JSH_TEXTURE2D_DESC dsResDesc;
+			jshZeroMemory(&dsResDesc, sizeof(JSH_TEXTURE2D_DESC));
+			dsResDesc.ArraySize = 1u;
+			dsResDesc.BindFlags = JSH_BIND_DEPTH_STENCIL;
+			dsResDesc.CPUAccessFlags = 0u;
+			dsResDesc.Format = JSH_FORMAT_D24_UNORM_S8_UINT;
+			dsResDesc.Width = 1080;
+			dsResDesc.Height = 720;
+			dsResDesc.MipLevels = 1u;
+			dsResDesc.MiscFlags = 0u;
+			dsResDesc.SampleDesc.Count = 1u;
+			dsResDesc.SampleDesc.Quality = 0u;
+			dsResDesc.Usage = JSH_USAGE_DEFAULT;
+
+			jshGraphics::CreateRenderTargetViewFromBackBuffer(&rtvDesc, &s_MainRenderTargetView);
+			jshGraphics::CreateDepthStencilState(&dsDesc, &s_DefaultDepthStencilState);
+			jshGraphics::CreateTextureRes(&dsResDesc, nullptr, &s_DefaultDepthStencilView);
+		}
+
+		// DISABLED DSS
+		{
+			JSH_DEPTH_STENCIL_DESC desc;
+			jshZeroMemory(&desc, sizeof(JSH_DEPTH_STENCIL_DESC));
+			desc.DepthEnable = false;
+			desc.StencilEnable = false;
+			desc.DepthWriteMask = JSH_DEPTH_WRITE_MASK_ZERO;
+			jshGraphics::CreateDepthStencilState(&desc, &s_DisabledDepthStencilState);
+		}
+
+		// OFFSREEN RTV
+		{
+			JSH_RENDER_TARGET_VIEW_DESC rtvDesc;
+			rtvDesc.Format = JSH_FORMAT_R8G8B8A8_UNORM;
+			rtvDesc.Texture2D.MipSlice = 0u;
+			rtvDesc.ViewDimension = JSH_RTV_DIMENSION_TEXTURE2D;
+
+			JSH_TEXTURE2D_DESC res;
+			res.ArraySize = 1u;
+			res.BindFlags = JSH_BIND_RENDER_TARGET | JSH_BIND_SHADER_RESOURCE;
+			res.CPUAccessFlags = 0u;
+			res.Format = JSH_FORMAT_R8G8B8A8_UNORM;
+			res.Width = 1080;
+			res.Height = 720;
+			res.MipLevels = 1u;
+			res.MiscFlags = 0u;
+			res.SampleDesc.Count = 1u;
+			res.SampleDesc.Quality = 0u;
+			res.Usage = JSH_USAGE_DEFAULT;
+
+			jshGraphics::CreateRenderTargetView(&rtvDesc, &res, &s_OffscreenRenderTargetView);
+		}
+
+		// DEFAULT SAMPLER & VIEWPORT
+		{
+			JSH_SAMPLER_DESC samplerDesc;
+			jshZeroMemory(&samplerDesc, sizeof(JSH_SAMPLER_DESC));
+			samplerDesc.AddressU = JSH_TEXTURE_ADDRESS_BORDER;
+			samplerDesc.AddressV = JSH_TEXTURE_ADDRESS_BORDER;
+			samplerDesc.AddressW = JSH_TEXTURE_ADDRESS_BORDER;
+			samplerDesc.Filter = JSH_FILTER_MIN_MAG_MIP_LINEAR;
+			jshGraphics::CreateSamplerState(&samplerDesc, &s_DefaultSamplerState);
+			jshGraphics::CreateViewport(0, 0, 1080, 720, &s_DefaultViewport);
+		}
+
+		// DEFAULT BLEND STATES
+		{
+			JSH_BLEND_DESC desc;
+			jshZeroMemory(&desc, sizeof(JSH_BLEND_DESC));
+			desc.RenderTarget[0].BlendEnable = true;
+			desc.RenderTarget[0].SrcBlend = JSH_BLEND_SRC_ALPHA;
+			desc.RenderTarget[0].DestBlend = JSH_BLEND_INV_SRC_ALPHA;
+			desc.RenderTarget[0].BlendOp = JSH_BLEND_OP_ADD;
+			desc.RenderTarget[0].RenderTargetWriteMask = JSH_COLOR_WRITE_ENABLE_ALL;
+
+			desc.RenderTarget[0].SrcBlendAlpha = JSH_BLEND_ONE;
+			desc.RenderTarget[0].DestBlendAlpha = JSH_BLEND_ZERO;
+			desc.RenderTarget[0].BlendOpAlpha = JSH_BLEND_OP_ADD;
+
+			jshGraphics::CreateBlendState(&desc, &s_TransparentBlendState);
+		}
+		{
+			JSH_BLEND_DESC desc;
+			jshZeroMemory(&desc, sizeof(JSH_BLEND_DESC));
+			desc.RenderTarget[0].BlendEnable = false;
+			desc.RenderTarget[0].RenderTargetWriteMask = JSH_COLOR_WRITE_ENABLE_ALL;
+
+			jshGraphics::CreateBlendState(&desc, &s_DefaultBlendState);
+		}
 	}
+
+	jsh::Buffer primitives::s_QuadBuffer;
+
+	jsh::RenderTargetView primitives::s_MainRenderTargetView;
+	jsh::DepthStencilState primitives::s_DefaultDepthStencilState;
+	jsh::DepthStencilState primitives::s_DisabledDepthStencilState;
+
+	jsh::TextureRes primitives::s_DefaultDepthStencilView;
+	jsh::RenderTargetView primitives::s_OffscreenRenderTargetView;
+
+	jsh::SamplerState primitives::s_DefaultSamplerState;
+	jsh::Viewport primitives::s_DefaultViewport;
+
+	jsh::BlendState primitives::s_TransparentBlendState;
+	jsh::BlendState primitives::s_DefaultBlendState;
+
 
 }

@@ -4,7 +4,8 @@
 #include "TaskSystem.h"
 #include "Timer.h"
 #include "Graphics.h"
-#include "Renderer.h"
+#include "Renderer2D.h"
+#include "Renderer3D.h"
 #include "Debug.h"
 #include "State.h"
 
@@ -31,6 +32,8 @@ namespace jshEngine {
 	Time g_DeltaTime = 0.f;
 	uint32 g_FixedUpdateFrameRate;
 	float g_FixedUpdateDeltaTime;
+
+	Renderer* g_pRenderer;
 
 	bool Initialize(State* initialState)
 	{
@@ -70,6 +73,9 @@ namespace jshEngine {
 				g_CurrentState = initialState;
 				initialState->Initialize();
 			}
+			
+			if(!g_pRenderer->Initialize()) return false;
+
 			jshLogI("jshEngine initialized");
 			g_Initialized = true;
 		}
@@ -98,7 +104,7 @@ namespace jshEngine {
 			g_DeltaTime = lastTime;
 			Time actualTime = 0.f;
 
-			const float SHOW_FPS_RATE = 0.1f;
+			const float SHOW_FPS_RATE = 1.0f;
 			float dtCount = 0.f;
 			float fpsCount = 0u;
 
@@ -122,10 +128,10 @@ namespace jshEngine {
 					}
 
 					// render
-					jshRenderer::BeginFrame();
+					g_pRenderer->Begin();
 					g_CurrentState->Render();
-					jshRenderer::EndFrame();
-
+					g_pRenderer->Render();
+					g_pRenderer->End();
 				}
 
 				// FPS count
@@ -133,6 +139,7 @@ namespace jshEngine {
 				fpsCount++;
 				if (dtCount >= SHOW_FPS_RATE) {
 					g_FPS = fpsCount / SHOW_FPS_RATE;
+					jshLogln("%u", g_FPS);
 					fpsCount = 0.f;
 					dtCount -= SHOW_FPS_RATE;
 				}
@@ -155,6 +162,8 @@ namespace jshEngine {
 		try {
 			if (g_Closed) return false;
 			CloseState();
+
+			if (!g_pRenderer->Close()) return false;
 
 			jshScene::Close();
 
@@ -216,6 +225,27 @@ namespace jshEngine {
 		return g_DeltaTime;
 	}
 
+	// RENDERER
+	void SetRenderer(jsh::Renderer* renderer)
+	{
+		g_pRenderer = renderer;
+		if (g_Initialized) g_pRenderer->Initialize();
+	}
+	void SetDefaultRenderer2D()
+	{
+		SetRenderer(new Renderer2D());
+	}
+	void SetDefaultRenderer3D()
+	{
+		SetRenderer(new Renderer3D());
+	}
+
+	jsh::Renderer* GetRenderer()
+	{
+		return g_pRenderer;
+	}
+
+	// FIXED UPDATE METHODS
 	void SetFixedUpdateFrameRate(uint32 frameRate)
 	{
 		g_FixedUpdateFrameRate = frameRate;

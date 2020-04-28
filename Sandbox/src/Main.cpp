@@ -1,6 +1,7 @@
 #include "jshEngine.h"
 
 #include "SponzaState.h"
+#include "State2D.h"
 
 struct State : public jsh::State {
 
@@ -13,7 +14,9 @@ struct State : public jsh::State {
 
 int main()
 {
-	jshEngine::Initialize(new State());
+	jshEngine::SetDefaultRenderer3D();
+
+	jshEngine::Initialize(new State2D());
 	jshEngine::Run();
 	jshEngine::Close();
 
@@ -85,15 +88,15 @@ jsh::Mesh* CreateTerrain() {
 void State::Initialize()
 {
 	jsh::Model model;
-	jshLoader::LoadModel("res/models/nano_textured/nanosuit.obj", "nanosuit", &model);
-	//jshLoader::LoadModel("res/models/gobber/GoblinX.obj", "Goblin", &model);
+	//jshLoader::LoadModel("res/models/nano_textured/nanosuit.obj", "nanosuit", &model);
+	jshLoader::LoadModel("res/models/gobber/GoblinX.obj", "Goblin", &model);
 
 	model.CreateEntity(jshScene::CreateEntity(jsh::NameComponent("Goblin")));
 	jsh::Entity cameraEntity = jshScene::CreateEntity(jsh::NameComponent("Camera"), jsh::CameraComponent(), jsh::LightComponent());
 
 	jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(cameraEntity);
 	camera->SetPerspectiveMatrix(70.f, 0.1f, 2000.f);
-	jshRenderer::SetCamera(cameraEntity);
+	jshEngine::GetRenderer()->SetMainCamera(cameraEntity);
 	jsh::vec3 pos = jshScene::GetTransform(cameraEntity).GetLocalPosition();
 	pos.x = -1.f;
 	pos.z = -4.f;
@@ -113,7 +116,7 @@ void State::Update(float dt)
 		else jshWindow::ShowMouse();
 	}
 	if (actived) {
-		jsh::CameraComponent* camera = jshRenderer::GetMainCamera();
+		jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(jshEngine::GetRenderer()->GetMainCamera());
 		camera->UpdateFirstPerson(0.5f, 0.5f, 5.f, 5.f, dt);
 	}
 }

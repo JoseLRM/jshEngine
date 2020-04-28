@@ -28,11 +28,13 @@ namespace jshGraphics_dx11 {
 	void SetTopology(JSH_TOPOLOGY, jsh::CommandList cmd);
 
 	/////////////////////////BUFFER//////////////////////
-	void CreateResource(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Resource* buffer);
+	void CreateBuffer(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Buffer* buffer);
 
-	void BindVertexBuffer(const jsh::Resource& buffer, uint32 slot, jsh::CommandList cmd);
-	void BindIndexBuffer(const jsh::Resource& buffer, jsh::CommandList cmd);
-	void BindConstantBuffer(const jsh::Resource& buffer, uint32 slot, JSH_SHADER_TYPE constShaderType, jsh::CommandList cmd);
+	void BindVertexBuffer(const jsh::Buffer& buffer, uint32 slot, jsh::CommandList cmd);
+	void BindIndexBuffer(const jsh::Buffer& buffer, jsh::CommandList cmd);
+	void BindConstantBuffer(const jsh::Buffer& buffer, uint32 slot, JSH_SHADER_TYPE constShaderType, jsh::CommandList cmd);
+
+	void UpdateBuffer(jsh::Buffer& res, void* data, uint32 size, jsh::CommandList cmd);
 
 	/////////////////////////INPUTLAYOUT////////////////////////
 	void CreateInputLayout(const JSH_INPUT_ELEMENT_DESC* descriptors, uint32 cant, jsh::VertexShader& vs, jsh::InputLayout* il);
@@ -45,8 +47,8 @@ namespace jshGraphics_dx11 {
 	void BindPixelShader(const jsh::PixelShader& ps, jsh::CommandList cmd);
 
 	/////////////////////////TEXTURE////////////////////////
-	void CreateResource(const JSH_TEXTURE2D_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Resource* tex);
-	void BindTexture(const jsh::Resource& texture, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
+	void CreateTextureRes(const JSH_TEXTURE2D_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::TextureRes* tex);
+	void BindTexture(const jsh::TextureRes& texture, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 	void BindTexture(const jsh::RenderTargetView& rtv, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 	void UnbindTexture(uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 
@@ -65,7 +67,7 @@ namespace jshGraphics_dx11 {
 	/////////////////////////DEPTHSTENCIL STATE////////////////////////
 	void CreateDepthStencilState(const JSH_DEPTH_STENCIL_DESC* desc, jsh::DepthStencilState* dss);
 	void BindDepthStencilState(const jsh::DepthStencilState& dsState, uint32 stencilRef, jsh::CommandList cmd);
-	void ClearDepthStencilView(const jsh::Resource& tex, jsh::CommandList cmd);
+	void ClearDepthStencilView(const jsh::TextureRes& tex, jsh::CommandList cmd);
 
 	/////////////////////////RASTERIZER STATE////////////////////////
 	void CreateRasterizerState(const JSH_RASTERIZER_DESC* desc, jsh::RasterizerState* rs);
@@ -75,14 +77,12 @@ namespace jshGraphics_dx11 {
 	void CreateRenderTargetView(const JSH_RENDER_TARGET_VIEW_DESC* desc, const JSH_TEXTURE2D_DESC* texDesc, jsh::RenderTargetView* rtv);
 	void CreateRenderTargetViewFromBackBuffer(JSH_RENDER_TARGET_VIEW_DESC* desc, jsh::RenderTargetView* rtv);
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd);
-	void BindRenderTargetView(const jsh::RenderTargetView& rtv, const jsh::Resource& tex, jsh::CommandList cmd);
+	void BindRenderTargetView(const jsh::RenderTargetView& rtv, const jsh::TextureRes& tex, jsh::CommandList cmd);
 	void ClearRenderTargetView(const jsh::RenderTargetView& rtv, float r, float g, float b, float a, jsh::CommandList cmd);
-
-	/////////////////////////METHODS////////////////////////////////////////
-	void UpdateConstantBuffer(jsh::Resource& buffer, void* data, jsh::CommandList cmd);
 
 	//////////////////////////DRAW CALLS////////////////////////////////////
 	void DrawIndexed(uint32 indicesCount, jsh::CommandList cmd);
 	void Draw(uint32 vertexCount, jsh::CommandList cmd);
+	void DrawInstanced(uint32 vertexPerInstance, uint32 instances, uint32 startVertex, uint32 startInstance, jsh::CommandList cmd);
 
 }

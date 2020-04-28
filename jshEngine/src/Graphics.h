@@ -29,9 +29,9 @@ namespace jshGraphics {
 
 	jsh::CommandList BeginCommandList();
 
-	void UpdateConstantBuffer(jsh::Resource buffer, void* data, jsh::CommandList cmd);
 	//////////////////DRAW CALLS//////////////////
 	void Draw(uint32 vertexCount, jsh::CommandList cmd);
 	void DrawIndexed(uint32 indicesCount, jsh::CommandList cmd);
+	void DrawInstanced(uint32 vertexPerInstance, uint32 instances, uint32 startVertex, uint32 startInstance, jsh::CommandList cmd);
 
 }

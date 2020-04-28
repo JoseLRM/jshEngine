@@ -2,8 +2,11 @@
 #include "TaskSystem.h"
 #include "Timer.h"
 
+namespace jsh {
+	uint32 System::s_SystemCount = 0;
+}
+
 using namespace jsh;
-uint32 jsh::System::s_SystemCount = 0;
 
 namespace jshScene {
 
@@ -16,6 +19,8 @@ namespace jshScene {
 	std::vector<std::vector<byte>> g_Components;
 
 	PerformanceTest g_PerformanceTest;
+	
+	std::map<const char*, std::unique_ptr<Layer>> g_Layers;
 
 	namespace _internal {
 		jsh::vector<jsh::Entity>& GetEntitiesList()
@@ -54,6 +59,9 @@ namespace jshScene {
 		for (uint16 id = 0; id < GetComponentsCount(); ++id) {
 			g_Components.push_back(std::vector<byte>());
 		}
+		// Create Layers
+		jshScene::CreateLayer("Default", 0);
+
 		CreateEntity(); // allocate invalid Entity :)
 	}
 
@@ -86,6 +94,7 @@ namespace jshScene {
 		}
 
 		g_EntityData[entity].transform.entity = entity;
+		g_EntityData[entity].layer = JSH_DEFAULT_LAYER;
 		g_Entities.push_back(entity, 10u);
 		return entity;
 	}
@@ -115,6 +124,7 @@ namespace jshScene {
 			g_Entities.push_back(entity);
 			EntityData ed;
 			ed.handleIndex = entityIndex + i;
+			ed.layer = JSH_DEFAULT_LAYER;
 			g_EntityData.push_back(ed);
 			ed.transform.entity = entity;
 			if (entities) entities->push_back_nr(entity);
@@ -155,6 +165,7 @@ namespace jshScene {
 		size_t index = parentData.handleIndex + parentData.sonsCount;
 		entityData.handleIndex = index;
 		entityData.transform.entity = entity;
+		entityData.layer = JSH_DEFAULT_LAYER;
 
 		// special case, the parent and sons are in back of the list
 		if (index == g_Entities.size()) {
@@ -217,6 +228,7 @@ namespace jshScene {
 			entityData.handleIndex = entityIndex++;
 			entityData.parent = parent;
 			entityData.transform.entity = entity;
+			entityData.layer = JSH_DEFAULT_LAYER;
 			g_Entities[entityData.handleIndex] = entity;
 			if (entities) entities->push_back_nr(entity);
 		}
@@ -230,6 +242,7 @@ namespace jshScene {
 			ed.handleIndex = entityIndex + i;
 			ed.parent = parent;
 			ed.transform.entity = entity;
+			ed.layer = JSH_DEFAULT_LAYER;
 			g_EntityData.push_back(ed);
 			g_Entities[ed.handleIndex] = entity;
 			if (entities) entities->push_back_nr(entity);
@@ -273,6 +286,7 @@ namespace jshScene {
 			ed.handleIndex = 0;
 			ed.parent = INVALID_ENTITY;
 			ed.sonsCount = 0u;
+			ed.layer = JSH_DEFAULT_LAYER;
 			g_FreeEntityData.push_back_nr(e);
 		}
 
@@ -736,6 +750,60 @@ namespace jshScene {
 			g_PerformanceTest.End(system->GetSystemID());
 		}
 	}
+
+	//////////////////////////////////LAYERS///////////////////////////////////////
+	void CreateLayer(const char* name, int16 value)
+	{
+		Layer layer;
+		layer.value = value;
+		layer.name = name;
+
+		auto it = g_Layers.find(name);
+		if (it != g_Layers.end()) {
+			jshLogW("Repeated Layer '%s'", name);
+			return;
+		}
+
+		g_Layers[name] = std::make_unique<Layer>(layer);
+
+		// SET IDS
+		// sort
+		jsh::vector<Layer*> layers;
+		layers.reserve(g_Layers.size());
+		for (auto& it : g_Layers) {
+			layers.push_back_nr(it.second.get());
+		}
+		std::sort(layers.data(), layers.data() + layers.size() - 1u, [](Layer* layer0, Layer* layer1) {
+			return (*layer0) < (*layer1);
+		});
+
+		// set
+		for (uint16 id = 0; id < layers.size(); ++id) {
+			layers[id]->ID = id;
+		}
+	}
+	jsh::Layer* GetLayer(const char* name)
+	{
+		auto it = g_Layers.find(name);
+		if (it == g_Layers.end()) {
+			jshLogE("Layer not found '%s'", name);
+			return nullptr;
+		}
+		return (*it).second.get();
+	}
+	void DestroyLayer(const char* name)
+	{
+		auto it = g_Layers.find(name);
+		if (it == g_Layers.end()) {
+			jshLogE("Layer not found '%s'", name);
+		}
+		g_Layers.erase(it);
+	}
+	uint32 GetLayerCount()
+	{
+		return g_Layers.size();
+	}
+
 }
 	//////////////////////////////////DEBUG////////////////////////////////
 
@@ -799,11 +867,13 @@ namespace jshScene {
 
 		if (showEntityData) {
 			if (ImGui::Begin("EntityData")) {
-				for (uint32 i = 0; i < g_EntityData.size(); ++i) {
+				for (uint32 i = 1; i < g_EntityData.size(); ++i) {
 					EntityData& ed = g_EntityData[i];
 					ImGui::Text("Entity index = %u", ed.handleIndex);
 					ImGui::Text("Sons count = %u", ed.sonsCount);
 					ImGui::Text("Parent = %u", ed.parent);
+					ImGui::Text("Position = { %f, %f, %f }", ed.transform.GetWorldPosition().x, ed.transform.GetWorldPosition().y, ed.transform.GetWorldPosition().z);
+					ImGui::Text("Layer = %s(%i)", ed.layer->name, ed.layer->value);
 
 					ImGui::Separator();
 				}
@@ -957,6 +1027,5 @@ namespace jshScene {
 		return result;
 	}
 
-#endif
-
 }
+#endif
