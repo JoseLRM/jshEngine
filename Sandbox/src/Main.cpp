@@ -119,6 +119,8 @@ void State::Update(float dt)
 		jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(jshEngine::GetRenderer()->GetMainCamera());
 		camera->UpdateFirstPerson(0.5f, 0.5f, 5.f, 5.f, dt);
 	}
+
+	if (jshInput::IsKeyPressed(JSH_KEY_F5)) jshEngine::LoadState(new State2D());
 }
 
 void State::Render()

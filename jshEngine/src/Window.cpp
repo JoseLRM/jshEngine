@@ -17,6 +17,8 @@ namespace jshWindow {
 	HWND windowHandle;
 	HWND consoleHandle;
 
+	DWORD g_Style;
+
 	int screenX = 0;
 	int screenY = 0;
 	int screenW = 1080;
@@ -103,9 +105,47 @@ namespace jshWindow {
 			}
 		}
 			break;
+
+		case WM_SIZE:
+		{
+			jsh::WindowResizedEvent e(LOWORD(lParam), HIWORD(lParam));
+			jshEvent::Dispatch(e);
+			break;
+		}
+		case WM_MOVE:
+		{
+			jsh::WindowMovedEvent e(LOWORD(lParam), HIWORD(lParam));
+			jshEvent::Dispatch(e);
+			break;
+		}
+		case WM_SETFOCUS:
+		{
+			jsh::WindowGainFocusEvent e;
+			jshEvent::Dispatch(e);
+			break;
+		}
+		case WM_KILLFOCUS:
+		{
+			jsh::WindowLostFocusEvent e;
+			jshEvent::Dispatch(e);
+			break;
+		}
 		}
 
 		return DefWindowProcW(windowHandle, message, wParam, lParam);
+	}
+
+	void AdjustWindow(int x, int y, int& w, int& h)
+	{
+		RECT rect;
+		rect.left = x;
+		rect.right = x + w;
+		rect.top = y;
+		rect.bottom = y + h;
+
+		AdjustWindowRect(&rect, g_Style, false);
+		w = rect.right - rect.left;
+		h = rect.bottom - rect.top;
 	}
 
 	bool Initialize()
@@ -126,20 +166,17 @@ namespace jshWindow {
 		RegisterClassW(&windowClass);
 
 		// create class
-		DWORD style = WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+		g_Style = WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_SIZEBOX;
 
-		RECT rect;
-		rect.left = screenX;
-		rect.right = screenX + screenW;
-		rect.top = screenY;
-		rect.bottom = screenY + screenH;
-
-		AdjustWindowRect(&rect, style, false);
+		int w, h;
+		w = screenW;
+		h = screenH;
+		AdjustWindow(screenX, screenY, w, h);
 
 	 	windowHandle = CreateWindowExW(
 			NULL, L"jshWindow", jshEngine::GetNameW(), 
-			style,
-			screenX, screenY, rect.right - rect.left, rect.bottom - rect.top, NULL, NULL, NULL, NULL
+			g_Style,
+			screenX, screenY, w, h, NULL, NULL, NULL, NULL
 		);
 		if (windowHandle == NULL) return false;
 		// show window
@@ -193,8 +230,15 @@ namespace jshWindow {
 		return consoleHandle;
 	}
 
-	void SetBounds(int x, int y, int width, int height)
+	void SetBounds(int x, int y, int width, int height, bool fullscreen)
 	{
+		int w, h;
+		w = width;
+		h = height;
+		AdjustWindow(screenX, screenY, w, h);
+
+		SetWindowPos(windowHandle, 0, x, y, w, h, 0);
+
 		screenX = x;
 		screenY = y;
 		screenW = width;
@@ -205,6 +249,7 @@ namespace jshWindow {
 	int GetY() { return screenY; }
 	int GetWidth() { return screenW; }
 	int GetHeight() { return screenH; }
+	bool InFullscreen() { return false; }
 
 	void ShowMouse()
 	{

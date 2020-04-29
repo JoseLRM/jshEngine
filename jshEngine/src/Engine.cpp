@@ -174,6 +174,7 @@ namespace jshEngine {
 			if (!jshGraphics::Close()) return false;
 
 			g_Closed = true;
+			jshLogI("jshEngine closed");
 		}
 		catch (jsh::Exception e) {
 			e.what();
@@ -208,7 +209,6 @@ namespace jshEngine {
 			delete g_CurrentState;
 			g_CurrentState = nullptr;
 		}
-		jshLogI("jshEngine closed");
 	}
 
 	State* GetCurrentState()

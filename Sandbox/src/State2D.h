@@ -101,6 +101,13 @@ public:
 		tex = jshGraphics::CreateTexture("Skybox");
 		tex->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
 		jshLoader::LoadTexture("res/textures/skybox.jpg", &tex->resource);
+
+		jshEvent::Register<jsh::WindowResizedEvent>(JSH_EVENT_LAYER_DEFAULT, [](jsh::WindowResizedEvent& e) {
+		
+			jshLogln("Window Resized: %i, %i", e.size.x, e.size.y);
+
+			return true;
+		});
 	}
 
 	void Update(float dt) override
@@ -109,6 +116,8 @@ public:
 
 		system.time += dt;
 		jshScene::UpdateSystem(&system, dt);
+
+		if (jshInput::IsKeyPressed('R')) jshWindow::SetBounds(0, 0, 1080/2, 720/2, false);
 	}
 
 	void Render() override

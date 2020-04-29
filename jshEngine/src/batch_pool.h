@@ -1,8 +1,6 @@
 #pragma once
 
 #include "vector.h"
-// temp
-#include "Debug.h"
 
 namespace jsh {
 
@@ -14,9 +12,7 @@ namespace jsh {
 			mutable T* ptr = nullptr;
 			size_t size = 0u;
 
-			Pool(size_t size) : ptr(new T[size]) {
-				jshLogln("All right borororroro");
-			}
+			Pool(size_t size) : ptr(new T[size]) {}
 			~Pool()
 			{
 				if(ptr != nullptr) delete ptr;

@@ -228,6 +228,23 @@ namespace jsh {
 		MouseButtonReleasedEvent(uint8 buttonCode) : Event(), buttonCode(buttonCode) {}
 	};
 
+	// WINDOW EVENTS
+
+	struct WindowResizedEvent : public jsh::Event {
+		jsh::ivec2 size;
+		WindowResizedEvent(int32 width, int32 height) 
+			: size(width, height) {}
+	};
+
+	struct WindowMovedEvent : public jsh::Event {
+		jsh::ivec2 pos;
+		WindowMovedEvent(int32 x, int32 y)
+			: pos(x, y) {}
+	};
+
+	struct WindowGainFocusEvent : public jsh::Event {};
+	struct WindowLostFocusEvent : public jsh::Event {};
+
 	jshEventDefineListener(KeyListener, KeyEvent);
 	jshEventDefineListener(KeyPressedListener, KeyPressedEvent);
 	jshEventDefineListener(KeyReleasedListener, KeyReleasedEvent);
@@ -237,5 +254,9 @@ namespace jsh {
 	jshEventDefineListener(MouseButtonListener, MouseButtonEvent);
 	jshEventDefineListener(MouseButtonPressedListener, MouseButtonPressedEvent);
 	jshEventDefineListener(MouseButtonReleasedListener, MouseButtonReleasedEvent);
+	jshEventDefineListener(WindowResizedListener, WindowResizedEvent);
+	jshEventDefineListener(WindowMovedListener, WindowMovedEvent);
+	jshEventDefineListener(WindowGainFocusListener, WindowGainFocusEvent);
+	jshEventDefineListener(WindowLostFocusListener, WindowLostFocusEvent);
 
 }

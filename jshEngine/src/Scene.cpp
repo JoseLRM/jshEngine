@@ -357,6 +357,10 @@ namespace jshScene {
 	{
 		return g_EntityData[entity].transform;
 	}
+	jsh::Layer* GetLayerOf(jsh::Entity entity)
+	{
+		return g_EntityData[entity].layer;
+	}
 
 	////////////////////////////////COMPONENTS////////////////////////////////
 	namespace _internal {

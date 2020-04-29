@@ -3,7 +3,7 @@
 #include "Math.h"
 
 #define JSH_DEBUG
-#define JSH_IMGUI
+//#define JSH_IMGUI
 #define JSH_CONSOLE
 #define JSH_PLATFORM_WINDOWS
 
