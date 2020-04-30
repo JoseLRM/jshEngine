@@ -4,11 +4,34 @@
 
 #include "Graphics.h"
 #include "GraphicsAPI_dx11.h"
+#include "EventSystem.h"
 
 using namespace jsh;
 
 namespace jshGraphics {
 
+	CommandList BeginCommandList()
+	{
+		return jshGraphics_dx11::BeginCommandList();
+	}
+	/////////////////////////DRAW CALLS//////////////////////
+	void DrawIndexed(uint32 indicesCount, CommandList cmd)
+	{
+		jshGraphics_dx11::DrawIndexed(indicesCount, cmd);
+	}
+	void Draw(uint32 vertexCount, jsh::CommandList cmd)
+	{
+		jshGraphics_dx11::Draw(vertexCount, cmd);
+	}
+	void DrawInstanced(uint32 vertexPerInstance, uint32 instances, uint32 startVertex, uint32 startInstance, jsh::CommandList cmd)
+	{
+		jshGraphics_dx11::DrawInstanced(vertexPerInstance, instances, startVertex, startInstance, cmd);
+	}
+
+	/////////////////////////TOPOLOGY//////////////////////
+	void SetTopology(JSH_TOPOLOGY topology, jsh::CommandList cmd) {
+		jshGraphics_dx11::SetTopology(topology, cmd);
+	}
 	/////////////////////////BUFFER//////////////////////
 	void CreateBuffer(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Buffer* buffer)
 	{
@@ -172,9 +195,9 @@ namespace jshGraphics {
 	{
 		return jshGraphics_dx11::CreateRenderTargetView(desc, texDesc, rtv);
 	}
-	void CreateRenderTargetViewFromBackBuffer(JSH_RENDER_TARGET_VIEW_DESC* desc, jsh::RenderTargetView* rtv)
+	jsh::RenderTargetView& GetRenderTargetViewFromBackBuffer()
 	{
-		return jshGraphics_dx11::CreateRenderTargetViewFromBackBuffer(desc, rtv);
+		return jshGraphics_dx11::GetRenderTargetViewFromBackBuffer();
 	}
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd)
 	{
@@ -241,7 +264,6 @@ namespace jshGraphics {
 			dsResDesc.SampleDesc.Quality = 0u;
 			dsResDesc.Usage = JSH_USAGE_DEFAULT;
 
-			jshGraphics::CreateRenderTargetViewFromBackBuffer(&rtvDesc, &s_MainRenderTargetView);
 			jshGraphics::CreateDepthStencilState(&dsDesc, &s_DefaultDepthStencilState);
 			jshGraphics::CreateTextureRes(&dsResDesc, nullptr, &s_DefaultDepthStencilView);
 		}
@@ -283,9 +305,9 @@ namespace jshGraphics {
 		{
 			JSH_SAMPLER_DESC samplerDesc;
 			jshZeroMemory(&samplerDesc, sizeof(JSH_SAMPLER_DESC));
-			samplerDesc.AddressU = JSH_TEXTURE_ADDRESS_BORDER;
-			samplerDesc.AddressV = JSH_TEXTURE_ADDRESS_BORDER;
-			samplerDesc.AddressW = JSH_TEXTURE_ADDRESS_BORDER;
+			samplerDesc.AddressU = JSH_TEXTURE_ADDRESS_WRAP;
+			samplerDesc.AddressV = JSH_TEXTURE_ADDRESS_WRAP;
+			samplerDesc.AddressW = JSH_TEXTURE_ADDRESS_WRAP;
 			samplerDesc.Filter = JSH_FILTER_MIN_MAG_MIP_LINEAR;
 			jshGraphics::CreateSamplerState(&samplerDesc, &s_DefaultSamplerState);
 			jshGraphics::CreateViewport(0, 0, 1080, 720, &s_DefaultViewport);
@@ -315,11 +337,22 @@ namespace jshGraphics {
 
 			jshGraphics::CreateBlendState(&desc, &s_DefaultBlendState);
 		}
+
+		// CHANGE RESOLUTION
+		jshEvent::Register<ResolutionEvent>(JSH_EVENT_LAYER_SYSTEM, [](ResolutionEvent& e) {
+			
+			jshGraphics::CreateViewport(0.f, 0.f, e.resolution.x, e.resolution.y, &s_DefaultViewport);
+
+			s_OffscreenRenderTargetView.resDesc.Width = e.resolution.x;
+			s_OffscreenRenderTargetView.resDesc.Height = e.resolution.y;
+			jshGraphics::CreateRenderTargetView(&s_OffscreenRenderTargetView.desc, &s_OffscreenRenderTargetView.resDesc, &s_OffscreenRenderTargetView);
+			
+			return true;
+		});
 	}
 
 	jsh::Buffer primitives::s_QuadBuffer;
 
-	jsh::RenderTargetView primitives::s_MainRenderTargetView;
 	jsh::DepthStencilState primitives::s_DefaultDepthStencilState;
 	jsh::DepthStencilState primitives::s_DisabledDepthStencilState;
 

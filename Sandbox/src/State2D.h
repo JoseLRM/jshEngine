@@ -95,16 +95,18 @@ public:
 		jshEngine::SetDefaultRenderer2D();
 		jshEngine::GetRenderer()->SetMainCamera(jshScene::CreateEntity(jsh::CameraComponent(), jsh::PostProcessComponent()));
 		jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(jshEngine::GetRenderer()->GetMainCamera());
-		camera->SetOrthographicMatrix(1080, 720);
+		camera->SetOrthographicMatrix();
+		camera->Set2D();
+		camera->SetDimension(1080, 720);
 		jshScene::GetComponent<jsh::PostProcessComponent>(jshEngine::GetRenderer()->GetMainCamera())->SetBloomEffect(true);
 		
 		tex = jshGraphics::CreateTexture("Skybox");
 		tex->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
 		jshLoader::LoadTexture("res/textures/skybox.jpg", &tex->resource);
 
-		jshEvent::Register<jsh::WindowResizedEvent>(JSH_EVENT_LAYER_DEFAULT, [](jsh::WindowResizedEvent& e) {
+		jshEvent::Register<jsh::ResolutionEvent>(JSH_EVENT_LAYER_DEFAULT, [](jsh::ResolutionEvent& e) {
 		
-			jshLogln("Window Resized: %i, %i", e.size.x, e.size.y);
+			jshLogln("Resolution: %i, %i", e.resolution.x, e.resolution.y);
 
 			return true;
 		});
@@ -112,12 +114,15 @@ public:
 
 	void Update(float dt) override
 	{
-		if (jshInput::IsKeyPressed('G')) CreateEntities(10000);
+		if (jshInput::IsKeyPressed('G')) CreateEntities(1000);
 
 		system.time += dt;
 		jshScene::UpdateSystem(&system, dt);
 
-		if (jshInput::IsKeyPressed('R')) jshWindow::SetBounds(0, 0, 1080/2, 720/2, false);
+		if (jshInput::IsKeyPressed('R')) jshGraphics::SetResolution(1080 / 2, 720 / 2);
+		if (jshInput::IsKeyPressed('T')) jshGraphics::SetResolution(1080, 720);
+		if (jshInput::IsKeyPressed('Y')) jshGraphics::SetResolution(1080 * 2, 720 * 2);
+		if (jshInput::IsKeyPressed('U')) jshGraphics::SetFullscreen(!jshGraphics::InFullscreen());
 	}
 
 	void Render() override

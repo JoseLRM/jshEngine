@@ -9,35 +9,54 @@ namespace jsh {
 		XMMATRIX m_ProjectionMatrix;
 		XMMATRIX m_ViewMatrix;
 
-		bool m_IsOrthographic = false;
+		bool m_3D = true;
+		bool m_Orthographic = false;
 
-		// orthographic projection
-		float m_Width;
-		float m_Height;
-
-		// perspective projection
-		float m_Fov;
-		float m_Near;
-		float m_Far;
+		float m_Dimension = 1080.f;
+		float m_Aspect = 1080.f / 720.f;
+		float m_Near = 0.01f;
+		float m_Far = 100000.f;
 
 	public:
-		CameraComponent();
+		void UpdateFirstPerson3D(float hSensibility, float vSensibility, float hSpeed, float vSpeed, float dt) noexcept;
 
-		void UpdateFirstPerson(float hSensibility, float vSensibility, float hSpeed, float vSpeed, float dt) noexcept;
+		inline void SetPerspectiveMatrix() noexcept { m_Orthographic = false; }
+		inline void SetOrthographicMatrix() noexcept { m_Orthographic = true; }
+		inline void Set2D() noexcept { m_3D = false; }
+		inline void Set3D() noexcept { m_3D = true; }
 
-		void SetPerspectiveMatrix(float fov, float near, float far) noexcept;
-		void SetOrthographicMatrix(float width, float height) noexcept;
+		inline bool IsOrthographic() const noexcept { return m_Orthographic; }
+		inline bool IsPerspective() const noexcept { return !m_Orthographic; }
+		inline bool Is2D() const noexcept { return !m_3D; }
+		inline bool Is3D() const noexcept { return m_3D; }
+
+		inline void SetAspect(float aspect) noexcept { m_Aspect = aspect; }
+		void SetDimension(float dimension) noexcept;
+		inline void SetDimension(float width, float height) noexcept
+		{
+			SetAspect(width / height);
+			SetDimension(width);
+		}
+		void SetNear(float near) noexcept;
+		void SetFar(float far) noexcept;
+		void SetFieldOfView(float fov) noexcept;
+
+		inline float GetAspect() const noexcept { return m_Aspect; }
+		inline float GetDimension() const noexcept { return m_Dimension; }
+		inline float GetNear() const noexcept { return m_Near; }
+		inline float GetFar() const noexcept { return m_Far; }
+		inline float GetFieldOfView() const noexcept { return ToDegrees((atan((m_Dimension / 2.f) / m_Near)) * 2.f); }
+
+		vec2 GetMousePos() const noexcept;
 
 		void UpdateMatrices() noexcept;
-
-		inline bool IsOrthographic() const noexcept { return m_IsOrthographic; }
-		inline bool IsPerspective() const noexcept { return !m_IsOrthographic; }
 
 		inline const XMMATRIX& GetProjectionMatrix() const noexcept { return m_ProjectionMatrix; }
 		inline const XMMATRIX& GetViewMatrix() const noexcept { return m_ViewMatrix; }
 
 	private:
-		float GetAspectRatio() const noexcept;
+		void UpdateMatrices2D() noexcept;
+		void UpdateMatrices3D() noexcept;
 
 #ifdef  JSH_IMGUI
 	public:

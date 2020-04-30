@@ -75,14 +75,18 @@ namespace jshGraphics_dx11 {
 
 	/////////////////////////RENDER TARGET VIEW////////////////////////
 	void CreateRenderTargetView(const JSH_RENDER_TARGET_VIEW_DESC* desc, const JSH_TEXTURE2D_DESC* texDesc, jsh::RenderTargetView* rtv);
-	void CreateRenderTargetViewFromBackBuffer(JSH_RENDER_TARGET_VIEW_DESC* desc, jsh::RenderTargetView* rtv);
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd);
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, const jsh::TextureRes& tex, jsh::CommandList cmd);
 	void ClearRenderTargetView(const jsh::RenderTargetView& rtv, float r, float g, float b, float a, jsh::CommandList cmd);
 
+	jsh::RenderTargetView& GetRenderTargetViewFromBackBuffer();
+	
 	//////////////////////////DRAW CALLS////////////////////////////////////
 	void DrawIndexed(uint32 indicesCount, jsh::CommandList cmd);
 	void Draw(uint32 vertexCount, jsh::CommandList cmd);
 	void DrawInstanced(uint32 vertexPerInstance, uint32 instances, uint32 startVertex, uint32 startInstance, jsh::CommandList cmd);
+
+	void SetResolution(uint32 width, uint32 height);
+	void SetFullscreen(bool fullscreen);
 
 }

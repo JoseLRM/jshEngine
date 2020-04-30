@@ -30,7 +30,10 @@ namespace jsh {
 
 	struct Viewport : public GraphicsPrimitive {};
 
-	struct RenderTargetView : public GraphicsPrimitive {};
+	struct RenderTargetView : public GraphicsPrimitive {
+		JSH_RENDER_TARGET_VIEW_DESC desc;
+		JSH_TEXTURE2D_DESC resDesc;
+	};
 	struct DepthStencilState : public GraphicsPrimitive {};
 	struct SamplerState : public GraphicsPrimitive {};
 	struct BlendState : public GraphicsPrimitive {};
@@ -40,6 +43,14 @@ namespace jsh {
 namespace jshGraphics {
 
 	jsh::CommandList BeginCommandList();
+
+	/////////////////////////DRAW CALLS//////////////////////
+	void Draw(uint32 vertexCount, jsh::CommandList cmd);
+	void DrawIndexed(uint32 indicesCount, jsh::CommandList cmd);
+	void DrawInstanced(uint32 vertexPerInstance, uint32 instances, uint32 startVertex, uint32 startInstance, jsh::CommandList cmd);
+
+	/////////////////////////TOPOLOGY//////////////////////
+	void SetTopology(JSH_TOPOLOGY topology, jsh::CommandList cmd);
 
 	/////////////////////////BUFFER//////////////////////
 	void CreateBuffer(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Buffer* buffer);
@@ -89,16 +100,16 @@ namespace jshGraphics {
 
 	/////////////////////////RENDER TARGET VIEW////////////////////////
 	void CreateRenderTargetView(const JSH_RENDER_TARGET_VIEW_DESC* desc, const JSH_TEXTURE2D_DESC* texDesc, jsh::RenderTargetView* rtv);
-	void CreateRenderTargetViewFromBackBuffer(JSH_RENDER_TARGET_VIEW_DESC* desc, jsh::RenderTargetView* rtv);
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd);
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, const jsh::TextureRes& tex, jsh::CommandList cmd);
 	void ClearRenderTargetView(const jsh::RenderTargetView& rtv, float r, float g, float b, float a, jsh::CommandList cmd);
+
+	jsh::RenderTargetView& GetRenderTargetViewFromBackBuffer();
 
 	//////////////////////////DEFAULT PRIMITIVES///////////////////////
 	class primitives {
 		static jsh::Buffer s_QuadBuffer;
 
-		static jsh::RenderTargetView s_MainRenderTargetView;
 		static jsh::DepthStencilState s_DefaultDepthStencilState;
 		static jsh::DepthStencilState s_DisabledDepthStencilState;
 
@@ -119,7 +130,6 @@ namespace jshGraphics {
 	public:
 		inline static jsh::Buffer& GetQuadBuffer() { return s_QuadBuffer; }
 		
-		inline static jsh::RenderTargetView& GetMainRenderTargetView() { return s_MainRenderTargetView; }
 		inline static jsh::DepthStencilState& GetDefaultDepthStencilState() { return s_DefaultDepthStencilState; }
 		inline static jsh::DepthStencilState& GetDisabledDepthStencilState() { return s_DisabledDepthStencilState; }
 		inline static jsh::TextureRes& GetDefaultDepthStencilView() { return s_DefaultDepthStencilView; }

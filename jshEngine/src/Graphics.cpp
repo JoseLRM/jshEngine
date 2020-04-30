@@ -5,16 +5,22 @@
 #include "Debug.h"
 #include <map>
 #include "Renderer.h"
-
-JSH_GRAPHICS_API g_GraphicsAPI = JSH_GRAPHCS_API_NULL;
+#include "Window.h"
+#include "EventSystem.h"
 
 using namespace jsh;
 
 namespace jshGraphics {
 
+	JSH_GRAPHICS_API g_GraphicsAPI = JSH_GRAPHCS_API_NULL;
+	uvec2 g_Resolution;
+	bool g_Fullscreen;
+
 	bool Initialize()
 	{
 		g_GraphicsAPI = JSH_GRAPHCS_API_DIRECTX11;
+
+		g_Resolution = { (uint32)jshWindow::GetWidth(), (uint32)jshWindow::GetHeight() };
 
 		bool result = jshGraphics_dx11::Initialize();
 
@@ -114,16 +120,10 @@ namespace jshGraphics {
 		return result;
 	}
 
-#ifdef JSH_IMGUI
-	bool InitializeImGui()
-	{
-		return jshGraphics_dx11::InitializeImGui();
-	}
-#endif
-
 	bool Close()
 	{
 		jshGraphics::ClearObjects();
+		jshGraphics::SetFullscreen(false);
 		return jshGraphics_dx11::Close();
 	}
 
@@ -135,7 +135,7 @@ namespace jshGraphics {
 	void End()
 	{
 		jshGraphics_dx11::End();
-		jshImGui(jshGraphics::EndImGui(jshGraphics::primitives::GetMainRenderTargetView()));
+		jshImGui(jshGraphics::EndImGui(jshGraphics::GetRenderTargetViewFromBackBuffer()));
 	}
 	void Present(uint32 interval)
 	{
@@ -143,6 +143,10 @@ namespace jshGraphics {
 	}
 
 #ifdef JSH_IMGUI
+	bool InitializeImGui()
+	{
+		return jshGraphics_dx11::InitializeImGui();
+	}
 	void BeginImGui()
 	{
 		jshGraphics_dx11::BeginImGui();
@@ -153,32 +157,43 @@ namespace jshGraphics {
 	}
 #endif
 
-	CommandList BeginCommandList()
-	{
-		return jshGraphics_dx11::BeginCommandList();
-	}
-
 	JSH_GRAPHICS_API GetAPI()
 	{
 		return g_GraphicsAPI;
 	}
 
-	void SetTopology(JSH_TOPOLOGY topology, jsh::CommandList cmd) {
-		jshGraphics_dx11::SetTopology(topology, cmd);
-	}
+	//////////////////////////RESOLUTION///////////////////////
+	void SetResolution(uint32 width, uint32 height)
+	{
+		if (width == 0 || height == 0) {
+			jshLogW("Invalid Resolution: %u, %u", width, height);
+			return;
+		}
+		if (width == g_Resolution.x && height == g_Resolution.y) return;
 
-	///////////////GRAPHICS API//////////////////////////////////////
-	//////////////////DRAW CALLS//////////////////
-	void DrawIndexed(uint32 indicesCount, CommandList cmd)
-	{
-		jshGraphics_dx11::DrawIndexed(indicesCount, cmd);
+		jshGraphics_dx11::SetResolution(width, height);
+
+		g_Resolution = uvec2(width, height);
+
+		jsh::ResolutionEvent e(width, height);
+		jshEvent::Dispatch(e);
 	}
-	void Draw(uint32 vertexCount, jsh::CommandList cmd)
+	uvec2 GetResolution()
 	{
-		jshGraphics_dx11::Draw(vertexCount, cmd);
+		return g_Resolution;
 	}
-	void DrawInstanced(uint32 vertexPerInstance, uint32 instances, uint32 startVertex, uint32 startInstance, jsh::CommandList cmd)
+	void SetFullscreen(bool fullscreen)
 	{
-		jshGraphics_dx11::DrawInstanced(vertexPerInstance, instances, startVertex, startInstance, cmd);
+		if (g_Fullscreen == fullscreen) return;
+
+		jshGraphics_dx11::SetFullscreen(fullscreen);
+		g_Fullscreen = fullscreen;
+
+		jsh::FullscreenEvent e(fullscreen);
+		jshEvent::Dispatch(e);
+	}
+	bool InFullscreen()
+	{
+		return g_Fullscreen;
 	}
 }

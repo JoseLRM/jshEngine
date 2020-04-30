@@ -15,6 +15,8 @@ namespace jshEngine {
 	void Run();
 	bool Close();
 
+	bool IsInitialized();
+
 	void CloseState();
 	void LoadState(jsh::State* state);
 	jsh::State* GetCurrentState();

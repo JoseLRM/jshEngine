@@ -225,6 +225,11 @@ namespace jshEngine {
 		return g_DeltaTime;
 	}
 
+	bool IsInitialized()
+	{
+		return g_Initialized;
+	}
+
 	// RENDERER
 	void SetRenderer(jsh::Renderer* renderer)
 	{
@@ -259,7 +264,7 @@ namespace jshEngine {
 	// VERSION
 	constexpr uint64 g_MajorVersion = 0u;
 	constexpr uint64 g_MinorVersion = 4u;
-	constexpr uint64 g_RevisionVersion = 0u;
+	constexpr uint64 g_RevisionVersion = 1u;
 
 	uint64 GetMajorVersion()
 	{

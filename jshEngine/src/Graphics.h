@@ -15,8 +15,6 @@ namespace jshGraphics {
 #endif
 
 	JSH_GRAPHICS_API GetAPI();
-	
-	void SetTopology(JSH_TOPOLOGY topology, jsh::CommandList cmd);
 
 	void Begin();
 	void End();
@@ -27,11 +25,9 @@ namespace jshGraphics {
 	void EndImGui(const jsh::RenderTargetView& rtv);
 #endif
 
-	jsh::CommandList BeginCommandList();
-
-	//////////////////DRAW CALLS//////////////////
-	void Draw(uint32 vertexCount, jsh::CommandList cmd);
-	void DrawIndexed(uint32 indicesCount, jsh::CommandList cmd);
-	void DrawInstanced(uint32 vertexPerInstance, uint32 instances, uint32 startVertex, uint32 startInstance, jsh::CommandList cmd);
+	void SetResolution(uint32 width, uint32 height);
+	jsh::uvec2 GetResolution();
+	void SetFullscreen(bool fullscreen);
+	bool InFullscreen();
 
 }

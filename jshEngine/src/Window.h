@@ -14,13 +14,12 @@ namespace jshWindow {
 	void* GetWindowHandle();
 	void* GetConsoleHandle();
 
-	void SetBounds(int x, int y, int width, int height, bool fullscreen);
+	void SetBounds(int x, int y, int width, int height);
 
 	int GetX();
 	int GetY();
 	int GetWidth();
 	int GetHeight();
-	bool InFullScreen();
 
 	void ShowMouse();
 	void HideMouse();

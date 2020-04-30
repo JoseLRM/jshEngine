@@ -7,8 +7,10 @@
 
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_win32.h"
+#include "ImGui/imgui_impl_dx11.h"
 #include "vector.h"
 #include "Engine.h"
+#include "Graphics.h"
 
 using namespace jsh;
 
@@ -29,7 +31,21 @@ namespace jshWindow {
 	LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 #ifdef JSH_IMGUI
-		ImGui_ImplWin32_WndProcHandler(windowHandle, message, wParam, lParam);
+		{
+			LPARAM newLParam = lParam;
+
+			if (message == WM_MOUSEMOVE) {
+				vec2 mPos = vec2(LOWORD(lParam), HIWORD(lParam));
+				mPos /= vec2(jshWindow::GetWidth(), jshWindow::GetHeight());
+				uvec2 aux = jshGraphics::GetResolution();
+				mPos *= vec2(aux.x, aux.y);
+				aux = uvec2(mPos.x, mPos.y);
+
+				LPARAM newLParam = *((LPARAM*)& aux.x);
+			}
+
+			ImGui_ImplWin32_WndProcHandler(windowHandle, message, wParam, newLParam);
+		}
 #endif
 
 		switch (message) {
@@ -108,13 +124,18 @@ namespace jshWindow {
 
 		case WM_SIZE:
 		{
-			jsh::WindowResizedEvent e(LOWORD(lParam), HIWORD(lParam));
+			screenW = LOWORD(lParam);
+			screenH = HIWORD(lParam);
+			jsh::WindowResizedEvent e(screenW, screenH);
 			jshEvent::Dispatch(e);
+
 			break;
 		}
 		case WM_MOVE:
 		{
-			jsh::WindowMovedEvent e(LOWORD(lParam), HIWORD(lParam));
+			screenX = LOWORD(lParam);
+			screenY = HIWORD(lParam);
+			jsh::WindowMovedEvent e(screenX, screenY);
 			jshEvent::Dispatch(e);
 			break;
 		}
@@ -230,19 +251,19 @@ namespace jshWindow {
 		return consoleHandle;
 	}
 
-	void SetBounds(int x, int y, int width, int height, bool fullscreen)
+	void SetBounds(int x, int y, int width, int height)
 	{
-		int w, h;
-		w = width;
-		h = height;
-		AdjustWindow(screenX, screenY, w, h);
-
-		SetWindowPos(windowHandle, 0, x, y, w, h, 0);
-
 		screenX = x;
 		screenY = y;
 		screenW = width;
 		screenH = height;
+
+		int w, h;
+		w = screenW;
+		h = screenH;
+		AdjustWindow(screenX, screenY, w, h);
+
+		SetWindowPos(windowHandle, 0, screenX, screenY, w, h, 0);
 	}
 
 	int GetX() { return screenX; }

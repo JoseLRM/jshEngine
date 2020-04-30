@@ -43,7 +43,6 @@ namespace jsh {
 	{
 		if (m_pMeshBatch == nullptr) return;
 
-		jsh::RenderTargetView& mainRenderTargetView = jshGraphics::primitives::GetMainRenderTargetView();
 		jsh::RenderTargetView& offscreenRenderTargetView = jshGraphics::primitives::GetOffscreenRenderTargetView();
 		jsh::DepthStencilState& depthStencilState = jshGraphics::primitives::GetDefaultDepthStencilState();
 		jsh::TextureRes& dsResource = jshGraphics::primitives::GetDefaultDepthStencilView();

@@ -1,5 +1,9 @@
 #include "Renderer2D.h"
 
+//temp 
+#include "Input.h"
+#include "Window.h"
+
 namespace jsh {
 
 	bool Renderer2D::Initialize()
@@ -23,6 +27,8 @@ namespace jsh {
 	}
 	void Renderer2D::Render()
 	{
+		CameraComponent* camera = jshScene::GetComponent<CameraComponent>(m_MainCamera);
+
 		m_SpriteBatch.Begin();
 
 		auto& spriteList = jshScene::_internal::GetComponentsList()[SpriteComponent::ID];
@@ -32,9 +38,11 @@ namespace jsh {
 			m_SpriteBatch.Draw(transform.GetWorldMatrix(), spriteComp->color, spriteComp->sprite, jshScene::GetLayerOf(spriteComp->entity));
 		}
 
+		m_SpriteBatch.Draw(camera->GetMousePos(), { 10.f, 10.f }, 0.f, { 1.f, 1.f, 1.f, 1.f }, { jsh::vec4(), nullptr }, JSH_DEFAULT_LAYER);
+
 		m_SpriteBatch.End();
 
-		m_RenderGraph.Render(jshScene::GetComponent<CameraComponent>(m_MainCamera));
+		m_RenderGraph.Render(camera);
 	}
 	void Renderer2D::End()
 	{

@@ -95,7 +95,6 @@ void State::Initialize()
 	jsh::Entity cameraEntity = jshScene::CreateEntity(jsh::NameComponent("Camera"), jsh::CameraComponent(), jsh::LightComponent());
 
 	jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(cameraEntity);
-	camera->SetPerspectiveMatrix(70.f, 0.1f, 2000.f);
 	jshEngine::GetRenderer()->SetMainCamera(cameraEntity);
 	jsh::vec3 pos = jshScene::GetTransform(cameraEntity).GetLocalPosition();
 	pos.x = -1.f;
@@ -117,10 +116,15 @@ void State::Update(float dt)
 	}
 	if (actived) {
 		jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(jshEngine::GetRenderer()->GetMainCamera());
-		camera->UpdateFirstPerson(0.5f, 0.5f, 5.f, 5.f, dt);
+		camera->UpdateFirstPerson3D(0.5f, 0.5f, 5.f, 5.f, dt);
 	}
 
 	if (jshInput::IsKeyPressed(JSH_KEY_F5)) jshEngine::LoadState(new State2D());
+
+	if (jshInput::IsKeyPressed('R')) jshGraphics::SetResolution(1080 / 2, 720 / 2);
+	if (jshInput::IsKeyPressed('T')) jshGraphics::SetResolution(1080, 720);
+	if (jshInput::IsKeyPressed('Y')) jshGraphics::SetResolution(1080 * 2, 720 * 2);
+	if (jshInput::IsKeyPressed('U')) jshGraphics::SetFullscreen(!jshGraphics::InFullscreen());
 }
 
 void State::Render()

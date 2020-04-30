@@ -245,6 +245,18 @@ namespace jsh {
 	struct WindowGainFocusEvent : public jsh::Event {};
 	struct WindowLostFocusEvent : public jsh::Event {};
 
+	// GRAPHICS EVENTS
+	struct ResolutionEvent : public jsh::Event {
+		uvec2 resolution;
+		ResolutionEvent(uint32 width, uint32 height)
+			: resolution(width, height) {}
+	};
+
+	struct FullscreenEvent : public jsh::Event {
+		bool fullscreen;
+		FullscreenEvent(bool fullscreen) : fullscreen(fullscreen) {}
+	};
+
 	jshEventDefineListener(KeyListener, KeyEvent);
 	jshEventDefineListener(KeyPressedListener, KeyPressedEvent);
 	jshEventDefineListener(KeyReleasedListener, KeyReleasedEvent);
@@ -258,5 +270,7 @@ namespace jsh {
 	jshEventDefineListener(WindowMovedListener, WindowMovedEvent);
 	jshEventDefineListener(WindowGainFocusListener, WindowGainFocusEvent);
 	jshEventDefineListener(WindowLostFocusListener, WindowLostFocusEvent);
+	jshEventDefineListener(ResolutionListener, ResolutionEvent);
+	jshEventDefineListener(FullscreenListener, FullscreenEvent);
 
 }

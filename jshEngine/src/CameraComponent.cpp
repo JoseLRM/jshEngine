@@ -7,12 +7,28 @@
 
 namespace jsh {
 
-	CameraComponent::CameraComponent() : m_ProjectionMatrix(), m_ViewMatrix(),
-		m_Width(100.f), m_Height(100.f), m_Fov(70.f), m_Near(0.1f), m_Far(2000.f) {
-		SetPerspectiveMatrix(m_Fov, m_Near, m_Far);
+	void CameraComponent::SetDimension(float dimension) noexcept
+	{
+		m_Dimension = dimension;
+	}
+	void CameraComponent::SetFieldOfView(float fov) noexcept
+	{
+		m_Near = tan(ToRadians(fov / 2.f)) * m_Dimension / 2.f;
 	}
 
-	void CameraComponent::UpdateFirstPerson(float hSensibility, float vSensibility, float hSpeed, float vSpeed, float dt) noexcept
+	void CameraComponent::SetNear(float near) noexcept 
+	{ 
+		m_Near = near; 
+	}
+	void CameraComponent::SetFar(float far) noexcept { m_Far = far; }
+
+	vec2 CameraComponent::GetMousePos() const noexcept
+	{
+		jsh::vec3 pos = jshScene::GetTransform(entity).GetWorldPosition();
+		return jshInput::MousePos() * vec2(m_Dimension, m_Dimension / m_Aspect) + vec2(pos.x, pos.y);
+	}
+
+	void CameraComponent::UpdateFirstPerson3D(float hSensibility, float vSensibility, float hSpeed, float vSpeed, float dt) noexcept
 	{
 
 		vSpeed *= dt;
@@ -80,70 +96,70 @@ namespace jsh {
 		trans.SetRotation(rot);
 	}
 
-	void CameraComponent::SetPerspectiveMatrix(float fov, float near, float far) noexcept
-	{
-		m_ProjectionMatrix = XMMatrixTranspose(XMMatrixPerspectiveFovLH(ToRadians(fov), GetAspectRatio(), near, far));
-		m_Fov = fov;
-		m_Near = near;
-		m_Far = far;
-		m_IsOrthographic = false;
-	}
-	void CameraComponent::SetOrthographicMatrix(float width, float height) noexcept
-	{
-		m_ProjectionMatrix = XMMatrixTranspose(XMMatrixOrthographicLH(width, height, 0.f, 1.f));
-		m_Width = width;
-		m_Height = height;
-		m_IsOrthographic = true;
-	}
-
-	float CameraComponent::GetAspectRatio() const noexcept
-	{
-		return (float)jshWindow::GetWidth() / (float)jshWindow::GetHeight();
-	}
-
 	void CameraComponent::UpdateMatrices() noexcept
 	{
-		if (IsOrthographic()) {
-			SetOrthographicMatrix(m_Width, m_Height);
-			m_ViewMatrix = XMMatrixTranspose(XMMatrixIdentity());
+		if (Is3D()) {
+			UpdateMatrices3D();
 		}
 		else {
-			SetPerspectiveMatrix(m_Fov, m_Near, m_Far);
-
-			XMVECTOR direction = XMVectorSet(0.f, 0.f, 1.f, 0.f);
-			auto& transform = jshScene::GetTransform(entity);
-			vec3 rotation = transform.GetLocalRotation();
-			vec3 position = transform.GetLocalPosition();
-
-			if (abs(rotation.x) >= 90.f) rotation.x = (rotation.x > 0.f ? 1.f : -1.f) * 89.9f;
-
-			direction = XMVector3Transform(direction, XMMatrixRotationRollPitchYaw(ToRadians(rotation.x), ToRadians(rotation.y), ToRadians(0.f)));
-
-			const auto target = XMVECTOR(position) + direction;
-			m_ViewMatrix = XMMatrixTranspose(XMMatrixLookAtLH(position, target, XMVectorSet(0.f, 1.f, 0.f, 0.f)));
-			transform.SetRotation(rotation);
+			UpdateMatrices2D();
 		}
+	}
+
+	void CameraComponent::UpdateMatrices2D() noexcept
+	{
+		if (IsOrthographic()) {
+			Transform& trans = jshScene::GetTransform(entity);
+			vec3 pos = trans.GetLocalPosition();
+
+			m_ProjectionMatrix = XMMatrixTranspose(XMMatrixOrthographicLH(m_Dimension, m_Dimension / m_Aspect, m_Near, m_Far));
+			m_ViewMatrix = XMMatrixTranspose(XMMatrixTranslation(-pos.x, -pos.y, 1.f));
+		}
+	}
+	void CameraComponent::UpdateMatrices3D() noexcept
+	{
+		if (IsOrthographic()) {
+			m_ProjectionMatrix = XMMatrixTranspose(XMMatrixOrthographicLH(m_Dimension, m_Dimension / m_Aspect, m_Near, m_Far));
+		}
+		else {
+			if (m_Near <= 0.f) m_Near = 0.001f;
+			if (m_Far <= 0.f) m_Far = 0.001f;
+
+			m_ProjectionMatrix = XMMatrixTranspose(XMMatrixPerspectiveLH(m_Dimension, m_Dimension / m_Aspect, m_Near, m_Far));
+		}
+
+		XMVECTOR direction = XMVectorSet(0.f, 0.f, 1.f, 0.f);
+		auto& transform = jshScene::GetTransform(entity);
+		vec3 rotation = transform.GetLocalRotation();
+		vec3 position = transform.GetLocalPosition();
+
+		if (abs(rotation.x) >= 90.f) rotation.x = (rotation.x > 0.f ? 1.f : -1.f) * 89.9f;
+
+		direction = XMVector3Transform(direction, XMMatrixRotationRollPitchYaw(ToRadians(rotation.x), ToRadians(rotation.y), ToRadians(0.f)));
+
+		const auto target = XMVECTOR(position) + direction;
+		m_ViewMatrix = XMMatrixTranspose(XMMatrixLookAtLH(position, target, XMVectorSet(0.f, 1.f, 0.f, 0.f)));
+		transform.SetRotation(rotation);
 	}
 
 #ifdef  JSH_IMGUI
 		void CameraComponent::ShowInfo()
 		{
-			if (m_IsOrthographic) {
-				ImGui::DragFloat("Width", &m_Width, 1.f, 0.01f, FLT_MAX);
-				ImGui::DragFloat("Height", &m_Height, 1.f, 0.01f, FLT_MAX);
-				if (ImGui::Button("Adjust")) {
-					m_Height = m_Width / GetAspectRatio();
-				}
+			ImGui::DragFloat("Dimension", &m_Dimension, 0.2f);
+			ImGui::DragFloat("Aspect", &m_Aspect, 0.001f, 0.01f, 0.99f);
+			float fov = GetFieldOfView();
+			if (ImGui::DragFloat("Fov", &fov, 0.25f, 0.01f, FLT_MAX)) {
+				SetFieldOfView(fov);
 			}
-			else {
-				ImGui::DragFloat("Fov", &m_Fov, 0.25f, 0.01f, FLT_MAX);
-				ImGui::DragFloat("Near", &m_Near, 0.05f, 0.01f, FLT_MAX);
-				ImGui::DragFloat("Far", &m_Far, 1.f, 0.01f, FLT_MAX);
-			}
-			if (ImGui::Button("Change Projection")) {
-				m_IsOrthographic = !m_IsOrthographic;
-			}
+			ImGui::DragFloat("Near", &m_Near, 0.05f, 0.01f, FLT_MAX);
+			ImGui::DragFloat("Far", &m_Far, 1.f, 0.01f, FLT_MAX);
 
+			if (ImGui::Button(m_Orthographic ? "Change to Perspective" : "Change to Orthographic")) {
+				m_Orthographic = !m_Orthographic;
+			}
+			if (ImGui::Button(m_3D ? "Set 2D" : "Set 3D")) {
+				m_3D = !m_3D;
+			}
 			if (ImGui::Button("Set Main Camera")) jshEngine::GetRenderer()->SetMainCamera(entity);
 		}
 

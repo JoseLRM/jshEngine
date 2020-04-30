@@ -24,6 +24,7 @@ typedef int BOOL;
 #define TRUE 1
 
 #define ToRadians(x) x * 0.0174533f
+#define ToDegrees(x) x / 0.0174533f
 #define PI 3.14159f
 
 namespace jsh {

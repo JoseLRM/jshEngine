@@ -33,7 +33,7 @@ namespace jsh {
 	void PostProcessRenderPass::Render(CommandList cmd)
 	{
 		RenderTargetView& offscreenRTV = jshGraphics::primitives::GetOffscreenRenderTargetView();
-		RenderTargetView& mainRTV = jshGraphics::primitives::GetMainRenderTargetView();
+		RenderTargetView& mainRTV = jshGraphics::GetRenderTargetViewFromBackBuffer();
 
 		jshGraphics::BindViewport(jshGraphics::primitives::GetDefaultViewport(), 0u, cmd);
 		jshGraphics::BindSamplerState(jshGraphics::primitives::GetDefaultSamplerState(), 0u, JSH_SHADER_TYPE_PIXEL, cmd);

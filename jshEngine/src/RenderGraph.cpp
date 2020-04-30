@@ -50,7 +50,7 @@ namespace jsh {
 		CommandList cmd = jshGraphics::BeginCommandList();
 
 		jshGraphics::ClearRenderTargetView(jshGraphics::primitives::GetOffscreenRenderTargetView(), 0.f, 0.f, 0.f, 1.f, cmd);
-		jshGraphics::ClearRenderTargetView(jshGraphics::primitives::GetMainRenderTargetView(), 0.f, 0.f, 0.f, 1.f, cmd);
+		jshGraphics::ClearRenderTargetView(jshGraphics::GetRenderTargetViewFromBackBuffer(), 0.f, 0.f, 0.f, 1.f, cmd);
 		jshGraphics::ClearDepthStencilView(jshGraphics::primitives::GetDefaultDepthStencilView(), cmd);
 
 		//GLOBAL BUFFERS

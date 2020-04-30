@@ -112,7 +112,9 @@ namespace jshGraphics_dx11 {
 
 	ComPtr<ID3D11Device> g_Device = nullptr;
 	ComPtr<ID3D11DeviceContext> g_ImmediateContext = nullptr;
+
 	ComPtr<IDXGISwapChain> g_SwapChain = nullptr;
+	jsh::RenderTargetView g_RenderTargetView;
 
 	// deferred rendering
 	ComPtr<ID3D11DeviceContext> g_DeferredContext[JSH_GFX_COMMANDLISTS_COUNT];
@@ -234,6 +236,20 @@ namespace jshGraphics_dx11 {
 		return (D3D11_RTV_DIMENSION)rtv;
 	}
 
+	void CreateBackBuffer()
+	{
+		auto RTV = std::make_shared<RenderTargetView_dx11>();
+		g_RenderTargetView.internalAllocation = RTV;
+
+		D3D11_RENDER_TARGET_VIEW_DESC desc;
+		desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		desc.Texture2D.MipSlice = 0u;
+
+		jshGfx(g_SwapChain->GetBuffer(0u, __uuidof(ID3D11Resource), &RTV->resourcePtr));
+		jshGfx(g_Device->CreateRenderTargetView(RTV->resourcePtr.Get(), &desc, &RTV->ptr));
+	}
+
 	bool Initialize() {
 
 		HWND windowHandle = reinterpret_cast<HWND>(jshWindow::GetWindowHandle());
@@ -271,16 +287,7 @@ namespace jshGraphics_dx11 {
 			&g_ImmediateContext
 		));
 
-		// viewport
-		D3D11_VIEWPORT viewport;
-		viewport.Width = (float)jshWindow::GetWidth();
-		viewport.Height = (float)jshWindow::GetHeight();
-		viewport.MaxDepth = 1.f;
-		viewport.MinDepth = 0.f;
-		viewport.TopLeftX = 0;
-		viewport.TopLeftY = 0;
-
-		g_ImmediateContext->RSSetViewports(1, &viewport);
+		CreateBackBuffer();
 
 		// multithreading support
 		D3D11_FEATURE_DATA_THREADING data;
@@ -786,6 +793,8 @@ namespace jshGraphics_dx11 {
 	{
 		auto RTV = std::make_shared<RenderTargetView_dx11>();
 		rtv->internalAllocation = RTV;
+		rtv->desc = *d;
+		rtv->resDesc = *td;
 
 		// resource
 		D3D11_TEXTURE2D_DESC texDesc;
@@ -821,20 +830,6 @@ namespace jshGraphics_dx11 {
 		jshGfx(g_Device->CreateRenderTargetView(RTV->resourcePtr.Get(), &desc, &RTV->ptr));
 
 	}
-	void CreateRenderTargetViewFromBackBuffer(JSH_RENDER_TARGET_VIEW_DESC* d, jsh::RenderTargetView* rtv)
-	{
-		auto RTV = std::make_shared<RenderTargetView_dx11>();
-		rtv->internalAllocation = RTV;
-
-		// resource
-		D3D11_RENDER_TARGET_VIEW_DESC desc;
-		desc.Format = ParseFormat(d->Format);
-		desc.ViewDimension = ParseRTVDimension(d->ViewDimension);
-		desc.Texture2D.MipSlice = d->Texture2D.MipSlice;
-
-		jshGfx(g_SwapChain->GetBuffer(0u, __uuidof(ID3D11Resource), &RTV->resourcePtr));
-		jshGfx(g_Device->CreateRenderTargetView(RTV->resourcePtr.Get(), &desc, &RTV->ptr));
-	}
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd)
 	{
 		assert(rtv.IsValid());
@@ -855,6 +850,10 @@ namespace jshGraphics_dx11 {
 		const float clearColor[] = { r, g, b, a };
 		g_DeferredContext[cmd]->ClearRenderTargetView(renderTargetView->ptr.Get(), clearColor);
 	}
+	jsh::RenderTargetView& GetRenderTargetViewFromBackBuffer()
+	{
+		return g_RenderTargetView;
+	}
 
 	///////////////////////////RENDER CALLS/////////////////////////
 	void DrawIndexed(uint32 indicesCount, jsh::CommandList cmd)
@@ -868,6 +867,22 @@ namespace jshGraphics_dx11 {
 	void DrawInstanced(uint32 vertexPerInstance, uint32 instances, uint32 startVertex, uint32 startInstance, jsh::CommandList cmd)
 	{
 		g_DeferredContext[cmd]->DrawInstanced(vertexPerInstance, instances, startVertex, startInstance);
+	}
+
+	void SetResolution(uint32 width, uint32 height)
+	{
+		RenderTargetView_dx11* rtv = ToInternal(g_RenderTargetView);
+
+		rtv->ptr.Reset();
+		rtv->resourcePtr.Reset();
+		
+		g_SwapChain->ResizeBuffers(1u, width, height, DXGI_FORMAT_B8G8R8A8_UNORM, 0u);
+
+		CreateBackBuffer();
+	}
+	void SetFullscreen(bool fullscreen)
+	{
+		g_SwapChain->SetFullscreenState(BOOL(fullscreen), nullptr);
 	}
 
 }
