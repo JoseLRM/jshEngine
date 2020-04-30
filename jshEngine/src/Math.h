@@ -436,6 +436,8 @@ namespace jsh {
 	typedef Vector4D<int32>	 ivec4;
 	typedef Vector4D<uint32> uvec4;
 
+	typedef Vector4D<byte> Color;
+
 #pragma endregion
 
 	inline void QuaternionToEuler(vec4* q, vec3* e)

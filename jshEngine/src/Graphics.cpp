@@ -106,9 +106,9 @@ namespace jshGraphics {
 				{"TM", 1, JSH_FORMAT_R32G32B32A32_FLOAT, 1, false, 4 * sizeof(float), 1u},
 				{"TM", 2, JSH_FORMAT_R32G32B32A32_FLOAT, 1, false, 8 * sizeof(float), 1u},
 				{"TM", 3, JSH_FORMAT_R32G32B32A32_FLOAT, 1, false, 12 * sizeof(float), 1u},
-				{"Color", 0, JSH_FORMAT_R32G32B32A32_FLOAT, 1, false, 16 * sizeof(float), 1u},
-				{"TexCoord", 0, JSH_FORMAT_R32G32B32A32_FLOAT, 1, false, 20 * sizeof(float), 1u},
-				{"TextureID", 0, JSH_FORMAT_R16_UINT, 1, false, 24 * sizeof(float), 1u},
+				{"Color", 0, JSH_FORMAT_R8G8B8A8_UNORM, 1, false, 16 * sizeof(float), 1u},
+				{"TexCoord", 0, JSH_FORMAT_R32G32B32A32_FLOAT, 1, false, 17 * sizeof(float), 1u},
+				{"TextureID", 0, JSH_FORMAT_R16_UINT, 1, false, 21 * sizeof(float), 1u},
 			};
 
 			jshGraphics::CreateInputLayout(desc, 8u, spriteShader->vs, &spriteShader->inputLayout);

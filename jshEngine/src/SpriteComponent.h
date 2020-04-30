@@ -6,7 +6,7 @@ namespace jsh {
 
 	struct SpriteComponent : public jsh::Component<SpriteComponent> {
 		Sprite sprite;
-		vec4 color;
+		Color color;
 
 #ifdef JSH_IMGUI
 		void ShowInfo() override 
@@ -20,7 +20,16 @@ namespace jsh {
 			ImGui::SliderFloat2("Position", &sprite.coords.x, 0.f, 1.f);
 			ImGui::SliderFloat2("Dimension", &sprite.coords.z, 0.f, 1.f);
 
-			ImGui::ColorPicker4("Color", &color.x);
+			float c[4];
+			c[0] = (float)(color.x) / 255.f;
+			c[1] = (float)(color.y) / 255.f;
+			c[2] = (float)(color.z) / 255.f;
+			c[3] = (float)(color.w) / 255.f;
+			ImGui::ColorPicker4("Color", c);
+			color.x = byte(c[0] * 255.f);
+			color.y = byte(c[1] * 255.f);
+			color.z = byte(c[2] * 255.f);
+			color.w = byte(c[3] * 255.f);
 		}
 #endif
 	};

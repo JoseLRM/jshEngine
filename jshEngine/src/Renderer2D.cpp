@@ -29,16 +29,16 @@ namespace jsh {
 	{
 		CameraComponent* camera = jshScene::GetComponent<CameraComponent>(m_MainCamera);
 
+		auto& spriteList = jshScene::_internal::GetComponentsList()[SpriteComponent::ID];
 		m_SpriteBatch.Begin();
 
-		auto& spriteList = jshScene::_internal::GetComponentsList()[SpriteComponent::ID];
 		for (uint32 i = 0; i < spriteList.size(); i += SpriteComponent::SIZE) {
 			jsh::SpriteComponent* spriteComp = reinterpret_cast<SpriteComponent*>(&spriteList[i]);
 			Transform& transform = jshScene::GetTransform(spriteComp->entity);
-			m_SpriteBatch.Draw(transform.GetWorldMatrix(), spriteComp->color, spriteComp->sprite, jshScene::GetLayerOf(spriteComp->entity));
+			m_SpriteBatch.Draw(transform.GetWorldMatrix(), spriteComp->color, spriteComp->sprite, transform.GetWorldPosition().z);
 		}
 
-		m_SpriteBatch.Draw(camera->GetMousePos(), { 10.f, 10.f }, 0.f, { 1.f, 1.f, 1.f, 1.f }, { jsh::vec4(), nullptr }, JSH_DEFAULT_LAYER);
+		m_SpriteBatch.Draw(camera->GetMousePos(), { 10.f, 10.f }, 0.f, { 255, 255, 255, 255 }, { jsh::vec4(), nullptr }, 0.f);
 
 		m_SpriteBatch.End();
 

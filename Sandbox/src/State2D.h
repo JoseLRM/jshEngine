@@ -30,10 +30,10 @@ public:
 		}
 		case 1:
 		{
-			float s = sin(time) + 0.5f;
+			byte s = sin(time) * 255 + 255 / 2;
 			spr->color.x = s;
 			spr->color.y = s;
-			spr->color.z = 1.f - s;
+			spr->color.z = 255 - s;
 			break;
 		}
 		case 2:
@@ -64,6 +64,7 @@ class State2D : public jsh::State {
 
 	QuadSystem system;
 	jsh::Texture* tex;
+	jsh::Texture* tex2;
 
 	void CreateEntities(uint32 count) {
 		jsh::vector<jsh::Entity> entities;
@@ -77,15 +78,16 @@ class State2D : public jsh::State {
 			pos.y = ((float)rand() / RAND_MAX) * 700.f - 350.f;
 			transform.SetPosition(pos);
 
-			float r = ((float)rand() / RAND_MAX);
-			float g = ((float)rand() / RAND_MAX);
-			float b = ((float)rand() / RAND_MAX);
-			float a = ((float)rand() / RAND_MAX);
+			byte r = ((float)rand() / RAND_MAX) * 255.f;
+			byte g = ((float)rand() / RAND_MAX) * 255.f;
+			byte b = ((float)rand() / RAND_MAX) * 255.f;
+			byte a = ((float)rand() / RAND_MAX) * 255.f;
 
 			jshScene::GetComponent<jsh::SpriteComponent>(entities[i])->color = { r, g, b, a };
 
 			transform.SetScale({ 20.f, 20.f, 0.f });
-			if(i % 2 == 0) jshScene::GetComponent<jsh::SpriteComponent>(entities[i])->sprite.texture = tex;
+			if(i % 3 == 0) jshScene::GetComponent<jsh::SpriteComponent>(entities[i])->sprite.texture = tex;
+			else if(i % 3 == 1) jshScene::GetComponent<jsh::SpriteComponent>(entities[i])->sprite.texture = tex2;
 		}
 	}
 
@@ -103,6 +105,10 @@ public:
 		tex = jshGraphics::CreateTexture("Skybox");
 		tex->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
 		jshLoader::LoadTexture("res/textures/skybox.jpg", &tex->resource);
+
+		tex2 = jshGraphics::CreateTexture("Skybox2");
+		tex2->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
+		jshLoader::LoadTexture("res/textures/skybox2.png", &tex2->resource);
 
 		jshEvent::Register<jsh::ResolutionEvent>(JSH_EVENT_LAYER_DEFAULT, [](jsh::ResolutionEvent& e) {
 		

@@ -1,47 +1,55 @@
 #pragma once
 
 #include "Graphics.h"
-#include "batch_pool.h"
+#include "vector.h"
 #include "CameraComponent.h"
-
-
 
 namespace jsh {
 
-	struct SpriteInstance {
+	struct SpriteData {
 		XMMATRIX tm;
-		vec4 color;
+		float layer;
+		Color color;
 		jsh::vec4 texCoords;
 		Texture* pTexture;
-		uint16 textureID = 0u;
 
-		inline bool operator<(const SpriteInstance& other) {
-			return pTexture < other.pTexture;
+		inline bool operator<(const SpriteData& other) {
+			if (layer < other.layer) return true;
+			if (layer > other.layer) return false;
+			if (layer == other.layer) {
+				return pTexture < other.pTexture;
+			}
 		}
+	};
+
+	struct SpriteInstance {
+		XMMATRIX tm;
+		Color color;
+		vec4 coords;
+		uint16 textureID;
 	};
 
 	class SpriteBatch {
 
-		std::vector<batch_pool<SpriteInstance>> m_Batch;
+		jsh::vector<SpriteData> m_Batch;
 
-		uint32 m_Layer = 0u;
-		uint32 m_Pool = 0u;
 		uint32 m_Offset = 0u;
 
 	public:
-		SpriteBatch() {}
-		SpriteBatch(uint32 instances) {}
+		SpriteBatch() {
+			m_Batch.reserve(JSH_GFX_SPRITE_BATCH_COUNT);
+		}
 		
 		//////////////////////////////////////DRAW METHODS/////////////////////////////////////////////
 
 		// from matrix
-		inline void Draw(const XMMATRIX& tm, const vec4& color, const Sprite& sprite, jsh::Layer* layer)
+		inline void Draw(const XMMATRIX& tm, const Color& color, const Sprite& sprite, float layer)
 		{
-			m_Batch[layer->ID].push({ XMMatrixTranspose(tm), color, sprite.coords, sprite.texture });
+			m_Batch.push_back({ XMMatrixTranspose(tm), layer, color, sprite.coords, sprite.texture }, JSH_GFX_SPRITE_BATCH_COUNT);
 		}
 
 		// from vector
-		inline void Draw(const vec2& position, const vec2& size, float rotation, const vec4& color, const Sprite& sprite, jsh::Layer* layer)
+		inline void Draw(const vec2& position, const vec2& size, float rotation, const Color& color, const Sprite& sprite, float layer)
 		{
 			XMMATRIX tm = XMMatrixScaling(size.x, size.y, 1.f) * XMMatrixRotationZ(rotation) * XMMatrixTranslation(position.x, position.y, 0.f);
 			Draw(tm, color, sprite, layer);
@@ -50,98 +58,67 @@ namespace jsh {
 		////////////////////////////////////////////////////////////////////////////////////
 		inline void Begin() noexcept
 		{
-			uint32 minInstances = JSH_GFX_SPRITE_BATCH_COUNT / 1000;
-
-			uint32 numOfLayers = jshScene::GetLayerCount();
-			if (m_Batch.size() < numOfLayers) {
-				uint32 cant = numOfLayers - m_Batch.size();
-				m_Batch.reserve(cant);
-				for (uint32 i = 0; i < cant; ++i) {
-					m_Batch.emplace_back(JSH_GFX_SPRITE_BATCH_COUNT);
-				}
-			}
-
-			for (uint32 i = 0; i < numOfLayers; ++i) {
-				batch_pool<SpriteInstance>& batch = m_Batch[i];
-				uint32 newCapacity = 0u;
-
-				if (batch.pool_count() > 1 && batch.size() != JSH_GFX_SPRITE_BATCH_COUNT) {
-					newCapacity = batch.size();
-					newCapacity *= batch.pool_count() - 1u;
-					newCapacity += batch.get_pool_size(batch.pool_count() - 1);
-					{
-						float countf = newCapacity;
-						float minInstancesf = minInstances;
-
-						newCapacity = (uint32)((float)((int32)(countf / minInstances) + 1) * minInstancesf);
-					}
-					if (newCapacity >= JSH_GFX_SPRITE_BATCH_COUNT) newCapacity = JSH_GFX_SPRITE_BATCH_COUNT;
-				}
-				m_Batch[i].reset(newCapacity);
-			}
+			m_Batch.clear(false);
 		}
 
 		inline void End()
 		{
 			// sort pools
-			for (uint32 i = 0; i < m_Batch.size(); ++i) {
-				for (uint32 j = 0; j < m_Batch[i].pool_count(); ++j) {
-					SpriteInstance* ptr = m_Batch[i].get_pool(j);
-					size_t size = m_Batch[i].get_pool_size(j);
-
-					std::sort(ptr, ptr + size);
-				}
-			}
-
-			m_Layer = 0u;
-			m_Pool = 0u;
+			std::sort(m_Batch.data(), m_Batch.data() + m_Batch.size());
 			m_Offset = 0u;
 		}
 
-		inline SpriteInstance* GetPoolAndBindTextures(size_t* size, CommandList cmd)
-		{
-			if (m_Layer >= m_Batch.size()) {
+		inline void FillPoolAndBindTextures(size_t* size, SpriteInstance* data, CommandList cmd)
+		{			
+			if (m_Batch.size() <= m_Offset) {
 				*size = 0u;
-				return nullptr;
+				return;
 			}
 
-			batch_pool<SpriteInstance>& batch = m_Batch[m_Layer];
-			
-			SpriteInstance* pool = batch.get_pool(m_Pool) + m_Offset;
-			*size = batch.get_pool_size(m_Pool) - m_Offset;
+			SpriteData* pool = m_Batch.data() + m_Offset;
+			*size = m_Batch.size() - m_Offset;
+			if (*size > JSH_GFX_SPRITE_BATCH_COUNT)* size = JSH_GFX_SPRITE_BATCH_COUNT;
 
-			uint32 spritesWithTexturesIndex = 0u;
-			while (pool[spritesWithTexturesIndex++].pTexture == nullptr && spritesWithTexturesIndex < *size);
-
-			bool nextPool = true;
-
-			Texture* currentTexture = nullptr;
+			// Bind and load textures
+			Texture* textures[JSH_GFX_TEXTURES_COUNT];
+			jshZeroMemory(textures, sizeof(Texture*) * JSH_GFX_TEXTURES_COUNT);
 			uint16 texCount = 0u;
 
-			for (uint32 i = spritesWithTexturesIndex; i < *size; ++i) {
-				if (pool[i].pTexture != currentTexture) {
-					if (++texCount == JSH_GFX_TEXTURES_COUNT) {
-						
-						m_Offset += i;
-						*size = i;
-						nextPool = false;
-						break;
+			for (uint32 i = 0; i < *size; ++i) {
+				SpriteData& d = pool[i];
+				SpriteInstance& instance = data[i];
 
+				instance.textureID = 0u;
+
+				if (d.pTexture != nullptr) {
+					for (uint8 j = 0; j < texCount; ++j) {
+						if (textures[j] == d.pTexture) {
+							instance.textureID = j + 1;
+							break;
+						}
 					}
-					currentTexture = pool[i].pTexture;
-					jshGraphics::BindTexture(currentTexture->resource, texCount - 1, JSH_SHADER_TYPE_PIXEL, cmd);
-					jshGraphics::BindSamplerState(currentTexture->samplerState, texCount - 1, JSH_SHADER_TYPE_PIXEL, cmd);
+
+					if (instance.textureID == 0u) {
+						if (texCount == JSH_GFX_TEXTURES_COUNT) {
+							*size = i;
+							break;
+						}
+						textures[texCount++] = d.pTexture;
+						instance.textureID = texCount;
+					}
 				}
-				pool[i].textureID = texCount;
+
+				instance.tm = d.tm;
+				instance.color = d.color;
+				instance.coords = d.texCoords;
 			}
 
-			if (nextPool) {
-				m_Offset = 0u;
-				m_Pool++;
-				if (batch.pool_count() == m_Pool) m_Layer++;
+			for (uint32 i = 0; i < texCount; ++i) {
+				jshGraphics::BindTexture(textures[i]->resource, i, JSH_SHADER_TYPE_PIXEL, cmd);
+				jshGraphics::BindSamplerState(textures[i]->samplerState, i, JSH_SHADER_TYPE_PIXEL, cmd);
 			}
 
-			return pool;
+			m_Offset += *size;
 		}
 
 	};

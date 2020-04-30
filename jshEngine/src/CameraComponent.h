@@ -12,7 +12,7 @@ namespace jsh {
 		bool m_3D = true;
 		bool m_Orthographic = false;
 
-		float m_Dimension = 1080.f;
+		float m_Dimension = 1.f;
 		float m_Aspect = 1080.f / 720.f;
 		float m_Near = 0.01f;
 		float m_Far = 100000.f;
@@ -45,7 +45,7 @@ namespace jsh {
 		inline float GetDimension() const noexcept { return m_Dimension; }
 		inline float GetNear() const noexcept { return m_Near; }
 		inline float GetFar() const noexcept { return m_Far; }
-		inline float GetFieldOfView() const noexcept { return ToDegrees((atan((m_Dimension / 2.f) / m_Near)) * 2.f); }
+		inline float GetFieldOfView() const noexcept { return (atan((m_Dimension / 2.f) / m_Near)) * 2.f; }
 
 		vec2 GetMousePos() const noexcept;
 

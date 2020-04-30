@@ -1,7 +1,5 @@
 #include "Rendering2DPass.h"
 
-#include "SpriteBatch.h"
-
 namespace jsh {
 
 	void Rendering2DPass::Create()
@@ -46,19 +44,18 @@ namespace jsh {
 
 		jshGraphics::BindConstantBuffer(m_pRenderGraph->GetCameraBuffer(), JSH_GFX_SLOT_CBUFFER_CAMERA, JSH_SHADER_TYPE_VERTEX, cmd);
 
+		for (uint32 i = 0; i < JSH_GFX_TEXTURES_COUNT; ++i) {
+			jshGraphics::BindSamplerState(jshGraphics::primitives::GetDefaultSamplerState(), i, JSH_SHADER_TYPE_PIXEL, cmd);
+		}
+
 		SpriteInstance* ptr;
 		size_t size = 0u;
+		m_pSpriteBatch->FillPoolAndBindTextures(&size, m_SpriteData, cmd);
 
-		while ((ptr = m_pSpriteBatch->GetPoolAndBindTextures(&size, cmd)) != nullptr && size > 0) {
-			for (uint32 w = 0; w < size; ++w) {
-				m_SpriteData[w].tm = ptr[w].tm;
-				m_SpriteData[w].color = ptr[w].color;
-				m_SpriteData[w].coords = ptr[w].texCoords;
-				m_SpriteData[w].textureID = ptr[w].textureID;
-			}
-
+		while (size > 0) {
 			jshGraphics::UpdateBuffer(m_SpriteInstances, m_SpriteData, size * sizeof(SpriteData), cmd);
 			jshGraphics::DrawInstanced(4, size, 0, 0, cmd);
+			m_pSpriteBatch->FillPoolAndBindTextures(&size, m_SpriteData, cmd);
 		}
 	}
 }

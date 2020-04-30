@@ -20,7 +20,7 @@ namespace jsh {
 
 	XMMATRIX Transform::GetLocalMatrix() const noexcept
 	{
-		XMVECTOR radRotation = XMVectorSet(ToRadians(m_LocalRotation.x), ToRadians(m_LocalRotation.y), ToRadians(m_LocalRotation.z), 1.f);
+		XMVECTOR radRotation = XMVectorSet(m_LocalRotation.x, m_LocalRotation.y, m_LocalRotation.z, 1.f);
 		return XMMatrixScalingFromVector(GetLocalScaleDXV()) * XMMatrixRotationRollPitchYawFromVector(radRotation)
 			* XMMatrixTranslationFromVector(GetLocalPositionDXV());
 	}
@@ -130,7 +130,17 @@ namespace jsh {
 	void Transform::ShowInfo()
 	{
 		ImGui::DragFloat3("Position", &m_LocalPosition.x, 0.75f);
-		ImGui::DragFloat3("Rotation", &m_LocalRotation.x, 0.25f);
+
+		vec3 rot = *(vec3*)(&m_LocalRotation);
+		rot.x = ToDegrees(rot.x);
+		rot.y = ToDegrees(rot.y);
+		rot.z = ToDegrees(rot.z);
+		ImGui::DragFloat3("Rotation", &rot.x, 0.25f);
+		rot.x = ToRadians(rot.x);
+		rot.y = ToRadians(rot.y);
+		rot.z = ToRadians(rot.z);
+		m_LocalRotation = *(XMFLOAT3*)(&rot);
+
 		ImGui::DragFloat3("Scale", &m_LocalScale.x, 0.25f);
 
 		if (ImGui::Button("Reset")) {

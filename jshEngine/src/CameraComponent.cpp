@@ -37,7 +37,7 @@ namespace jsh {
 		uint8 front = 0u;
 		uint8 right = 0u;
 		jsh::Transform& trans = jshScene::GetTransform(entity);
-		float direction = trans.GetLocalRotation().y;
+		float direction = ToDegrees(trans.GetLocalRotation().y);
 		jsh::vec3 pos = trans.GetLocalPosition();
 
 		if (jshInput::IsKey('W')) {
@@ -91,8 +91,8 @@ namespace jsh {
 
 		jsh::vec2 dragged = jshInput::MouseDragged();
 
-		rot.y += dragged.x * hSensibility;
-		rot.x += dragged.y * vSensibility;
+		rot.y += ToRadians(dragged.x * hSensibility);
+		rot.x += ToRadians(dragged.y * vSensibility);
 		trans.SetRotation(rot);
 	}
 
@@ -133,9 +133,9 @@ namespace jsh {
 		vec3 rotation = transform.GetLocalRotation();
 		vec3 position = transform.GetLocalPosition();
 
-		if (abs(rotation.x) >= 90.f) rotation.x = (rotation.x > 0.f ? 1.f : -1.f) * 89.9f;
+		if (abs(ToDegrees(rotation.x)) >= 90.f) rotation.x = ToRadians((ToDegrees(rotation.x) > 0.f ? 1.f : -1.f) * 89.9f);
 
-		direction = XMVector3Transform(direction, XMMatrixRotationRollPitchYaw(ToRadians(rotation.x), ToRadians(rotation.y), ToRadians(0.f)));
+		direction = XMVector3Transform(direction, XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, 0.f));
 
 		const auto target = XMVECTOR(position) + direction;
 		m_ViewMatrix = XMMatrixTranspose(XMMatrixLookAtLH(position, target, XMVectorSet(0.f, 1.f, 0.f, 0.f)));
@@ -145,11 +145,11 @@ namespace jsh {
 #ifdef  JSH_IMGUI
 		void CameraComponent::ShowInfo()
 		{
-			ImGui::DragFloat("Dimension", &m_Dimension, 0.2f);
+			ImGui::DragFloat("Dimension", &m_Dimension, 0.1f);
 			ImGui::DragFloat("Aspect", &m_Aspect, 0.001f, 0.01f, 0.99f);
-			float fov = GetFieldOfView();
+			float fov = ToDegrees(GetFieldOfView());
 			if (ImGui::DragFloat("Fov", &fov, 0.25f, 0.01f, FLT_MAX)) {
-				SetFieldOfView(fov);
+				SetFieldOfView(ToRadians(fov));
 			}
 			ImGui::DragFloat("Near", &m_Near, 0.05f, 0.01f, FLT_MAX);
 			ImGui::DragFloat("Far", &m_Far, 1.f, 0.01f, FLT_MAX);
