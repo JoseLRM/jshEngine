@@ -13,7 +13,7 @@ namespace jsh {
 	}
 	void CameraComponent::SetFieldOfView(float fov) noexcept
 	{
-		m_Near = tan(ToRadians(fov / 2.f)) * m_Dimension / 2.f;
+		m_Dimension = tan(fov / 2.f) * m_Near;
 	}
 
 	void CameraComponent::SetNear(float near) noexcept 
@@ -148,7 +148,7 @@ namespace jsh {
 			ImGui::DragFloat("Dimension", &m_Dimension, 0.1f);
 			ImGui::DragFloat("Aspect", &m_Aspect, 0.001f, 0.01f, 0.99f);
 			float fov = ToDegrees(GetFieldOfView());
-			if (ImGui::DragFloat("Fov", &fov, 0.25f, 0.01f, FLT_MAX)) {
+			if (ImGui::SliderFloat("Fov", &fov, 0.01f, 179.9f)) {
 				SetFieldOfView(ToRadians(fov));
 			}
 			ImGui::DragFloat("Near", &m_Near, 0.05f, 0.01f, FLT_MAX);

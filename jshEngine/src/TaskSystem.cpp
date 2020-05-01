@@ -1,175 +1,74 @@
 #include "TaskSystem.h"
 
 #include "Debug.h"
-#include <vector>
-#include <atomic>
-
-namespace jsh {
-
-	void TaskList::Add(const Task& task)
-	{
-		tasks.push(task);
-	}
-
-}
 
 using namespace jsh;
 
 namespace jshTask {
 
-	bool g_Running = false;
-	uint8 g_NumOfThreads = 0;
-
-	class ThreadPool;
-	ThreadPool* g_Pools = nullptr;
-
-	jsh::safe_dynamic_queue<TaskList*> g_TaskLists;
-	std::condition_variable g_ConditionVariable;
-	std::mutex g_SleepMutex;
-	std::mutex g_ExecuteMutex;
-
-	std::atomic<uint32> g_CompletedTasks = 0;
-	uint32 g_DoingTasks = 0;
-
-	class ThreadPool {
-		TaskList* m_pList = nullptr;
-		std::mutex m_Mutex;
-
-		bool GetInternal(Task& task) {
-			bool result = false;
-			if (m_pList) {
-				if (!m_pList->tasks.empty()) {
-					task = m_pList->tasks.front();
-					m_pList->tasks.pop();
-					result = true;
-				}
-				else {
-					delete m_pList;
-					m_pList = nullptr;
-				}
-			}
-			if (!result) {
-				if (g_TaskLists.pop(m_pList)) {
-					result = GetInternal(task);
-				}
-			}
-			return result;
-		}
-
-	public:
-		ThreadPool() : m_Mutex() {}
-
-		bool Get(Task& task) {
-			m_Mutex.lock();
-			bool result = GetInternal(task);
-			m_Mutex.unlock();
-			return result;
-		}
-
-		inline TaskList* CurrentTaskList() { return m_pList; }
-
-	};
+	uint32 g_NumOfThreads;
+	ThreadPool g_ThreadPool;
 
 	bool Initialize()
 	{
 		g_NumOfThreads = std::thread::hardware_concurrency();
-		if (g_NumOfThreads < 1) g_NumOfThreads = 1;
+		if (g_NumOfThreads <= 1) g_NumOfThreads = 2u;
 
-		g_Pools = new ThreadPool[g_NumOfThreads];
-
-		g_Running = true;
-		for (uint8 i = 0; i < g_NumOfThreads; ++i) {
-
-			std::thread worker([i]() {
-
-				uint8 ID = i;
-				Task currentTask;
-			
-				while (g_Running) {
-					
-					bool doing = true;
-					while (doing) {
-						doing = false;
-						if (g_Pools[ID].Get(currentTask)) {
-							doing = true;
-							currentTask();
-							g_CompletedTasks.fetch_add(1u);
-						}
-						else {
-							for (uint8 i = 0; i < g_NumOfThreads; ++i) {
-								if (i == ID) continue;
-								if (g_Pools[i].Get(currentTask)) {
-									doing = true;
-									currentTask();
-									g_CompletedTasks.fetch_add(1u);
-								}
-							}
-						}
-					}
-
-					std::unique_lock<std::mutex> lock(g_SleepMutex);
-					g_ConditionVariable.wait(lock);
-				}
-
-				jshLogI("Thread %u closed", ID);
-			
-			});
-
-			worker.detach();
-
-		}
+		g_ThreadPool.Reserve(g_NumOfThreads);
 
 		return true;
 	}
 
 	bool Close()
 	{
-		Wait();
-		g_Running = false;
-		g_ConditionVariable.notify_all();
+		g_ThreadPool.Stop();
+
 		return true;
 	}
 
-	TaskList* CreateTaskList()
+	void Execute(const jsh::Task& task, jsh::ThreadContext* pContext)
 	{
-		TaskList* taskList = new TaskList();
-		return taskList;
+		g_ThreadPool.Execute(task, pContext);
+	}
+	void Execute(jsh::Task* tasks, uint32 count, jsh::ThreadContext* pContext)
+	{
+		g_ThreadPool.Execute(tasks, count, pContext);
 	}
 
-	void Execute(TaskList* taskList)
+	bool Running()
 	{
-		g_ExecuteMutex.lock();
-		uint32 size = uint32(taskList->tasks.size());
-		g_DoingTasks += size;
-		g_TaskLists.push(taskList);
-		if (size == 1) g_ConditionVariable.notify_one();
-		else g_ConditionVariable.notify_all();
-		g_ExecuteMutex.unlock();
+		return g_ThreadPool.Running();
+	}
+	bool Running(jsh::ThreadContext* pContext)
+	{
+		return g_ThreadPool.Running(pContext);
 	}
 
-	void Execute(const Task& task)
+	void Wait()
 	{
-		TaskList* taskList = CreateTaskList();
-		taskList->Add(task);
-		Execute(taskList);
+		g_ThreadPool.Wait();
+	}
+	void Wait(jsh::ThreadContext* pContext)
+	{
+		g_ThreadPool.Wait(pContext);
 	}
 
-	void Async(size_t length, uint8 divisions, const std::function<void(ThreadArgs& args)>& fn)
+	void Async(size_t length, uint8 divisions, const AsyncTask& task)
 	{
-		TaskList* list = CreateTaskList();
+		Task* tasks = new Task[divisions];
 
 		size_t dividedLength = length / divisions;
 
 		for (uint8 i = 0; i < divisions; ++i) {
 
-			list->Add([i, dividedLength, divisions, length, fn]() {
+			tasks[i] = ([i, dividedLength, divisions, length, task]() {
 			
 				size_t index = i * dividedLength;
 				size_t endIndex = (i == (divisions-1)) ? length : index + dividedLength;
 				ThreadArgs args;
 				while (index < endIndex) {
 					args.index = index;
-					fn(args);
+					task(args);
 					++index;
 				}
 			
@@ -177,20 +76,10 @@ namespace jshTask {
 
 		}
 
-		Execute(list);
-	}
-
-	bool Doing()
-	{
-		return g_DoingTasks != g_CompletedTasks.load();
-	}
-
-	void Wait()
-	{
-		while (Doing()) {
-			g_ConditionVariable.notify_one();
-			std::this_thread::yield();
-		}
+		ThreadContext context;
+		Execute(tasks, divisions, &context);
+		Wait(&context);
+		delete[] tasks;
 	}
 
 	uint8 ThreadCount() {

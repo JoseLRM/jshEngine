@@ -339,14 +339,11 @@ namespace jshScene {
 		}
 	}
 
-	void GetEntitySons(Entity entity, jsh::vector<Entity>& entities) noexcept
+	void GetEntitySons(jsh::Entity parent, jsh::Entity** sonsArray, uint32* size) noexcept
 	{
-		const EntityData& parent = g_EntityData[entity];
-		entities.clear();
-		entities.resize(parent.sonsCount);
-		for (uint32 i = 0; i < parent.sonsCount; ++i) {
-			entities.push_back_nr(g_Entities[parent.handleIndex + i + 1]);
-		}
+		EntityData& ed = g_EntityData[parent];
+		*size = ed.sonsCount;
+		if (ed.sonsCount != 0) *sonsArray = &g_Entities[ed.handleIndex + 1];
 	}
 
 	jsh::Entity GetEntityParent(jsh::Entity entity) {
@@ -502,8 +499,6 @@ namespace jshScene {
 				});
 			}
 		}
-
-		jshTask::Wait();
 	}
 
 	jsh::Time GetSystemPerformance(const jsh::System& system)
@@ -739,8 +734,6 @@ namespace jshScene {
 					system->UpdateEntity(componentsList[args.index][0]->entity, componentsList[args.index], dt);
 
 				});
-
-				jshTask::Wait();
 			}
 			else {
 				system->UpdateEntities(componentsList, dt);

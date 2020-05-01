@@ -38,8 +38,6 @@ namespace jsh {
 			m_SpriteBatch.Draw(transform.GetWorldMatrix(), spriteComp->color, spriteComp->sprite, transform.GetWorldPosition().z);
 		}
 
-		m_SpriteBatch.Draw(camera->GetMousePos(), { 10.f, 10.f }, 0.f, { 255, 255, 255, 255 }, { jsh::vec4(), nullptr }, 0.f);
-
 		m_SpriteBatch.End();
 
 		m_RenderGraph.Render(camera);

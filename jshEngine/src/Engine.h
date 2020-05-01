@@ -11,7 +11,7 @@ namespace jsh {
 
 namespace jshEngine {
 
-	bool Initialize(jsh::State* initialState = nullptr);
+	bool Initialize(jsh::State* initialState);
 	void Run();
 	bool Close();
 
@@ -26,8 +26,6 @@ namespace jshEngine {
 
 	// renderer
 	void SetRenderer(jsh::Renderer* renderer);
-	void SetDefaultRenderer2D();
-	void SetDefaultRenderer3D();
 
 	jsh::Renderer* GetRenderer();
 

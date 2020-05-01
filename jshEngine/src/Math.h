@@ -38,9 +38,9 @@ namespace jsh {
 
 		using vec = Vector2D<T>;
 
-		Vector2D() : x(), y() {}
-		Vector2D(T n) : x(n), y(n) {}
-		Vector2D(T x, T y) : x(x), y(y) {}
+		constexpr Vector2D() : x(), y() {}
+		constexpr Vector2D(T n) : x(n), y(n) {}
+		constexpr Vector2D(T x, T y) : x(x), y(y) {}
 
 		// sum
 		inline void operator+=(const vec& v) noexcept
@@ -161,9 +161,9 @@ namespace jsh {
 
 		using vec = Vector3D<T>;
 
-		Vector3D() : x(), y(), z() {}
-		Vector3D(T n) : x(n), y(n), z(n) {}
-		Vector3D(T x, T y, T z) : x(x), y(y), z(z) {}
+		constexpr Vector3D() : x(), y(), z() {}
+		constexpr Vector3D(T n) : x(n), y(n), z(n) {}
+		constexpr Vector3D(T x, T y, T z) : x(x), y(y), z(z) {}
 
 		// sum
 		inline void operator+=(const vec& v) noexcept
@@ -293,9 +293,9 @@ namespace jsh {
 
 		using vec = Vector4D<T>;
 
-		Vector4D() : x(), y(), z(), w() {}
-		Vector4D(T n) : x(n), y(n), z(n), w(n) {}
-		Vector4D(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) {}
+		constexpr Vector4D() : x(), y(), z(), w() {}
+		constexpr Vector4D(T n) : x(n), y(n), z(n), w(n) {}
+		constexpr Vector4D(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) {}
 
 		// sum
 		inline void operator+=(const vec& v) noexcept
@@ -465,5 +465,15 @@ namespace jsh {
 	{
 		return ((T)1.f / sqrt((T)2.f * (T)PI * sigma * sigma)) * exp(-(x * x) / ((T)2.f * sigma * sigma));
 	}
+
+}
+
+namespace jshColor {
+
+	constexpr jsh::Color BLACK(jsh::Color(0u, 0u, 0u, 255u));
+	constexpr jsh::Color WHITE(jsh::Color(255u));
+	constexpr jsh::Color RED(jsh::Color(255u, 0u, 0u, 255u));
+	constexpr jsh::Color GREEN(jsh::Color(0u, 255u, 0u, 255u));
+	constexpr jsh::Color BLUE(jsh::Color(0u, 0u, 255u, 255u));
 
 }

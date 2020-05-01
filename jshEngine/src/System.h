@@ -74,28 +74,13 @@ namespace jsh {
 		inline jsh::vector<uint16>& GetRequestedComponents() noexcept { return m_RequestedComponents; }
 		inline jsh::vector<uint16>& GetOptionalComponents() noexcept { return m_OptionalComponents; }
 
-		template<typename Component>
-		inline void AddRequestedComponents()
+		inline void AddRequestedComponent(uint16 ID) noexcept
 		{
-			m_RequestedComponents.push_back(Component::ID);
+			m_RequestedComponents.push_back(ID);
 		}
-		template<typename Component, typename Component_, typename... Args>
-		inline void AddRequestedComponents()
+		inline void AddOptionalComponents(uint16 ID) noexcept
 		{
-			m_RequestedComponents.push_back(Component::ID, 2);
-			AddRequestedComponents<Component_, Args...>();
-		}
-
-		template<typename Component>
-		inline void AddOptionalComponents()
-		{
-			m_OptionalComponents.push_back(Component::ID);
-		}
-		template<typename Component, typename Component_, typename... Args>
-		inline void AddOptionalComponents()
-		{
-			m_OptionalComponents.push_back(Component::ID, 2);
-			AddOptionalComponents<Component_, Args...>();
+			m_OptionalComponents.push_back(ID);
 		}
 
 	};

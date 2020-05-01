@@ -1,26 +1,11 @@
 #pragma once
 
-#include "safe_queue.h"
-#include "common.h"
-#include <memory>
-#include <functional>
+#include "ThreadPrimitives.h"
 
 namespace jsh {
 
-	typedef std::function<void()> Task;
-
-	struct TaskList {
-#ifndef JSH_ENGINE
-	private:
-#endif
-		std::queue<Task> tasks;
-
-	public:
-		void Add(const Task& task);
-	};
-
 	struct ThreadArgs {
-		size_t index = 0u;
+		size_t index;
 	};
 
 }
@@ -32,15 +17,18 @@ namespace jshTask {
 	bool Close();
 #endif
 
-	jsh::TaskList* CreateTaskList();
+	using AsyncTask = std::function<void(jsh::ThreadArgs& args)>;
 
-	void Execute(jsh::TaskList* taskList);
-	void Execute(const jsh::Task& task);
+	void Execute(const jsh::Task& task, jsh::ThreadContext* pContext = nullptr);
+	void Execute(jsh::Task* tasks, uint32 count, jsh::ThreadContext* pContext = nullptr);
 
-	void Async(size_t length, uint8 divisions, const std::function<void(jsh::ThreadArgs& args)>&);
+	void Async(size_t length, uint8 divisions, const AsyncTask& task);
 
-	bool Doing();
+	bool Running();
+	bool Running(jsh::ThreadContext* pContext);
+
 	void Wait();
+	void Wait(jsh::ThreadContext* pContext);
 
 	uint8 ThreadCount();
 

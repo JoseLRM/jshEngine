@@ -14,7 +14,7 @@ namespace jsh {
 
 		float m_Dimension = 1.f;
 		float m_Aspect = 1080.f / 720.f;
-		float m_Near = 0.01f;
+		float m_Near = 0.5f;
 		float m_Far = 100000.f;
 
 	public:

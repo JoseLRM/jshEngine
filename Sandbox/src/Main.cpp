@@ -14,8 +14,6 @@ struct State : public jsh::State {
 
 int main()
 {
-	jshEngine::SetDefaultRenderer3D();
-
 	jshEngine::Initialize(new State2D());
 	jshEngine::Run();
 	jshEngine::Close();

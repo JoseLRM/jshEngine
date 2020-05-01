@@ -125,7 +125,7 @@ namespace jshScene {
 		return _internal::GetEntityDataList()[entity].layer;
 	}
 
-	void GetEntitySons(jsh::Entity entity, jsh::vector<jsh::Entity>& entities) noexcept;
+	void GetEntitySons(jsh::Entity parent, jsh::Entity** sonsArray, uint32* size) noexcept;
 	jsh::Entity GetEntityParent(jsh::Entity entity);
 	jsh::Transform& GetTransform(jsh::Entity entity);
 	jsh::Layer* GetLayerOf(jsh::Entity entity);

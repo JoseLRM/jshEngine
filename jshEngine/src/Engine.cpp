@@ -96,7 +96,6 @@ namespace jshEngine {
 
 	void Run()
 	{
-		Initialize();
 
 		try {
 
@@ -160,10 +159,10 @@ namespace jshEngine {
 	bool Close()
 	{
 		try {
+			if (!g_pRenderer->Close()) return false;
+
 			if (g_Closed) return false;
 			CloseState();
-
-			if (!g_pRenderer->Close()) return false;
 
 			jshScene::Close();
 
@@ -235,14 +234,6 @@ namespace jshEngine {
 	{
 		g_pRenderer = renderer;
 		if (g_Initialized) g_pRenderer->Initialize();
-	}
-	void SetDefaultRenderer2D()
-	{
-		SetRenderer(new Renderer2D());
-	}
-	void SetDefaultRenderer3D()
-	{
-		SetRenderer(new Renderer3D());
 	}
 
 	jsh::Renderer* GetRenderer()

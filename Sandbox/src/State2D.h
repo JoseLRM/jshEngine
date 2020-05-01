@@ -9,9 +9,7 @@ public:
 
 	QuadSystem() : System("QuadSystem")
 	{
-		AddRequestedComponents<jsh::SpriteComponent>();
-
-		//SetExecuteType(JSH_ECS_SYSTEM_MULTITHREADED);
+		AddRequestedComponent(jsh::SpriteComponent::ID);
 	}
 
 	void UpdateEntity(jsh::Entity e, jsh::BaseComponent** comp, float dt) override
@@ -24,7 +22,7 @@ public:
 		{
 		case 0:
 		{
-			float s = sin(time) * 7.f + 3.5f;
+			float s = sin(time) + .5f;
 			trans.SetScale({ s, s, 1.f });
 			break;
 		}
@@ -39,8 +37,8 @@ public:
 		case 2:
 		{
 			jsh::vec3 pos = trans.GetLocalPosition();
-			float s = (sin(time + e) * 5.f) * dt;
-			float c = (cos(time + e) * 5.f) * dt;
+			float s = (sin(time + e) * 1.f) * dt;
+			float c = (cos(time + e) * 1.f) * dt;
 			pos.x += s;
 			pos.y += c;
 			trans.SetPosition({ pos.x, pos.y, 0.f });
@@ -66,6 +64,8 @@ class State2D : public jsh::State {
 	jsh::Texture* tex;
 	jsh::Texture* tex2;
 
+	jsh::Renderer2D renderer;
+
 	void CreateEntities(uint32 count) {
 		jsh::vector<jsh::Entity> entities;
 		jshScene::CreateEntities(count, &entities, jsh::SpriteComponent());
@@ -74,34 +74,33 @@ class State2D : public jsh::State {
 			jsh::Transform& transform = jshScene::GetTransform(entities[i]);
 
 			jsh::vec3 pos = transform.GetLocalPosition();
-			pos.x = ((float)rand() / RAND_MAX) * 1000.f - 500.f;
-			pos.y = ((float)rand() / RAND_MAX) * 700.f - 350.f;
+			pos.x = ((float)rand() / RAND_MAX) * 2 - 1.f;
+			pos.y = ((float)rand() / RAND_MAX) * 2 - 1.f;
 			transform.SetPosition(pos);
 
-			byte r = ((float)rand() / RAND_MAX) * 255.f;
-			byte g = ((float)rand() / RAND_MAX) * 255.f;
-			byte b = ((float)rand() / RAND_MAX) * 255.f;
-			byte a = ((float)rand() / RAND_MAX) * 255.f;
+			byte r = ((float)rand() / RAND_MAX) * 255;
+			byte g = ((float)rand() / RAND_MAX) * 255;
+			byte b = ((float)rand() / RAND_MAX) * 255;
+			byte a = ((float)rand() / RAND_MAX) * 100 + 155;
 
 			jshScene::GetComponent<jsh::SpriteComponent>(entities[i])->color = { r, g, b, a };
 
-			transform.SetScale({ 20.f, 20.f, 0.f });
-			if(i % 3 == 0) jshScene::GetComponent<jsh::SpriteComponent>(entities[i])->sprite.texture = tex;
-			else if(i % 3 == 1) jshScene::GetComponent<jsh::SpriteComponent>(entities[i])->sprite.texture = tex2;
+			if (i % 3 == 0) jshScene::GetComponent<jsh::SpriteComponent>(entities[i])->sprite.texture = tex;
+			else if (i % 3 == 1) jshScene::GetComponent<jsh::SpriteComponent>(entities[i])->sprite.texture = tex2;
 		}
 	}
 
 public:
 	void Initialize() override
 	{
-		jshEngine::SetDefaultRenderer2D();
+		jshEngine::SetRenderer(&renderer);
 		jshEngine::GetRenderer()->SetMainCamera(jshScene::CreateEntity(jsh::CameraComponent(), jsh::PostProcessComponent()));
 		jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(jshEngine::GetRenderer()->GetMainCamera());
 		camera->SetOrthographicMatrix();
 		camera->Set2D();
-		camera->SetDimension(1080, 720);
+		camera->SetDimension(10.f);
 		jshScene::GetComponent<jsh::PostProcessComponent>(jshEngine::GetRenderer()->GetMainCamera())->SetBloomEffect(true);
-		
+
 		tex = jshGraphics::CreateTexture("Skybox");
 		tex->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
 		jshLoader::LoadTexture("res/textures/skybox.jpg", &tex->resource);
@@ -111,7 +110,7 @@ public:
 		jshLoader::LoadTexture("res/textures/skybox2.png", &tex2->resource);
 
 		jshEvent::Register<jsh::ResolutionEvent>(JSH_EVENT_LAYER_DEFAULT, [](jsh::ResolutionEvent& e) {
-		
+
 			jshLogln("Resolution: %i, %i", e.resolution.x, e.resolution.y);
 
 			return true;
@@ -122,6 +121,8 @@ public:
 	{
 		if (jshInput::IsKeyPressed('G')) CreateEntities(1000);
 
+		if (jshInput::IsKey('E')) system.SetExecuteType(JSH_ECS_SYSTEM_MULTITHREADED);
+		else system.SetExecuteType(JSH_ECS_SYSTEM_SAFE);
 		system.time += dt;
 		jshScene::UpdateSystem(&system, dt);
 
