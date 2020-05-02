@@ -102,6 +102,7 @@
     <ClCompile Include="src\PostProcessComponent.cpp" />
     <ClCompile Include="src\PostProcessRenderPass.cpp" />
     <ClCompile Include="src\Renderer3D.cpp" />
+    <ClCompile Include="src\StateManager.cpp" />
     <ClCompile Include="src\stb\stb_lib.cpp" />
     <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\Debug.cpp" />
@@ -132,6 +133,7 @@
   <ItemGroup>
     <ClInclude Include="src\batch_pool.h" />
     <ClInclude Include="src\BloomEffect.h" />
+    <ClInclude Include="src\DefaultLoadState.h" />
     <ClInclude Include="src\Renderer2D.h" />
     <ClInclude Include="src\Rendering2DPass.h" />
     <ClInclude Include="src\SpriteBatch.h" />
@@ -154,7 +156,9 @@
     <ClInclude Include="src\Renderer3D.h" />
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\SpriteComponent.h" />
+    <ClInclude Include="src\StateManager.h" />
     <ClInclude Include="src\stb\stb_lib.h" />
+    <ClInclude Include="src\ThreadPrimitives.h" />
     <ClInclude Include="src\Transform.h" />
     <ClInclude Include="src\Debug.h" />
     <ClInclude Include="src\Component.h" />

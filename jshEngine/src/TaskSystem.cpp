@@ -35,22 +35,14 @@ namespace jshTask {
 		g_ThreadPool.Execute(tasks, count, pContext);
 	}
 
-	bool Running()
+	bool Running(const jsh::ThreadContext& context)
 	{
-		return g_ThreadPool.Running();
-	}
-	bool Running(jsh::ThreadContext* pContext)
-	{
-		return g_ThreadPool.Running(pContext);
+		return g_ThreadPool.Running(context);
 	}
 
-	void Wait()
+	void Wait(const jsh::ThreadContext& context)
 	{
-		g_ThreadPool.Wait();
-	}
-	void Wait(jsh::ThreadContext* pContext)
-	{
-		g_ThreadPool.Wait(pContext);
+		g_ThreadPool.Wait(context);
 	}
 
 	void Async(size_t length, uint8 divisions, const AsyncTask& task)
@@ -78,7 +70,7 @@ namespace jshTask {
 
 		ThreadContext context;
 		Execute(tasks, divisions, &context);
-		Wait(&context);
+		Wait(context);
 		delete[] tasks;
 	}
 

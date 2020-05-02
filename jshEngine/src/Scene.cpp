@@ -299,6 +299,17 @@ namespace jshScene {
 
 	}
 
+	void ClearScene()
+	{
+		g_Entities.clear();
+		g_EntityData.clear();
+		g_FreeEntityData.clear();
+		CreateEntity(); // invalid entity
+		for (uint32 i = 0; i < GetComponentsCount(); ++i) {
+			g_Components[i].clear();
+		}
+	}
+
 	namespace _internal {
 		jsh::Entity DuplicateEntity(jsh::Entity duplicated, jsh::Entity parent)
 		{

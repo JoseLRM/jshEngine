@@ -10,6 +10,7 @@ namespace jsh {
 		State() = default;
 		virtual ~State() = default;
 
+		virtual void Load() {}
 		virtual void Initialize() {}
 
 		virtual void Update(float deltaTime) {}

@@ -24,11 +24,8 @@ namespace jshTask {
 
 	void Async(size_t length, uint8 divisions, const AsyncTask& task);
 
-	bool Running();
-	bool Running(jsh::ThreadContext* pContext);
-
-	void Wait();
-	void Wait(jsh::ThreadContext* pContext);
+	bool Running(const jsh::ThreadContext& pContext);
+	void Wait(const jsh::ThreadContext& pContext);
 
 	uint8 ThreadCount();
 

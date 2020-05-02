@@ -81,17 +81,15 @@ namespace jshGraphics {
 	jsh::Texture* GetTexture(const char* name);
 	void RemoveTexture(const char* name);
 
-#ifdef JSH_ENGINE
-
-#ifdef JSH_IMGUI
+#if defined(JSH_ENGINE) && defined(JSH_IMGUI)
 	bool ShowMeshImGuiWindow();
 	bool ShowRawDataImGuiWindow();
 	bool ShowMaterialImGuiWindow();
 	bool ShowShaderImGuiWindow();
 	bool ShowTextureImGuiWindow();
 #endif
+
 	void ClearObjects();
-#endif
 
 #ifdef JSH_IMGUI
 	jsh::Mesh* GetMeshImGui();

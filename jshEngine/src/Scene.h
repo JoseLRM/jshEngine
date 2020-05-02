@@ -132,6 +132,8 @@ namespace jshScene {
 
 	void DestroyEntity(jsh::Entity entity) noexcept;
 
+	void ClearScene();
+
 	// system methods
 	void UpdateSystem(jsh::System* system, float dt);
 	void UpdateSystems(jsh::System** systems, uint32 cant, float dt);

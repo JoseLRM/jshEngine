@@ -20,6 +20,11 @@ namespace jsh {
 		std::atomic<uint32> executedTasks = 0u;
 		uint32 taskCount;
 	public:
+		inline void Reset() noexcept
+		{
+			executedTasks = 0u;
+			taskCount = 0u;
+		}
 		friend ThreadPool;
 	};
 
@@ -29,9 +34,6 @@ namespace jsh {
 		std::condition_variable m_ConditionVar;
 		std::mutex m_SleepMutex;
 		std::mutex m_ExecuteMutex;
-
-		std::atomic<uint64> m_TaskExecutedCount = 0u;
-		uint64 m_TaskInQueueCount = 0u;
 
 		std::queue<std::pair<Task, ThreadContext*>> m_Tasks;
 
@@ -66,7 +68,6 @@ namespace jsh {
 						// execution
 						task();
 						if (pContext) pContext->executedTasks.fetch_add(1);
-						m_TaskExecutedCount.fetch_add(1);
 					}
 				});
 			}
@@ -79,7 +80,6 @@ namespace jsh {
 			if (context) context->taskCount = 1;
 			
 			m_Tasks.emplace(std::make_pair(std::move(task), context));
-			m_TaskInQueueCount++;
 			m_ConditionVar.notify_one();
 		}
 
@@ -93,31 +93,17 @@ namespace jsh {
 				m_Tasks.emplace(std::make_pair(std::move(tasks[i]), context));
 			}
 
-			m_TaskInQueueCount += count;
 			m_ConditionVar.notify_all();
 		}
 
-		inline bool Running() const noexcept
+		inline bool Running(const ThreadContext& pContext) const noexcept
 		{
-			return m_TaskExecutedCount.load() != m_TaskInQueueCount;
+			return pContext.executedTasks.load() != pContext.taskCount;
 		}
 
-		inline bool Running(ThreadContext* pContext) const noexcept
-		{
-			return pContext->executedTasks.load() != pContext->taskCount;
-		}
-
-		inline void Wait(ThreadContext* pContext) noexcept
+		inline void Wait(const ThreadContext& pContext) noexcept
 		{
 			while (Running(pContext)) {
-				std::this_thread::yield();
-				m_ConditionVar.notify_all();
-			}
-		}
-
-		inline void Wait() noexcept
-		{
-			while (Running()) {
 				std::this_thread::yield();
 				m_ConditionVar.notify_all();
 			}

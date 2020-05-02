@@ -91,6 +91,17 @@ class State2D : public jsh::State {
 	}
 
 public:
+	void Load() override
+	{
+		tex = jshGraphics::CreateTexture("Skybox");
+		tex->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
+		jshLoader::LoadTexture("res/textures/skybox.jpg", &tex->resource);
+
+		tex2 = jshGraphics::CreateTexture("Skybox2");
+		tex2->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
+		jshLoader::LoadTexture("res/textures/skybox2.png", &tex2->resource);
+	}
+
 	void Initialize() override
 	{
 		jshEngine::SetRenderer(&renderer);
@@ -100,14 +111,6 @@ public:
 		camera->Set2D();
 		camera->SetDimension(10.f);
 		jshScene::GetComponent<jsh::PostProcessComponent>(jshEngine::GetRenderer()->GetMainCamera())->SetBloomEffect(true);
-
-		tex = jshGraphics::CreateTexture("Skybox");
-		tex->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
-		jshLoader::LoadTexture("res/textures/skybox.jpg", &tex->resource);
-
-		tex2 = jshGraphics::CreateTexture("Skybox2");
-		tex2->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
-		jshLoader::LoadTexture("res/textures/skybox2.png", &tex2->resource);
 
 		jshEvent::Register<jsh::ResolutionEvent>(JSH_EVENT_LAYER_DEFAULT, [](jsh::ResolutionEvent& e) {
 

@@ -8,8 +8,11 @@
 #include "Renderer3D.h"
 #include "Debug.h"
 #include "State.h"
+#include "DefaultLoadState.h"
+#include "StateManager.h"
 
 using namespace jsh;
+using namespace jsh::_internal;
 
 namespace jshEngine {
 
@@ -27,15 +30,16 @@ namespace jshEngine {
 
 	bool g_Initialized = false;
 	bool g_Closed = false;
-	State* g_CurrentState = nullptr;
 	uint32 g_FPS = 0u;
 	Time g_DeltaTime = 0.f;
 	uint32 g_FixedUpdateFrameRate;
 	float g_FixedUpdateDeltaTime;
 
+	StateManager g_State;
+
 	Renderer* g_pRenderer;
 
-	bool Initialize(State* initialState)
+	bool Initialize(jsh::State* state, jsh::State* loadState)
 	{
 		if (g_Initialized) return false;
 		
@@ -69,12 +73,9 @@ namespace jshEngine {
 
 			jshScene::Initialize();
 
-			if (initialState) {
-				g_CurrentState = initialState;
-				initialState->Initialize();
-			}
+			LoadState(state, loadState);
 			
-			if(!g_pRenderer->Initialize()) return false;
+			if(g_pRenderer) if(!g_pRenderer->Initialize()) return false;
 
 			jshLogI("jshEngine initialized");
 			g_Initialized = true;
@@ -117,18 +118,20 @@ namespace jshEngine {
 
 				fixedUpdateCount += g_DeltaTime;
 
-				if (g_CurrentState) {
-					// update
-					g_CurrentState->Update(g_DeltaTime);
+				g_State.Prepare();
 
-					if (fixedUpdateCount >= 0.01666666f) {
-						fixedUpdateCount -= 0.01666666f;
-						g_CurrentState->FixedUpdate();
-					}
+				// update
+				g_State.Update(g_DeltaTime);
 
-					// render
+				if (fixedUpdateCount >= 0.01666666f) {
+					fixedUpdateCount -= 0.01666666f;
+					g_State.FixedUpdate();
+				}
+
+				// render
+				if (g_pRenderer) {
 					g_pRenderer->Begin();
-					g_CurrentState->Render();
+					g_State.Render();
 					g_pRenderer->Render();
 					g_pRenderer->End();
 				}
@@ -162,7 +165,8 @@ namespace jshEngine {
 			if (!g_pRenderer->Close()) return false;
 
 			if (g_Closed) return false;
-			CloseState();
+			
+			g_State.ClearState();
 
 			jshScene::Close();
 
@@ -190,29 +194,15 @@ namespace jshEngine {
 		return true;
 	}
 
-	void LoadState(jsh::State* state)
+	////////////////////////////////////////STATE MANAGEMENT////////////////////////////
+	void LoadState(jsh::State* state, jsh::State* loadState)
 	{
-		if (!g_Initialized) {
-			jshDebug::ShowOkWindow(L"Use 'jshApplication::Initialize(new State())' to set the first state", 2);
-			return;
-		}
-		CloseState();
-		g_CurrentState = state;
-		g_CurrentState->Initialize();
-	}
-
-	void CloseState()
-	{
-		if (g_CurrentState) {
-			g_CurrentState->Close();
-			delete g_CurrentState;
-			g_CurrentState = nullptr;
-		}
+		g_State.LoadState(state, loadState);
 	}
 
 	State* GetCurrentState()
 	{
-		return g_CurrentState;
+		return g_State.GetCurrentState();
 	}
 
 	uint32 GetFPS()
@@ -255,7 +245,7 @@ namespace jshEngine {
 	// VERSION
 	constexpr uint64 g_MajorVersion = 0u;
 	constexpr uint64 g_MinorVersion = 4u;
-	constexpr uint64 g_RevisionVersion = 1u;
+	constexpr uint64 g_RevisionVersion = 2u;
 
 	uint64 GetMajorVersion()
 	{

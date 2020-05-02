@@ -11,14 +11,14 @@ namespace jsh {
 
 namespace jshEngine {
 
-	bool Initialize(jsh::State* initialState);
+	bool Initialize(jsh::State* state, jsh::State* loadState = nullptr);
 	void Run();
 	bool Close();
 
 	bool IsInitialized();
 
-	void CloseState();
-	void LoadState(jsh::State* state);
+	// state management
+	void LoadState(jsh::State* state, jsh::State* loadState = nullptr);
 	jsh::State* GetCurrentState();
 
 	uint32 GetFPS();

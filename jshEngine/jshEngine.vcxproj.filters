@@ -46,6 +46,9 @@
     <Filter Include="Graphics\Objects">
       <UniqueIdentifier>{3471d63c-4a0a-45e1-9f7e-e3980b702fc0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="System\TaskSystem">
+      <UniqueIdentifier>{bc313ae2-786a-44b4-b842-300b83257917}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Graphics.cpp">
@@ -82,9 +85,6 @@
       <Filter>ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\Input.cpp">
-      <Filter>System</Filter>
-    </ClCompile>
-    <ClCompile Include="src\TaskSystem.cpp">
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="src\Timer.cpp">
@@ -153,6 +153,12 @@
     <ClCompile Include="src\Mesh.cpp">
       <Filter>Graphics\Objects</Filter>
     </ClCompile>
+    <ClCompile Include="src\TaskSystem.cpp">
+      <Filter>System\TaskSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StateManager.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Window.h">
@@ -181,9 +187,6 @@
     </ClInclude>
     <ClInclude Include="src\System.h">
       <Filter>System\ECS</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TaskSystem.h">
-      <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="src\Timer.h">
       <Filter>System</Filter>
@@ -343,6 +346,18 @@
     </ClInclude>
     <ClInclude Include="src\Renderer2D.h">
       <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TaskSystem.h">
+      <Filter>System\TaskSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ThreadPrimitives.h">
+      <Filter>System\TaskSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DefaultLoadState.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StateManager.h">
+      <Filter>System</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

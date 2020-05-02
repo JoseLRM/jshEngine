@@ -5,6 +5,10 @@
 
 struct State : public jsh::State {
 
+	jsh::Renderer3D renderer;
+	jsh::Model model;
+
+	void Load() override;
 	void Initialize() override;
 	void Update(float dt) override;
 	void Render() override;
@@ -14,7 +18,7 @@ struct State : public jsh::State {
 
 int main()
 {
-	jshEngine::Initialize(new State2D());
+	jshEngine::Initialize(new State());
 	jshEngine::Run();
 	jshEngine::Close();
 
@@ -83,14 +87,20 @@ jsh::Mesh* CreateTerrain() {
 	return mesh;
 }
 
-void State::Initialize()
+void State::Load()
 {
-	jsh::Model model;
 	//jshLoader::LoadModel("res/models/nano_textured/nanosuit.obj", "nanosuit", &model);
 	jshLoader::LoadModel("res/models/gobber/GoblinX.obj", "Goblin", &model);
+}
+
+void State::Initialize()
+{
+	jshEngine::SetRenderer(&renderer);
 
 	model.CreateEntity(jshScene::CreateEntity(jsh::NameComponent("Goblin")));
 	jsh::Entity cameraEntity = jshScene::CreateEntity(jsh::NameComponent("Camera"), jsh::CameraComponent(), jsh::LightComponent());
+
+	jshScene::GetComponent<jsh::LightComponent>(cameraEntity)->intensity = 4.f;
 
 	jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(cameraEntity);
 	jshEngine::GetRenderer()->SetMainCamera(cameraEntity);
@@ -117,7 +127,8 @@ void State::Update(float dt)
 		camera->UpdateFirstPerson3D(0.5f, 0.5f, 5.f, 5.f, dt);
 	}
 
-	if (jshInput::IsKeyPressed(JSH_KEY_F5)) jshEngine::LoadState(new State2D());
+	if (jshInput::IsKeyPressed(JSH_KEY_F5)) 
+		jshEngine::LoadState(new State2D());
 
 	if (jshInput::IsKeyPressed('R')) jshGraphics::SetResolution(1080 / 2, 720 / 2);
 	if (jshInput::IsKeyPressed('T')) jshGraphics::SetResolution(1080, 720);
@@ -132,5 +143,5 @@ void State::Render()
 
 void State::Close()
 {
-
+	jshScene::ClearScene();
 }
