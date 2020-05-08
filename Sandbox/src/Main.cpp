@@ -5,7 +5,6 @@
 
 struct State : public jsh::State {
 
-	jsh::Renderer3D renderer;
 	jsh::Model model;
 
 	void Load() override;
@@ -18,73 +17,11 @@ struct State : public jsh::State {
 
 int main()
 {
-	jshEngine::Initialize(new State());
+	jshEngine::Initialize(new State2D());
 	jshEngine::Run();
 	jshEngine::Close();
 
 	return 0;
-}
-
-jsh::Mesh* CreateTerrain() {
-
-	jsh::Mesh* mesh = jshGraphics::CreateMesh("Terrain");
-
-	constexpr uint32 resolution = 10;
-	constexpr uint32 size = 100;
-	constexpr uint32 cantOfVertices = resolution * resolution;
-	constexpr uint32 cantOfIndices = (resolution-1) * (resolution-1) * 6;
-
-	float offset = (float)size / (float)resolution;
-
-	struct Color {
-		uint8 r, g, b, a = 1.f;
-	};
-
-	jsh::vec3 positions[cantOfVertices];
-	jsh::vec3 normals[cantOfVertices];
-	Color colors[cantOfVertices];
-	uint32 indices[cantOfIndices];
-
-	for (uint32 x = 0; x < resolution; ++x) {
-		for (uint32 z = 0; z < resolution; ++z) {
-			jsh::vec3 position;
-			jsh::vec3 normal;
-			Color color;
-			position.x = (float)x * offset - (float)size / 2.f;
-			position.y = sin((float)x/10) + cos((float)z/10);
-			position.z = (float)z * offset - (float)size / 2.f;
-			normal.x = 0.f;
-			normal.y = 1.f;
-			normal.z = 0.f;
-			color.r = ((float)x / (float)resolution) * 255.f;
-			color.g = 50u;
-			color.b = ((float)z / (float)resolution) * 255.f;
-			positions[x + z * resolution] = position;
-			normals[x + z * resolution] = normal;
-			colors[x + z * resolution] = color;
-		}
-	}
-
-	uint32 resolution0 = resolution - 1;;
-	for (uint32 x = 0; x < resolution0; ++x) {
-		for (uint32 z = 0; z < resolution0; ++z) {
-			uint32 i = x + z * resolution0;
-			indices[i * 6 + 0] = i;
-			indices[i * 6 + 1] = i + 1;
-			indices[i * 6 + 2] = i + resolution0;
-			indices[i * 6 + 3] = i + resolution0;
-			indices[i * 6 + 4] = i + 1;
-			indices[i * 6 + 5] = i + resolution0 + 1;
-		}
-	}
-
-	mesh->SetRawData(jshGraphics::CreateRawData("Terrain"));
-	mesh->GetRawData()->SetPositionsAndNormals((float*)positions, (float*)normals, cantOfVertices);
-	mesh->GetRawData()->SetColors((uint8*)colors);
-	mesh->GetRawData()->SetIndices(indices, cantOfIndices);
-	mesh->GetRawData()->Create();
-
-	return mesh;
 }
 
 void State::Load()
@@ -95,9 +32,8 @@ void State::Load()
 
 void State::Initialize()
 {
-	jshEngine::SetRenderer(&renderer);
-
-	model.CreateEntity(jshScene::CreateEntity(jsh::NameComponent("Goblin")));
+	jsh::Entity goblin = jshScene::CreateEntity(jsh::NameComponent("Goblin"));
+	model.CreateEntity(goblin);
 	jsh::Entity cameraEntity = jshScene::CreateEntity(jsh::NameComponent("Camera"), jsh::CameraComponent(), jsh::LightComponent());
 
 	jshScene::GetComponent<jsh::LightComponent>(cameraEntity)->intensity = 4.f;
@@ -111,6 +47,20 @@ void State::Initialize()
 
 	jshScene::GetComponent<jsh::LightComponent>(cameraEntity)->intensity = 4.f;
 
+	for (float x = 0.f; x < 10.f; x++)
+	{
+		for (float y = 0.f; y < 10.f; y++)
+		{
+			for (float z = 0.f; z < 10.f; z++)
+			{
+				if (x == 0.f && y == 0.f && z == 0.f) continue;
+
+				jsh::Entity entity = jshScene::DuplicateEntity(goblin);
+				jsh::Transform& trans = jshScene::GetTransform(entity);
+				trans.SetPosition({ x * 5.f, y * 5.f, z * 5.f });
+			}
+		}
+	}
 }
 
 

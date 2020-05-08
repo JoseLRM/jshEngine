@@ -2,19 +2,19 @@
 
 #include "Renderer.h"
 
-#include "Rendering3DPass.h"
+#include "DrawRenderPass.h"
 #include "OutlineRenderPass.h"
 #include "PostProcessRenderPass.h"
-#include "MeshBatch.h"
 
 namespace jsh {
 
 	class Renderer3D : public Renderer {
-		Rendering3DPass		m_Rendering3DPass;
-		OutlineRenderPass		m_OutlineRenderPass;
+		DrawRenderPass		m_Rendering3DPass;
+		//OutlineRenderPass		m_OutlineRenderPass;
 		PostProcessRenderPass	m_PostProcessRenderPass;
 
-		MeshBatch m_MeshBatch;
+		RenderQueue m_RenderQueue;
+		SpriteRenderQueue m_SpriteRenderQueue;
 
 	public:
 		bool Initialize() override;

@@ -2,10 +2,11 @@
 
 #include "Renderer.h"
 #include "PostProcess.h"
+#include "EventSystem.h"
 
 namespace jsh {
 
-	void BloomEffect::Create()
+	void BloomEffect::Create(uvec2 resolution)
 	{
 		// RENDER TARGET
 		{
@@ -19,8 +20,8 @@ namespace jsh {
 			resDesc.BindFlags = JSH_BIND_RENDER_TARGET | JSH_BIND_SHADER_RESOURCE;
 			resDesc.CPUAccessFlags = 0u;
 			resDesc.Format = JSH_FORMAT_R8G8B8A8_UNORM;
-			resDesc.Width = 1080;
-			resDesc.Height = 720;
+			resDesc.Width = resolution.x;
+			resDesc.Height = resolution.y;
 			resDesc.MipLevels = 1u;
 			resDesc.MiscFlags = 0u;
 			resDesc.SampleDesc.Count = 1u;
@@ -28,6 +29,7 @@ namespace jsh {
 			resDesc.Usage = JSH_USAGE_DEFAULT;
 
 			jshGraphics::CreateRenderTargetView(&desc, &resDesc, &m_RenderTargetView);
+			jshGraphics::CreateViewport(0.f, 0.f, (float)resolution.x, (float)resolution.y, &m_Viewport);
 		}
 
 		// CONSTANT BUFFER
@@ -46,18 +48,25 @@ namespace jsh {
 			jshGraphics::CreateBuffer(&desc, &sdata, &m_BloomBuffer);
 		}
 
-		m_BlurEffect.Create();
+		m_BlurEffect.Create(resolution);
 	}
 
-	void BloomEffect::Render(RenderTargetView& input, float intensity, uint32 radius, float sigma, CommandList cmd)
+	void BloomEffect::SetResolution(uint32 width, uint32 height)
+	{
+		m_BlurEffect.SetResolution(width, height);
+		jshGraphics::ResizeRenderTargetView(m_RenderTargetView, width, height);
+		jshGraphics::CreateViewport(0.f, 0.f, (float)width, (float)height, &m_Viewport);
+	}
+
+	void BloomEffect::Render(RenderTargetView input, float intensity, uint32 radius, float sigma, CommandList cmd)
 	{
 		m_BlurEffect.SetAlphaGaussianMode(radius, sigma);
 
 		jshGraphics::ClearRenderTargetView(m_RenderTargetView, 0.f, 0.f, 0.f, 0.f, cmd);
 		jshGraphics::BindBlendState(jshGraphics::primitives::GetDefaultBlendState(), cmd);
-		jshGraphics::BindViewport(jshGraphics::primitives::GetDefaultViewport(), 0u, cmd);
+		jshGraphics::BindViewport(m_Viewport, 0u, cmd);
 
-		jshGraphics::BindConstantBuffer(m_BloomBuffer, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
+		jshGraphics::BindConstantBuffers(&m_BloomBuffer, 0u, 1u, JSH_SHADER_TYPE_PIXEL, cmd);
 		
 		jsh::vec4 i;
 		i.x = intensity;
@@ -69,7 +78,7 @@ namespace jsh {
 		jshGraphics::BindBlendState(jshGraphics::primitives::GetTransparentBlendState(), cmd);
 
 		jshGraphics::UnbindTexture(0u, JSH_SHADER_TYPE_PIXEL, cmd);
-		m_BlurEffect.Render(m_RenderTargetView, input, nullptr, nullptr, 0u, cmd);
+		m_BlurEffect.Render(m_RenderTargetView, input, m_Viewport, nullptr, nullptr, 0u, cmd);
 	}
 
 }

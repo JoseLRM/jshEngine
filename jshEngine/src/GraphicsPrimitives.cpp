@@ -7,6 +7,7 @@
 #include "EventSystem.h"
 
 using namespace jsh;
+using namespace jsh::_internal;
 
 namespace jshGraphics {
 
@@ -27,6 +28,10 @@ namespace jshGraphics {
 	{
 		jshGraphics_dx11::DrawInstanced(vertexPerInstance, instances, startVertex, startInstance, cmd);
 	}
+	void DrawIndexedInstanced(uint32 indexPerInstance, uint32 instances, uint32 startIndex, uint32 startVertex, uint32 startInstance, jsh::CommandList cmd)
+	{
+		jshGraphics_dx11::DrawIndexedInstanced(indexPerInstance, instances, startIndex, startVertex, startInstance, cmd);
+	}
 
 	/////////////////////////TOPOLOGY//////////////////////
 	void SetTopology(JSH_TOPOLOGY topology, jsh::CommandList cmd) {
@@ -35,56 +40,27 @@ namespace jshGraphics {
 	/////////////////////////BUFFER//////////////////////
 	void CreateBuffer(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Buffer* buffer)
 	{
-		switch (jshGraphics::GetAPI()) {
-
-		case JSH_GRAPHCS_API_DIRECTX11:
-			jshGraphics_dx11::CreateBuffer(desc, sdata, buffer);
-			return;
-		case JSH_GRAPHCS_API_NULL:
-		default:
-			throw jshGfxNullAPIException;
-		}
+		jshGraphics_dx11::CreateBuffer(desc, sdata, buffer);
+		Buffer_Internal* b = reinterpret_cast<Buffer_Internal*>(buffer->internalAllocation.get());
+		b->desc = *desc;
 	}
 
-	void BindVertexBuffer(const jsh::Buffer& buffer, uint32 slot, CommandList cmd)
+	void BindVertexBuffers(const jsh::Buffer* buffers, uint32 slot, uint32 count, const uint32* strides, const uint32* offsets, jsh::CommandList cmd)
 	{
-		switch (jshGraphics::GetAPI())
-		{
-
-		case JSH_GRAPHCS_API_DIRECTX11:
-			jshGraphics_dx11::BindVertexBuffer(buffer, slot, cmd);
-			return;
-		case JSH_GRAPHCS_API_NULL:
-		default:
-			throw jshGfxNullAPIException;
-			return;
-		}
+		jshGraphics_dx11::BindVertexBuffers(buffers, slot, count, strides, offsets, cmd);
 	}
-	void BindIndexBuffer(const jsh::Buffer& buffer, CommandList cmd)
+	void BindIndexBuffer(const jsh::Buffer& buffer, JSH_FORMAT format, uint32 offset, jsh::CommandList cmd)
 	{
-		switch (jshGraphics::GetAPI())
-		{
-		case JSH_GRAPHCS_API_DIRECTX11:
-			jshGraphics_dx11::BindIndexBuffer(buffer, cmd);
-			return;
-		case JSH_GRAPHCS_API_NULL:
-		default:
-			throw jshGfxNullAPIException;
-			return;
-		}
+		jshGraphics_dx11::BindIndexBuffer(buffer, format, offset, cmd);
 	}
-	void BindConstantBuffer(const jsh::Buffer& buffer, uint32 slot, JSH_SHADER_TYPE shaderType, CommandList cmd)
+	void BindConstantBuffers(const jsh::Buffer* buffers, uint32 slot, uint32 count, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
 	{
-		switch (jshGraphics::GetAPI())
-		{
-		case JSH_GRAPHCS_API_DIRECTX11:
-			jshGraphics_dx11::BindConstantBuffer(buffer, slot, shaderType, cmd);
-			return;
-		case JSH_GRAPHCS_API_NULL:
-		default:
-			throw jshGfxNullAPIException;
-			return;
-		}
+		jshGraphics_dx11::BindConstantBuffers(buffers, slot, count, shaderType, cmd);
+	}
+	const JSH_BUFFER_DESC& GetBufferDesc(const jsh::Buffer& buffer)
+	{
+		Buffer_Internal* b = reinterpret_cast<Buffer_Internal*>(buffer.internalAllocation.get());
+		return b->desc;
 	}
 	void UpdateBuffer(jsh::Buffer& res, void* data, uint32 size, jsh::CommandList cmd)
 	{
@@ -123,6 +99,8 @@ namespace jshGraphics {
 	void CreateTextureRes(const JSH_TEXTURE2D_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::TextureRes* tex)
 	{
 		jshGraphics_dx11::CreateTextureRes(desc, sdata, tex);
+		TextureRes_Internal* t = reinterpret_cast<TextureRes_Internal*>(tex->internalAllocation.get());
+		t->desc = *desc;
 	}
 	void BindTexture(const TextureRes& texture, uint32 slot, JSH_SHADER_TYPE shaderType, CommandList cmd)
 	{
@@ -135,6 +113,12 @@ namespace jshGraphics {
 	void UnbindTexture(uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
 	{
 		jshGraphics_dx11::UnbindTexture(slot, shaderType, cmd);
+	}
+
+	const JSH_TEXTURE2D_DESC& GetTextureDesc(const jsh::TextureRes& res)
+	{
+		TextureRes_Internal* t = reinterpret_cast<TextureRes_Internal*>(res.internalAllocation.get());
+		return t->desc;
 	}
 
 	/////////////////////////VIEWPORT////////////////////////
@@ -193,7 +177,10 @@ namespace jshGraphics {
 	/////////////////////////RENDER TARGET VIEW////////////////////////
 	void CreateRenderTargetView(const JSH_RENDER_TARGET_VIEW_DESC* desc, const JSH_TEXTURE2D_DESC* texDesc, jsh::RenderTargetView* rtv)
 	{
-		return jshGraphics_dx11::CreateRenderTargetView(desc, texDesc, rtv);
+		jshGraphics_dx11::CreateRenderTargetView(desc, texDesc, rtv);
+		RenderTargetView_Internal* RTV = reinterpret_cast<RenderTargetView_Internal*>(rtv->internalAllocation.get());
+		RTV->desc = *desc;
+		RTV->resDesc = *texDesc;
 	}
 	jsh::RenderTargetView& GetRenderTargetViewFromBackBuffer()
 	{
@@ -212,29 +199,29 @@ namespace jshGraphics {
 		jshGraphics_dx11::ClearRenderTargetView(rtv, r, g, b, a, cmd);
 	}
 
+	void ResizeRenderTargetView(RenderTargetView& rtv, uint32 width, uint32 height)
+	{
+		JSH_TEXTURE2D_DESC resdesc = GetRenderTargetTextureDesc(rtv);
+		resdesc.Width = width;
+		resdesc.Height = height;
+		JSH_RENDER_TARGET_VIEW_DESC desc = GetRenderTargetViewDesc(rtv);
+		jshGraphics::CreateRenderTargetView(&desc, &resdesc, &rtv);
+	}
+
+	const JSH_RENDER_TARGET_VIEW_DESC& GetRenderTargetViewDesc(const jsh::RenderTargetView& rtv)
+	{
+		RenderTargetView_Internal* RTV = reinterpret_cast<RenderTargetView_Internal*>(rtv.internalAllocation.get());
+		return RTV->desc;
+	}
+	const JSH_TEXTURE2D_DESC& GetRenderTargetTextureDesc(const jsh::RenderTargetView& rtv)
+	{
+		RenderTargetView_Internal* RTV = reinterpret_cast<RenderTargetView_Internal*>(rtv.internalAllocation.get());
+		return RTV->resDesc;
+	}
+
 	//////////////////////////DEFAULT PRIMITIVES///////////////////////
 	void primitives::Initialize()
 	{
-		// QUAD 2D BUFFER
-		{
-			float data[] = {
-				-0.5f,  0.5f,
-				 0.5f,  0.5f,
-				-0.5f, -0.5f,
-				 0.5f, -0.5f
-			};
-
-			JSH_BUFFER_DESC desc;
-			desc.BindFlags = JSH_BIND_VERTEX_BUFFER;
-			desc.ByteWidth = 8 * sizeof(float);
-			desc.CPUAccessFlags = 0u;
-			desc.MiscFlags = 0u;
-			desc.StructureByteStride = 2 * sizeof(float);
-			desc.Usage = JSH_USAGE_IMMUTABLE;
-			JSH_SUBRESOURCE_DATA sdata;
-			sdata.pSysMem = data;
-			jshGraphics::CreateBuffer(&desc, &sdata, &s_QuadBuffer);
-		}
 		// MAIN FRAME BUFFER
 		{
 			JSH_RENDER_TARGET_VIEW_DESC rtvDesc;
@@ -274,6 +261,7 @@ namespace jshGraphics {
 			jshZeroMemory(&desc, sizeof(JSH_DEPTH_STENCIL_DESC));
 			desc.DepthEnable = false;
 			desc.StencilEnable = false;
+			desc.DepthFunc = JSH_COMPARISON_ALWAYS;
 			desc.DepthWriteMask = JSH_DEPTH_WRITE_MASK_ZERO;
 			jshGraphics::CreateDepthStencilState(&desc, &s_DisabledDepthStencilState);
 		}
@@ -342,16 +330,16 @@ namespace jshGraphics {
 		jshEvent::Register<ResolutionEvent>(JSH_EVENT_LAYER_SYSTEM, [](ResolutionEvent& e) {
 			
 			jshGraphics::CreateViewport(0.f, 0.f, e.resolution.x, e.resolution.y, &s_DefaultViewport);
+			jshGraphics::ResizeRenderTargetView(s_OffscreenRenderTargetView, e.resolution.x, e.resolution.y);
 
-			s_OffscreenRenderTargetView.resDesc.Width = e.resolution.x;
-			s_OffscreenRenderTargetView.resDesc.Height = e.resolution.y;
-			jshGraphics::CreateRenderTargetView(&s_OffscreenRenderTargetView.desc, &s_OffscreenRenderTargetView.resDesc, &s_OffscreenRenderTargetView);
+			JSH_TEXTURE2D_DESC desc = GetTextureDesc(s_DefaultDepthStencilView);
+			desc.Width = e.resolution.x;
+			desc.Height = e.resolution.y;
+			jshGraphics::CreateTextureRes(&desc, nullptr, &s_DefaultDepthStencilView);
 			
 			return true;
 		});
 	}
-
-	jsh::Buffer primitives::s_QuadBuffer;
 
 	jsh::DepthStencilState primitives::s_DefaultDepthStencilState;
 	jsh::DepthStencilState primitives::s_DisabledDepthStencilState;

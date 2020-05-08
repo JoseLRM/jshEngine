@@ -1,26 +1,25 @@
 #pragma once
 
 #include "State.h"
-#include "Renderer2D.h"
 #include "Engine.h"
+#include "Renderer3D.h"
 
 namespace jsh {
 
 	class DefaultLoadState : public State {
-		Renderer2D renderer;
 		jsh::Entity entity = INVALID_ENTITY;
 
 	public:
 		void Initialize() override
 		{
-			jshEngine::SetRenderer(&renderer);
+			jsh::Renderer* renderer = jshEngine::GetRenderer();
 
 			jsh::CameraComponent camera;
 			camera.Set2D();
 			camera.SetOrthographicMatrix();
 			camera.SetDimension(10.f);
 
-			renderer.SetMainCamera(jshScene::CreateEntity(camera));
+			renderer->SetMainCamera(jshScene::CreateEntity(camera));
 
 			entity = jshScene::CreateEntity(jsh::SpriteComponent());
 			Transform& trans = jshScene::GetTransform(entity);

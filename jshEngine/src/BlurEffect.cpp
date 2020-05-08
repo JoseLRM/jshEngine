@@ -7,8 +7,9 @@ namespace jsh {
 
 	BlurEffect::BlurEffect() {}
 
-	void BlurEffect::Create()
+	void BlurEffect::Create(uvec2 resolution)
 	{
+		m_Resolution = resolution / 2;
 		// create aux render target view
 		{
 			JSH_RENDER_TARGET_VIEW_DESC desc;
@@ -21,8 +22,8 @@ namespace jsh {
 			resDesc.BindFlags = JSH_BIND_RENDER_TARGET | JSH_BIND_SHADER_RESOURCE;
 			resDesc.CPUAccessFlags = 0u;
 			resDesc.Format = JSH_FORMAT_R8G8B8A8_UNORM;
-			resDesc.Width = 1080;
-			resDesc.Height = 720;
+			resDesc.Width = m_Resolution.x;
+			resDesc.Height = m_Resolution.y;
 			resDesc.MipLevels = 1u;
 			resDesc.MiscFlags = 0u;
 			resDesc.SampleDesc.Count = 1u;
@@ -30,6 +31,7 @@ namespace jsh {
 			resDesc.Usage = JSH_USAGE_DEFAULT;
 
 			jshGraphics::CreateRenderTargetView(&desc, &resDesc, &m_AuxRTV);
+			jshGraphics::CreateViewport(0.f, 0.f, float(resDesc.Width), float(resDesc.Height), &m_Viewport);
 		}
 
 		// gaussian buffer
@@ -88,7 +90,14 @@ namespace jsh {
 		}
 	}
 
-	void BlurEffect::Render(RenderTargetView& input, RenderTargetView& output, DepthStencilState* dss, TextureRes* dsv, uint32 stencilRef, CommandList cmd)
+	void BlurEffect::SetResolution(uint32 width, uint32 height)
+	{
+		m_Resolution = uvec2(width, height) / 2;
+		jshGraphics::ResizeRenderTargetView(m_AuxRTV, m_Resolution.x, m_Resolution.y);
+		jshGraphics::CreateViewport(0.f, 0.f, m_Resolution.x, m_Resolution.y, &m_Viewport);
+	}
+
+	void BlurEffect::Render(RenderTargetView input, RenderTargetView output, Viewport viewport, DepthStencilState* dss, TextureRes* dsv, uint32 stencilRef, CommandList cmd)
 	{
 		assert(input.IsValid() && output.IsValid());
 
@@ -107,12 +116,12 @@ namespace jsh {
 
 		jshGraphics::ClearRenderTargetView(m_AuxRTV, 0.f, 0.f, 0.f, 0.f, cmd);
 
-		if (m_Radius > 16) m_Radius = 16;
+		if (m_Radius > 64) m_Radius = 64;
 
 		BlurData blurData;
-		blurData.count = m_Radius;
+		blurData.count = m_Radius / 4;
 		blurData.horizontal = true;
-		blurData.offset = 1.f / 1080.f;
+		blurData.offset = 1.f / (float)m_Resolution.x;
 
 		CoefficientsData coefficientsData;
 		if (m_BlurMode == 0 || m_BlurMode == 1) LoadCoefficientsGaussianMode(coefficientsData);
@@ -121,18 +130,22 @@ namespace jsh {
 
 		jshGraphics::UpdateBuffer(m_BlurBuffer, &blurData, 0u, cmd);
 		jshGraphics::UpdateBuffer(m_CoefficientsBuffer, &coefficientsData,0u, cmd);
-		jshGraphics::BindConstantBuffer(m_BlurBuffer, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
-		jshGraphics::BindConstantBuffer(m_CoefficientsBuffer, 1u, JSH_SHADER_TYPE_PIXEL, cmd);
+		jshGraphics::BindConstantBuffers(&m_BlurBuffer, 0u, 1u, JSH_SHADER_TYPE_PIXEL, cmd);
+		jshGraphics::BindConstantBuffers(&m_CoefficientsBuffer, 1u, 1u, JSH_SHADER_TYPE_PIXEL, cmd);
+
+		jshGraphics::BindViewport(m_Viewport, 0u, cmd);
 
 		jshGraphics::BindSamplerState(m_SamplerState, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
 		
 		jshGraphics::PostProcess(input, m_AuxRTV, nullptr, nullptr, 0u, blurPS, cmd);		
 
-		blurData.offset = 1.f / 720.f;
+		blurData.offset = 1.f / ((float)m_Resolution.y / 2.f);
 		blurData.horizontal = false;
 		jshGraphics::UpdateBuffer(m_BlurBuffer, &blurData, 0u, cmd);
 
 		if(alphaMode) jshGraphics::BindBlendState(jshGraphics::primitives::GetTransparentBlendState(), cmd);
+
+		jshGraphics::BindViewport(viewport, 0u, cmd);
 
 		jshGraphics::PostProcess(m_AuxRTV, output, dss, dsv, stencilRef, blurPS, cmd);
 
@@ -140,29 +153,32 @@ namespace jsh {
 
 	void BlurEffect::LoadCoefficientsSolidMode(CoefficientsData& c) const noexcept
 	{
-		for (uint32 i = 0; i < m_Radius; ++i) {
+		uint32 radius = m_Radius / 4;
+		for (uint32 i = 0; i < radius; ++i) {
 			c.coefficients[i].x = 1.f;
 		}
 	}
 	void BlurEffect::LoadCoefficientsBoxMode(CoefficientsData& c) const noexcept
 	{
-		float value = 0.5f / m_Radius;
-		for (uint32 i = 0; i < m_Radius; ++i) {
+		uint32 radius = m_Radius / 4;
+		float value = 0.5f / radius;
+		for (uint32 i = 0; i < radius; ++i) {
 			c.coefficients[i].x = value;
 		}
 	}
 	void BlurEffect::LoadCoefficientsGaussianMode(CoefficientsData& c) const noexcept
 	{
 		float co = 0.f;
+		uint32 radius = m_Radius / 4;
 
-		for (uint32 x = 0; x < m_Radius; ++x) {
+		for (uint32 x = 0; x < radius; ++x) {
 			c.coefficients[x].x = jsh::Gauss((float)x, m_Sigma);
 			co += c.coefficients[x].x;
 		}
 
-		float realCo = (co / (float)m_Radius) * ((float)m_Radius * 2 - 1);
+		float realCo = (co / (float)radius) * ((float)radius * 2 - 1);
 
-		for (uint32 i = 0; i < m_Radius; ++i) {
+		for (uint32 i = 0; i < radius; ++i) {
 			c.coefficients[i].x /= realCo;
 		}
 	}

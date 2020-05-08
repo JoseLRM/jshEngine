@@ -63,8 +63,7 @@ namespace jsh {
 			Transform& cameraTransform = jshScene::GetTransform(camera->entity);
 
 			camera->UpdateMatrices();
-			m_CameraBufferData.vm = camera->GetViewMatrix();
-			m_CameraBufferData.pm = camera->GetProjectionMatrix();
+			m_CameraBufferData.vm = XMMatrixTranspose(camera->GetViewMatrix() * camera->GetProjectionMatrix());
 			const vec3 pos = cameraTransform.GetWorldPosition();
 			m_CameraBufferData.position = vec4(pos.x, pos.y, pos.z, 1.f);
 			jshGraphics::UpdateBuffer(m_CameraBuffer, &m_CameraBufferData, 0u, cmd);

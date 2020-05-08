@@ -10,337 +10,21 @@ using namespace jsh;
 
 namespace jsh {
 
-	/////////////////////////////INSTANCE BUFFER//////////////////////////
-	void InstanceBuffer::Create()
-	{
-		XMMATRIX aux;
-		JSH_BUFFER_DESC desc;
-		desc.BindFlags = JSH_BIND_CONSTANT_BUFFER;
-		desc.ByteWidth = sizeof(XMMATRIX);
-		desc.CPUAccessFlags = 0u;
-		desc.MiscFlags = 0u;
-		desc.StructureByteStride = 0u;
-		desc.Usage = JSH_USAGE_DEFAULT;
-		JSH_SUBRESOURCE_DATA sdata;
-		sdata.pSysMem = &aux;
-		jshGraphics::CreateBuffer(&desc, &sdata, &m_Buffer);
-	}
-	void InstanceBuffer::Bind(JSH_SHADER_TYPE shaderType, jsh::CommandList cmd) const
-	{
-		jshGraphics::BindConstantBuffer(m_Buffer, JSH_GFX_SLOT_CBUFFER_INSTANCE, shaderType, cmd);
-	}
-	void InstanceBuffer::UpdateBuffer(XMMATRIX* tm, jsh::CommandList cmd)
-	{
-		jshGraphics::UpdateBuffer(m_Buffer, tm, 0u, cmd);
-	}
-
-	////////////////////////////MATERIAL///////////////////////////
-	void Material::Create()
+	void InstanceBuffer::Create(uint32 size)
 	{
 		JSH_BUFFER_DESC desc;
-		desc.BindFlags = JSH_BIND_CONSTANT_BUFFER;
-		desc.ByteWidth = sizeof(float) * 4;
-		desc.CPUAccessFlags = 0u;
+		desc.BindFlags = JSH_BIND_VERTEX_BUFFER;
+		desc.ByteWidth = size;
+		desc.CPUAccessFlags = JSH_CPU_ACCESS_WRITE;
 		desc.MiscFlags = 0u;
-		desc.StructureByteStride = 0u;
-		desc.Usage = JSH_USAGE_DEFAULT;
-		JSH_SUBRESOURCE_DATA sres;
-		sres.pSysMem = &m_SpecularIntensity;
-		jshGraphics::CreateBuffer(&desc, &sres, &m_Buffer);
+		desc.StructureByteStride = 64;
+		desc.Usage = JSH_USAGE_DYNAMIC;
+		jshGraphics::CreateBuffer(&desc, nullptr, &m_Buffer);
 	}
-
-	void Material::Bind(CommandList cmd, JSH_SHADER_TYPE shaderType)
+	void InstanceBuffer::Update(void* data, uint32 size, CommandList cmd)
 	{
-		if (m_Modified) {
-			struct alignas(16) {
-				float specularIntensity;
-				float shininess;
-			} data;
-
-			data.specularIntensity = m_SpecularIntensity;
-			data.shininess = m_Shininess;
-
-			jshGraphics::UpdateBuffer(m_Buffer, &data, 0u, cmd);
-			m_Modified = false;
-		}
-		jshGraphics::BindConstantBuffer(m_Buffer, JSH_GFX_SLOT_CBUFFER_MATERIAL, shaderType, cmd);
+		jshGraphics::UpdateBuffer(m_Buffer, data, size, cmd);
 	}
-
-	//////////////////////RAW DATA/////////////////////////////////
-	RawData::RawData() : m_DataFlags(JSH_RAW_DATA_NONE) {}
-
-	void RawData::Create()
-	{
-		if (!IsValid()) {
-			jshLogE("Can't create an empty mesh");
-			return;
-		}
-		if (IsCreated()) {
-			jshLogW("Mesh already created");
-		}
-
-		m_Created = true;
-
-		if (m_DataFlags & JSH_RAW_DATA_TEX_COORDS) {
-
-			if (m_DataFlags & JSH_RAW_DATA_TANGENTS && m_DataFlags & JSH_RAW_DATA_BITANGENTS) {
-				CreateNormal();
-				m_CreationType = 4;
-				return;
-			}
-
-			CreateSimpleTex();
-			m_CreationType = 2;
-			return;
-		}
-
-		if (m_DataFlags & JSH_RAW_DATA_COLORS) {
-			CreateSimpleCol();
-			m_CreationType = 3;
-			return;
-		}
-
-		CreateSolid();
-		m_CreationType = 1;
-	}
-
-	void RawData::Bind(jsh::CommandList cmd)
-	{
-		assert(IsCreated());
-		
-		jshGraphics::BindVertexBuffer(m_VertexBuffer, 0, cmd);
-		jshGraphics::BindIndexBuffer(m_IndexBuffer, cmd);
-	}
-
-	void RawData::SetPositionsAndNormals(float* pos, float* nor, uint32 vertices)
-	{
-		m_pPosData = pos;
-		m_pNorData = nor;
-		m_VertexCount = vertices;
-
-		if (pos) m_DataFlags |= JSH_RAW_DATA_POSITIONS;
-		if (nor) m_DataFlags |= JSH_RAW_DATA_NORMALS;
-	}
-
-	void RawData::SetIndices(uint32* data, uint32 indices)
-	{
-		m_pIndexData = data;
-		m_IndexCount = indices;
-		if (data) m_DataFlags |= JSH_RAW_DATA_INDICES;
-	}
-
-	void RawData::SetColors(uint8* col)
-	{
-		m_pColorData = col;
-		if (col) m_DataFlags |= JSH_RAW_DATA_COLORS;
-	}
-
-	void RawData::SetTextureCoords(float* coords)
-	{
-		m_pTexCoordsData = coords;
-		if (coords) m_DataFlags |= JSH_RAW_DATA_TEX_COORDS;
-	}
-
-	void RawData::SetTangents(float* tan)
-	{
-		m_pTanData = tan;
-		if (tan)m_DataFlags |= JSH_RAW_DATA_TANGENTS;
-	}
-
-	void RawData::SetBitangents(float* bitan)
-	{
-		m_pBitanData = bitan;
-		if (bitan) m_DataFlags |= JSH_RAW_DATA_BITANGENTS;
-	}
-
-	void RawData::CreateSolid()
-	{
-		float* vData = new float[m_VertexCount * 6u];
-		size_t bufferPtr = 0u;
-		for (uint32 i = 0; i < m_VertexCount * 3; i += 3) {
-			vData[bufferPtr++] = m_pPosData[i + 0];
-			vData[bufferPtr++] = m_pPosData[i + 1];
-			vData[bufferPtr++] = m_pPosData[i + 2];
-			vData[bufferPtr++] = m_pNorData[i + 0];
-			vData[bufferPtr++] = m_pNorData[i + 1];
-			vData[bufferPtr++] = m_pNorData[i + 2];
-		}
-
-		JSH_BUFFER_DESC vertexDesc;
-		vertexDesc.BindFlags = JSH_BIND_VERTEX_BUFFER;
-		vertexDesc.ByteWidth = m_VertexCount * 6 * sizeof(float);
-		vertexDesc.CPUAccessFlags = 0u;
-		vertexDesc.MiscFlags = 0u;
-		vertexDesc.StructureByteStride = 6 * sizeof(float);
-		vertexDesc.Usage = JSH_USAGE_IMMUTABLE;
-		JSH_SUBRESOURCE_DATA vertexSData;
-		vertexSData.pSysMem = vData;
-		jshGraphics::CreateBuffer(&vertexDesc, &vertexSData, &m_VertexBuffer);
-
-		JSH_BUFFER_DESC indexDesc;
-		indexDesc.BindFlags = JSH_BIND_INDEX_BUFFER;
-		indexDesc.ByteWidth = m_IndexCount * sizeof(uint32);
-		indexDesc.CPUAccessFlags = 0u;
-		indexDesc.MiscFlags = 0u;
-		indexDesc.StructureByteStride = sizeof(uint32);
-		indexDesc.Usage = JSH_USAGE_IMMUTABLE;
-		JSH_SUBRESOURCE_DATA indexSData;
-		indexSData.pSysMem = m_pIndexData;
-		jshGraphics::CreateBuffer(&indexDesc, &indexSData, &m_IndexBuffer);
-
-		assert(m_VertexBuffer.IsValid());
-		assert(m_IndexBuffer.IsValid());
-
-		delete[] vData;
-	}
-
-	void RawData::CreateSimpleTex()
-	{
-		float* vData = new float[m_VertexCount * 8u];
-		size_t bufferPtr = 0u;
-		for (uint32 i = 0; i < m_VertexCount; i++) {
-			vData[bufferPtr++] = m_pPosData[i * 3u + 0];
-			vData[bufferPtr++] = m_pPosData[i * 3u + 1];
-			vData[bufferPtr++] = m_pPosData[i * 3u + 2];
-			vData[bufferPtr++] = m_pNorData[i * 3u + 0];
-			vData[bufferPtr++] = m_pNorData[i * 3u + 1];
-			vData[bufferPtr++] = m_pNorData[i * 3u + 2];
-			vData[bufferPtr++] = m_pTexCoordsData[i * 2u + 0];
-			vData[bufferPtr++] = m_pTexCoordsData[i * 2u + 1];
-		}
-
-		JSH_BUFFER_DESC vertexDesc;
-		vertexDesc.BindFlags = JSH_BIND_VERTEX_BUFFER;
-		vertexDesc.ByteWidth = m_VertexCount * 8u * sizeof(float);
-		vertexDesc.CPUAccessFlags = 0u;
-		vertexDesc.MiscFlags = 0u;
-		vertexDesc.StructureByteStride = 8 * sizeof(float);
-		vertexDesc.Usage = JSH_USAGE_IMMUTABLE;
-		JSH_SUBRESOURCE_DATA vertexSData;
-		vertexSData.pSysMem = vData;
-		jshGraphics::CreateBuffer(&vertexDesc, &vertexSData, &m_VertexBuffer);
-
-		JSH_BUFFER_DESC indexDesc;
-		indexDesc.BindFlags = JSH_BIND_INDEX_BUFFER;
-		indexDesc.ByteWidth = m_IndexCount * sizeof(uint32);
-		indexDesc.CPUAccessFlags = 0u;
-		indexDesc.MiscFlags = 0u;
-		indexDesc.StructureByteStride = sizeof(uint32);
-		indexDesc.Usage = JSH_USAGE_IMMUTABLE;
-		JSH_SUBRESOURCE_DATA indexSData;
-		indexSData.pSysMem = m_pIndexData;
-		jshGraphics::CreateBuffer(&indexDesc, &indexSData, &m_IndexBuffer);
-
-		assert(m_VertexBuffer.IsValid());
-		assert(m_IndexBuffer.IsValid());
-		delete[] vData;
-	}
-
-	void RawData::CreateSimpleCol()
-	{
-		struct Vertex {
-			vec3 position;
-			vec3 normal;
-			uint8 color[4];
-		};
-		Vertex* vData = new Vertex[m_VertexCount];
-		for (uint32 i = 0; i < m_VertexCount; i++) {
-			vData[i].position.x = m_pPosData[i * 3u + 0];
-			vData[i].position.y = m_pPosData[i * 3u + 1];
-			vData[i].position.z = m_pPosData[i * 3u + 2];
-			vData[i].normal.x = m_pNorData[i * 3u + 0];
-			vData[i].normal.y = m_pNorData[i * 3u + 1];
-			vData[i].normal.z = m_pNorData[i * 3u + 2];
-			vData[i].color[0] = m_pColorData[i * 4u + 0];
-			vData[i].color[1] = m_pColorData[i * 4u + 1];
-			vData[i].color[2] = m_pColorData[i * 4u + 2];
-			vData[i].color[3] = m_pColorData[i * 4u + 3];
-		}
-
-		JSH_BUFFER_DESC vertexDesc;
-		vertexDesc.BindFlags = JSH_BIND_VERTEX_BUFFER;
-		vertexDesc.ByteWidth = m_VertexCount * sizeof(Vertex);
-		vertexDesc.CPUAccessFlags = 0u;
-		vertexDesc.MiscFlags = 0u;
-		vertexDesc.StructureByteStride = sizeof(Vertex);
-		vertexDesc.Usage = JSH_USAGE_IMMUTABLE;
-		JSH_SUBRESOURCE_DATA vertexSData;
-		vertexSData.pSysMem = vData;
-		jshGraphics::CreateBuffer(&vertexDesc, &vertexSData, &m_VertexBuffer);
-
-		JSH_BUFFER_DESC indexDesc;
-		indexDesc.BindFlags = JSH_BIND_INDEX_BUFFER;
-		indexDesc.ByteWidth = m_IndexCount * sizeof(uint32);
-		indexDesc.CPUAccessFlags = 0u;
-		indexDesc.MiscFlags = 0u;
-		indexDesc.StructureByteStride = sizeof(uint32);
-		indexDesc.Usage = JSH_USAGE_IMMUTABLE;
-		JSH_SUBRESOURCE_DATA indexSData;
-		indexSData.pSysMem = m_pIndexData;
-		jshGraphics::CreateBuffer(&indexDesc, &indexSData, &m_IndexBuffer);
-
-		assert(m_VertexBuffer.IsValid());
-		assert(m_IndexBuffer.IsValid());
-
-		delete[] vData;
-	}
-
-	void RawData::CreateNormal()
-	{
-		struct Vertex {
-			vec3 position;
-			vec3 normal;
-			vec2 texCoord;
-			vec3 tan;
-			vec3 bitan;
-		};
-		Vertex* vData = new Vertex[m_VertexCount];
-		for (uint32 i = 0; i < m_VertexCount; i++) {
-			vData[i].position.x = m_pPosData[i * 3u + 0];
-			vData[i].position.y = m_pPosData[i * 3u + 1];
-			vData[i].position.z = m_pPosData[i * 3u + 2];
-			vData[i].normal.x = m_pNorData[i * 3u + 0];
-			vData[i].normal.y = m_pNorData[i * 3u + 1];
-			vData[i].normal.z = m_pNorData[i * 3u + 2];
-			vData[i].texCoord.x = m_pTexCoordsData[i * 2u + 0];
-			vData[i].texCoord.y = m_pTexCoordsData[i * 2u + 1];
-			vData[i].tan.x = m_pTanData[i * 3u + 0];
-			vData[i].tan.y = m_pTanData[i * 3u + 1];
-			vData[i].tan.z = m_pTanData[i * 3u + 2];
-			vData[i].bitan.x = m_pBitanData[i * 3u + 0];
-			vData[i].bitan.y = m_pBitanData[i * 3u + 1];
-			vData[i].bitan.z = m_pBitanData[i * 3u + 2];
-		}
-
-		JSH_BUFFER_DESC vertexDesc;
-		vertexDesc.BindFlags = JSH_BIND_VERTEX_BUFFER;
-		vertexDesc.ByteWidth = m_VertexCount * sizeof(Vertex);
-		vertexDesc.CPUAccessFlags = 0u;
-		vertexDesc.MiscFlags = 0u;
-		vertexDesc.StructureByteStride = sizeof(Vertex);
-		vertexDesc.Usage = JSH_USAGE_IMMUTABLE;
-		JSH_SUBRESOURCE_DATA vertexSData;
-		vertexSData.pSysMem = vData;
-		jshGraphics::CreateBuffer(&vertexDesc, &vertexSData, &m_VertexBuffer);
-
-		JSH_BUFFER_DESC indexDesc;
-		indexDesc.BindFlags = JSH_BIND_INDEX_BUFFER;
-		indexDesc.ByteWidth = m_IndexCount * sizeof(uint32);
-		indexDesc.CPUAccessFlags = 0u;
-		indexDesc.MiscFlags = 0u;
-		indexDesc.StructureByteStride = sizeof(uint32);
-		indexDesc.Usage = JSH_USAGE_IMMUTABLE;
-		JSH_SUBRESOURCE_DATA indexSData;
-		indexSData.pSysMem = m_pIndexData;
-		jshGraphics::CreateBuffer(&indexDesc, &indexSData, &m_IndexBuffer);
-
-		assert(m_VertexBuffer.IsValid());
-		assert(m_IndexBuffer.IsValid());
-
-		delete[] vData;
-	}
-
-	//////////////////////MESH/////////////////////////////////
 
 	//////////////////////MODEL/////////////////////////////////
 	Model::Model() : root() {}
@@ -595,26 +279,6 @@ GetObject(name, g_RawData);
 	void MeshInfo()
 	{
 		Mesh* mesh = g_Mesh[g_SelectedMesh];
-
-		bool diffuse = mesh->HasDiffuseMap();
-		bool normal = mesh->HasNormalMap();
-		bool specular = mesh->HasSpecularMap();
-
-		bool transparent = mesh->IsTransparent();
-
-		ImGui::Checkbox("DiffuseMapping", &diffuse);
-		mesh->EnableDiffuseMap(diffuse);
-
-		ImGui::Checkbox("NormalMapping", &normal);
-		mesh->EnableNormalMap(normal);
-
-		ImGui::Checkbox("SpecularMapping", &specular);
-		mesh->EnableSpecularMap(specular);
-
-		ImGui::Checkbox("Transparent", &transparent);
-		mesh->SetTransparent(transparent);
-
-		mesh->UpdatePrimitives();
 	}
 	bool ShowMeshImGuiWindow()
 	{
@@ -636,7 +300,14 @@ GetObject(name, g_RawData);
 	const char* g_SelectedMaterial = nullptr;
 	void MaterialInfo()
 	{
+		Material* material = g_Material[g_SelectedMaterial];
 
+		Shader* shader = material->GetShader();
+		if (shader) {
+			ConstantData* cd = material->GetConstantData();
+
+			shader->ShowConstantDataInfo(*cd);
+		}
 	}
 	bool ShowMaterialImGuiWindow()
 	{

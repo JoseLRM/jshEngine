@@ -26,7 +26,8 @@ namespace jshLoader
 		jsh::Transform& transform = transformedMesh.transform;
 
 		// Creation
-		mesh->SetRawData(jshGraphics::CreateRawData(meshName));
+
+		jsh::RawData* rawData = jshGraphics::CreateRawData(meshName);
 		mesh->SetMaterial(jshGraphics::CreateMaterial(meshName));
 		
 		// RAWDATA
@@ -85,20 +86,22 @@ namespace jshLoader
 			}
 
 			// Set ptrs
-			jsh::RawData* rawData = mesh->GetRawData();
 			if (aimesh->HasTangentsAndBitangents()) {
-				rawData->SetTangents((float*)aimesh->mTangents);
-				rawData->SetBitangents((float*)aimesh->mBitangents);
+				rawData->AddVertexLayout("Tangent", JSH_FORMAT_R32G32B32_FLOAT, 0u, aimesh->mTangents);
+				rawData->AddVertexLayout("Bitangent", JSH_FORMAT_R32G32B32_FLOAT, 0u, aimesh->mBitangents);
 			}
-			if (textureCoords) mesh->GetRawData()->SetTextureCoords(textureCoords);
-			rawData->SetIndices(iData, indexCount);
-			rawData->SetPositionsAndNormals((float*)positions, (float*)aimesh->mNormals, aimesh->mNumVertices);
+			if (textureCoords) rawData->AddVertexLayout("TexCoord", JSH_FORMAT_R32G32_FLOAT, 0u, textureCoords);
+			rawData->SetIndices(iData, indexCount, JSH_FORMAT_R32_UINT);
+			rawData->AddVertexLayout("Position", JSH_FORMAT_R32G32B32_FLOAT, 0u, positions);
+			rawData->AddVertexLayout("Normal", JSH_FORMAT_R32G32B32_FLOAT, 0u, aimesh->mNormals);
+
+			rawData->SetVertexCount(aimesh->mNumVertices);
 
 			rawData->Create();
 
 			if (textureCoords) delete[] textureCoords;
-			delete iData;
-			delete positions;
+			delete[] iData;
+			delete[] positions;
 		}
 
 		// MATERIAL
@@ -115,12 +118,13 @@ namespace jshLoader
 		aiGetMaterialFloat(material, AI_MATKEY_SHININESS_STRENGTH, &specularIntensity);
 		aiGetMaterialInteger(material, AI_MATKEY_BLEND_FUNC, &transparent);
 
-		mesh->GetMaterial()->SetShininess(shininess);
-		mesh->GetMaterial()->SetShininess(specularIntensity);
-		
-		//mesh->SetTransparent(transparent == aiBlendMode_Default);
+		jsh::NormalShader* shader = jshGraphics::objects::GetNormalShader();
 
-		mesh->GetMaterial()->Create();
+		mesh->GetMaterial()->SetShader(shader);
+		jsh::ConstantData* cd = mesh->GetMaterial()->GetConstantData();
+
+		shader->SetShininess(shininess, *cd);
+		shader->SetSpecularIntensity(specularIntensity, *cd);
 
 		// mapping
 		if (material->GetTextureCount(aiTextureType_DIFFUSE) != 0) {
@@ -129,7 +133,7 @@ namespace jshLoader
 			jsh::Texture* diffuseMap = jshGraphics::CreateTexture((std::string(meshName) + "[diffuse]").c_str());
 			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &diffuseMap->resource);
 			diffuseMap->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
-			mesh->SetDiffuseMap(diffuseMap);
+			shader->SetDiffuseMap(diffuseMap, *mesh->GetMaterial()->GetConstantData());
 		}
 		if (material->GetTextureCount(aiTextureType_NORMALS) != 0) {
 			aiString path0;
@@ -137,7 +141,7 @@ namespace jshLoader
 			jsh::Texture* normalMap = jshGraphics::CreateTexture((std::string(meshName) + "[normal]").c_str());
 			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &normalMap->resource);
 			normalMap->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
-			mesh->SetNormalMap(normalMap);
+			shader->SetNormalMap(normalMap, *mesh->GetMaterial()->GetConstantData());
 		}
 		if (material->GetTextureCount(aiTextureType_SPECULAR) != 0) {
 			aiString path0;
@@ -145,11 +149,10 @@ namespace jshLoader
 			jsh::Texture* specularMap = jshGraphics::CreateTexture((std::string(meshName) + "[specular]").c_str());
 			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &specularMap->resource);
 			specularMap->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
-			mesh->SetSpecularMap(specularMap);
+			shader->SetSpecularMap(specularMap, *mesh->GetMaterial()->GetConstantData());
 		}
 
-		// MESH CREATION
-		mesh->UpdatePrimitives();
+		mesh->SetRawData(rawData);
 	}
 
 	void AddNode(aiNode* ainode, jsh::MeshNode* node, TransformedMesh* meshes)

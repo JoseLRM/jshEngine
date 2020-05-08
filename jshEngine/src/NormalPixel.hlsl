@@ -1,48 +1,58 @@
-#include "common.hlsli"
 #include "Light.hlsli"
-#include "Material.hlsli"
 
-Texture2D diffuseMap : register(JSH_GFX_SLOT_TEXTURE2D_DIFFUSE);
-Texture2D normalMap : register(JSH_GFX_SLOT_TEXTURE2D_NORMAL);
-Texture2D specularMap : register(JSH_GFX_SLOT_TEXTURE2D_SPECULAR);
+cbuffer material : register(JSH_GFX_SLOT_CBUFFER_FREE0)
+{
+    bool diffuseEnabled;
+    bool normalEnabled;
+    bool specularEnabled;
 
-SamplerState diffuseSampler : register(s0);
-SamplerState defSampler : register(s1);
-
-cbuffer mesh : register(b0) {
-	bool diffuseEnabled;
-	bool normalEnabled;
-	bool specularEnabled;
+    float shininess;
+    float specularIntensity;
 };
 
-float4 main(float3 position : FragPosition, float3x3 tanBiNor : FragTanBiNor,
-	float2 texCoord : FragTexCoord, float3 toCamera : FragToCamera) : SV_TARGET
+struct PS_IN
+{
+    float3 position : FragPosition;
+    float3x3 tanBiNor : FragTanBiNor;
+    float2 texCoord : FragTexCoord;
+    float3 toCamera : FragToCamera;
+};
+
+Texture2D tex[3] : register(t0);
+SamplerState sam : register(s0);
+
+float4 main(PS_IN input) : SV_TARGET
 {
 	float3 normal;
-	if (normalEnabled) {
-		normal = normalMap.Sample(defSampler, texCoord).xyz;
+    
+    if (normalEnabled)
+    {
+        normal = tex[1].Sample(sam, input.texCoord).xyz;
 		normal.x = (normal.x * 2.f) - 1.f;
 		normal.y = (normal.y * 2.f) - 1.f;
+		normal.z = (normal.z * 2.f) - 1.f;
 
-		normal = normalize(mul(normal, tanBiNor));
-	}
+        normal = normalize(mul(normal, input.tanBiNor));
+    }
 	else {
-		normal = normalize(float3(tanBiNor[2][0], tanBiNor[2][1], tanBiNor[2][2]));
-	}
+        normal = normalize(input.tanBiNor[2]);
+    }
 
-	float specI = material.specularIntensity;
-	float shiny = material.shininess;
-	if (specularEnabled) {
-		float4 s = specularMap.Sample(defSampler, texCoord);
+    float specI = specularIntensity;
+    float shiny = shininess;
+    if (specularEnabled)
+    {
+        float4 s = tex[2].Sample(sam, input.texCoord);
 		specI *= s.x;
 		shiny *= s.w;
 	}
 
-	float3 lightColor = LoadLightColor(position, normal, toCamera, specI, shiny);
+    float3 lightColor = LoadLightColor(input.position, normal, input.toCamera, specI, shiny);
 	
-	if (diffuseEnabled) {
-		return float4(lightColor, 1.f)* diffuseMap.Sample(diffuseSampler, texCoord);
-	}
+    if (diffuseEnabled)
+    {
+        return float4(lightColor, 1.f) * tex[0].Sample(sam, input.texCoord);
+    }
 	else {
 		return float4(lightColor, 1.f);
 	}

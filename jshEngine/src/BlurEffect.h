@@ -6,6 +6,9 @@ namespace jsh {
 
 	class BlurEffect {
 
+		uvec2 m_Resolution;
+
+		Viewport m_Viewport;
 		RenderTargetView  m_AuxRTV;
 		Buffer m_BlurBuffer;
 		Buffer m_CoefficientsBuffer;
@@ -38,8 +41,9 @@ namespace jsh {
 	public:
 		BlurEffect();
 
-		void Create();
-		void Render(RenderTargetView& input, RenderTargetView& output, DepthStencilState* dss, TextureRes* dsv, uint32 stencilRef, CommandList cmd);
+		void Create(uvec2 resolution);
+		void SetResolution(uint32 width, uint32 height);
+		void Render(RenderTargetView input, RenderTargetView output, Viewport viewport, DepthStencilState* dss, TextureRes* dsv, uint32 stencilRef, CommandList cmd);
 
 		inline void SetSolidMode(uint32 radius)
 		{

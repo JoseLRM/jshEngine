@@ -1,3 +1,4 @@
+/*
 #include "OutlineRenderPass.h"
 
 #include "Renderer.h"
@@ -111,11 +112,11 @@ namespace jsh {
 			MeshComponent* meshComp = jshScene::GetComponent<MeshComponent>(outlineComp->entity);
 
 			if (meshComp == nullptr || meshComp->mesh == nullptr) continue;
-			/*
-				TODO: crear una lista en Lambertican pass de los objetos que aparecen en pantalla y utilizar estos para
-				crear las instancias
+			
+				//TODO: crear una lista en Lambertican pass de los objetos que aparecen en pantalla y utilizar estos para
+				//crear las instancias
 				//TODO: inheritance outline
-			*/
+			
 
 			m_Instances.emplace_back(OutlineInstance());
 			OutlineInstance& instance = m_Instances[m_Instances.size()-1];
@@ -226,3 +227,4 @@ namespace jsh {
 	}
 
 }
+*/

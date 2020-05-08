@@ -24,97 +24,81 @@ namespace jshGraphics {
 
 		bool result = jshGraphics_dx11::Initialize();
 
+		/*
+
 		// default shaders
 		{
 			Shader* solidShader = jshGraphics::CreateShader("Solid");
-			jshGraphics::CreateVertexShader(L"SolidVertex.cso", &solidShader->vs);
-			jshGraphics::CreatePixelShader(L"SolidPixel.cso", &solidShader->ps);
 
-			const JSH_INPUT_ELEMENT_DESC desc[] = {
-				{"Position", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 0u, 0u},
-				{"Normal", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 3 * sizeof(float), 0u}
-			};
+			jshGraphics::CreateVertexShader(L"SolidVertex.cso", &solidShader->GetVertexShader());
+			jshGraphics::CreatePixelShader(L"SolidPixel.cso", &solidShader->GetPixelShader());
 
-			jshGraphics::CreateInputLayout(desc, 2u, solidShader->vs, &solidShader->inputLayout);
+			solidShader->AddVertexProperty("Position", JSH_FORMAT_R32G32B32A32_FLOAT, 0u);
+			solidShader->AddVertexProperty("Normal", JSH_FORMAT_R32G32B32A32_FLOAT, 0u);
 		}
 
 		{
-			Shader* simpleTexShader = jshGraphics::CreateShader("SimpleTex");
-			jshGraphics::CreateVertexShader(L"SimpleTexVertex.cso", &simpleTexShader->vs);
-			jshGraphics::CreatePixelShader(L"SimpleTexPixel.cso", &simpleTexShader->ps);
-			
-			const JSH_INPUT_ELEMENT_DESC desc[] = {
-					{"Position", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 0u, 0u},
-					{"Normal", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 3 * sizeof(float), 0u},
-					{"TexCoord", 0, JSH_FORMAT_R32G32_FLOAT, 0, true, 6 * sizeof(float), 0u}
-			};
+			Shader* simpleTexShader = jshGraphics::CreateShader("Solid");
 
-			jshGraphics::CreateInputLayout(desc, 3u, simpleTexShader->vs, &simpleTexShader->inputLayout);
+			jshGraphics::CreateVertexShader(L"SolidVertex.cso", &simpleTexShader->GetVertexShader());
+			jshGraphics::CreatePixelShader(L"SolidPixel.cso", &simpleTexShader->GetPixelShader());
+
+			simpleTexShader->AddVertexProperty("Position", JSH_FORMAT_R32G32B32A32_FLOAT, 0u);
+			simpleTexShader->AddVertexProperty("Normal", JSH_FORMAT_R32G32B32A32_FLOAT, 0u);
+			simpleTexShader->AddVertexProperty("TexCoord", JSH_FORMAT_R32G32_FLOAT, 0u);
 		}
 
 		{
-			Shader* simpleColShader = jshGraphics::CreateShader("SimpleCol");
-			jshGraphics::CreateVertexShader(L"SimpleColVertex.cso", &simpleColShader->vs);
-			jshGraphics::CreatePixelShader(L"SimpleColPixel.cso", &simpleColShader->ps);
+			Shader* simpleColShader = jshGraphics::CreateShader("SimpleColor");
 
-			const JSH_INPUT_ELEMENT_DESC desc[] = {
-				{"Position", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 0u, 0u},
-				{"Normal", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 3 * sizeof(float), 0u},
-				{"Color", 0, JSH_FORMAT_R8G8B8A8_UNORM, 0, true, 6 * sizeof(float), 0u}
-			};
+			jshGraphics::CreateVertexShader(L"SimpleColVertex.cso", &simpleColShader->GetVertexShader());
+			jshGraphics::CreatePixelShader(L"SimpleColPixel.cso", &simpleColShader->GetPixelShader());
 
-			jshGraphics::CreateInputLayout(desc, 3u, simpleColShader->vs, &simpleColShader->inputLayout);
-
+			simpleColShader->AddVertexProperty("Position", JSH_FORMAT_R32G32B32A32_FLOAT, 0u);
+			simpleColShader->AddVertexProperty("Normal", JSH_FORMAT_R32G32B32A32_FLOAT, 0u);
+			simpleColShader->AddVertexProperty("Color", JSH_FORMAT_R8G8B8A8_UNORM, 0u);
 		}
 
 		{
 			Shader* normalShader = jshGraphics::CreateShader("Normal");
-			jshGraphics::CreateVertexShader(L"NormalVertex.cso", &normalShader->vs);
-			jshGraphics::CreatePixelShader(L"NormalPixel.cso", &normalShader->ps);
-			
-			const JSH_INPUT_ELEMENT_DESC desc[] = {
-				{"Position", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 0u, 0u},
-				{"Normal", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 3 * sizeof(float), 0u},
-				{"TexCoord", 0, JSH_FORMAT_R32G32_FLOAT, 0, true, 6 * sizeof(float), 0u},
-				{"Tangent", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 8 * sizeof(float), 0u},
-				{"Bitangent", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 11 * sizeof(float), 0u}
-			};
 
-			jshGraphics::CreateInputLayout(desc, 5u, normalShader->vs, &normalShader->inputLayout);
+			jshGraphics::CreateVertexShader(L"NormalVertex.cso", &normalShader->GetVertexShader());
+			jshGraphics::CreatePixelShader(L"NormalPixel.cso", &normalShader->GetPixelShader());
+
+			normalShader->AddVertexProperty("Position", JSH_FORMAT_R32G32B32A32_FLOAT, 0u);
+			normalShader->AddVertexProperty("Normal", JSH_FORMAT_R32G32B32A32_FLOAT, 0u);
+			normalShader->AddVertexProperty("TexCoord", JSH_FORMAT_R32G32_FLOAT, 0u);
+			normalShader->AddVertexProperty("Tangent", JSH_FORMAT_R32G32B32_FLOAT, 0u);
+			normalShader->AddVertexProperty("Bitangent", JSH_FORMAT_R32G32B32_FLOAT, 0u);
 		}
 
 		{
 			Shader* outlineShader = jshGraphics::CreateShader("OutlineMask");
-			jshGraphics::CreateVertexShader(L"OutlineMaskVertex.cso", &outlineShader->vs);
-			jshGraphics::CreatePixelShader(L"OutlineMaskPixel.cso", &outlineShader->ps);
 
-			const JSH_INPUT_ELEMENT_DESC desc[] = {
-				{"Position", 0, JSH_FORMAT_R32G32B32_FLOAT, 0, true, 0u, 0u}
-			};
+			jshGraphics::CreateVertexShader(L"OutlineMaskVertex.cso", &outlineShader->GetVertexShader());
+			jshGraphics::CreatePixelShader(L"OutlineMaskPixel.cso", &outlineShader->GetPixelShader());
 
-			jshGraphics::CreateInputLayout(desc, 1u, outlineShader->vs, &outlineShader->inputLayout);
+			outlineShader->AddVertexProperty("Position", JSH_FORMAT_R32G32B32A32_FLOAT, 0u);
 		}
 
 		{
 			Shader* spriteShader = jshGraphics::CreateShader("Sprite");
-			jshGraphics::CreateVertexShader(L"SpriteVertex.cso", &spriteShader->vs);
-			jshGraphics::CreatePixelShader(L"SpritePixel.cso", &spriteShader->ps);
+			jshGraphics::CreateVertexShader(L"SpriteVertex.cso", &spriteShader->GetVertexShader());
+			jshGraphics::CreatePixelShader(L"SpritePixel.cso", &spriteShader->GetPixelShader());
 
-			const JSH_INPUT_ELEMENT_DESC desc[] = {
-				{"Position", 0, JSH_FORMAT_R32G32_FLOAT, 0, true, 0u, 0u},
-				{"TM", 0, JSH_FORMAT_R32G32B32A32_FLOAT, 1, false, 0u, 1u},
-				{"TM", 1, JSH_FORMAT_R32G32B32A32_FLOAT, 1, false, 4 * sizeof(float), 1u},
-				{"TM", 2, JSH_FORMAT_R32G32B32A32_FLOAT, 1, false, 8 * sizeof(float), 1u},
-				{"TM", 3, JSH_FORMAT_R32G32B32A32_FLOAT, 1, false, 12 * sizeof(float), 1u},
-				{"Color", 0, JSH_FORMAT_R8G8B8A8_UNORM, 1, false, 16 * sizeof(float), 1u},
-				{"TexCoord", 0, JSH_FORMAT_R32G32B32A32_FLOAT, 1, false, 17 * sizeof(float), 1u},
-				{"TextureID", 0, JSH_FORMAT_R16_UINT, 1, false, 21 * sizeof(float), 1u},
-			};
-
-			jshGraphics::CreateInputLayout(desc, 8u, spriteShader->vs, &spriteShader->inputLayout);
+			spriteShader->AddVertexProperty("Position", JSH_FORMAT_R32G32_FLOAT, 0u);
+			spriteShader->AddVertexProperty("TM", JSH_FORMAT_R32G32_FLOAT, 0u);
+			spriteShader->AddVertexProperty("TM", JSH_FORMAT_R32G32_FLOAT, 1u);
+			spriteShader->AddVertexProperty("TM", JSH_FORMAT_R32G32_FLOAT, 2u);
+			spriteShader->AddVertexProperty("TM", JSH_FORMAT_R32G32_FLOAT, 3u);
+			spriteShader->AddVertexProperty("Color", JSH_FORMAT_R8G8B8A8_UNORM, 0u);
+			spriteShader->AddVertexProperty("TexCoord", JSH_FORMAT_R32G32B32A32_FLOAT, 0u);
+			spriteShader->AddVertexProperty("TextureID", JSH_FORMAT_R16_UINT, 0u);
 		}
+		*/
 
 		jshGraphics::primitives::Initialize();
+		jshGraphics::objects::Initialize();
 		jshGraphics::InitializePostProcess();
 
 		return result;
@@ -196,4 +180,135 @@ namespace jshGraphics {
 	{
 		return g_Fullscreen;
 	}
+
+	bool GenerateInputLayout(jsh::Shader* shader, jsh::RawData* rawData, jsh::InputLayout* il)
+	{
+		auto& sProps = shader->GetVertexProperties();
+		auto& instanceProps = shader->GetInstanceProperties();
+		auto& rLayout = rawData->GetVertexLayout();
+
+		// align instance layout
+		{
+			uint32 count = 0u;
+			for (uint32 i = 0; i < instanceProps.size(); ++i) {
+				count += jshGraphics::GetFormatStride(instanceProps[i].format);
+			}
+			if (count > JSH_GFX_MAX_INSTANCE_SIZE) {
+				throw jshException(L"Graphics Exception", L"You are exceeded the instance data limits, change 'JSH_GFX_MAX_INSTANCE_SIZE' in config.h");
+			}
+		}
+
+		uint32 descSize = uint32(sProps.size() + instanceProps.size());
+		JSH_INPUT_ELEMENT_DESC* desc = new JSH_INPUT_ELEMENT_DESC[descSize];
+
+		// create vertex input elements
+		for (uint32 i = 0; i < sProps.size(); ++i) {
+			bool find = false;
+			uint32 j;
+			VertexProperty& prop = sProps[i];
+
+			for (j = 0; j < rLayout.size(); ++j) {
+				if (prop == rLayout[j].prop) {
+					find = true;
+					break;
+				}
+			}
+			if (!find) return false;
+
+			desc[i] = { prop.name, prop.index, prop.format, 0u, true, rLayout[j].offset, 0u };
+		}
+
+		// create instance input elements
+		uint32 offset = 0u;
+		{
+			uint32 instanceCount = 0u;
+			for (uint32 i = uint32(sProps.size()); i < descSize; ++i) {
+				VertexProperty& prop = instanceProps[instanceCount++];
+				desc[i] = { prop.name, prop.index, prop.format, 1u, false, offset, 1u };
+				offset += jshGraphics::GetFormatStride(prop.format);
+			}
+		}
+
+		jshGraphics::CreateInputLayout(desc, descSize, shader->GetVertexShader(), il);
+
+		delete[] desc;
+		return true;
+	}
+
+	///////////////////////////////SHADERS///////////////////////////
+
+	void objects::Initialize()
+	{
+		// Sprite RawData
+		{
+			float data[] = {
+				-0.5f,  0.5f,
+				 0.5f,  0.5f,
+				-0.5f, -0.5f,
+				 0.5f, -0.5f
+			};
+
+			s_SpriteRawData.AddVertexLayout("Position", JSH_FORMAT_R32G32_FLOAT, 0u, data);
+			s_SpriteRawData.SetTopology(JSH_TOPOLOGY_TRIANGLE_STRIP);
+
+			s_SpriteRawData.SetVertexCount(4);
+
+			s_SpriteRawData.Create();
+		}
+
+		// Sprite shader
+		{
+			s_SpriteShader = Shader(88);
+
+			jshGraphics::CreateVertexShader(L"SpriteVertex.cso", &s_SpriteShader.GetVertexShader());
+			jshGraphics::CreatePixelShader(L"SpritePixel.cso", &s_SpriteShader.GetPixelShader());
+
+			s_SpriteShader.AddVertexProperty("Position", JSH_FORMAT_R32G32_FLOAT, 0u);
+
+			s_SpriteShader.AddInstanceProperty("TM", JSH_FORMAT_R32G32B32A32_FLOAT, 0u);
+			s_SpriteShader.AddInstanceProperty("TM", JSH_FORMAT_R32G32B32A32_FLOAT, 1u);
+			s_SpriteShader.AddInstanceProperty("TM", JSH_FORMAT_R32G32B32A32_FLOAT, 2u);
+			s_SpriteShader.AddInstanceProperty("TM", JSH_FORMAT_R32G32B32A32_FLOAT, 3u);
+			s_SpriteShader.AddInstanceProperty("TexCoord", JSH_FORMAT_R32G32B32A32_FLOAT, 0u);
+			s_SpriteShader.AddInstanceProperty("Color", JSH_FORMAT_R8G8B8A8_UNORM, 0u);
+			s_SpriteShader.AddInstanceProperty("Texture", JSH_FORMAT_R32_UINT, 0u);
+		}
+
+		// Solid shader
+		{
+			jshGraphics::CreateVertexShader(L"SolidVertex.cso", &s_SolidShader.GetVertexShader());
+			jshGraphics::CreatePixelShader(L"SolidPixel.cso", &s_SolidShader.GetPixelShader());
+
+			s_SolidShader.AddVertexProperty("Position", JSH_FORMAT_R32G32B32_FLOAT, 0u);
+			s_SolidShader.AddVertexProperty("Normal", JSH_FORMAT_R32G32B32_FLOAT, 0u);
+
+			s_SolidShader.AddInstanceProperty("TM", JSH_FORMAT_R32G32B32A32_FLOAT, 0u);
+			s_SolidShader.AddInstanceProperty("TM", JSH_FORMAT_R32G32B32A32_FLOAT, 1u);
+			s_SolidShader.AddInstanceProperty("TM", JSH_FORMAT_R32G32B32A32_FLOAT, 2u);
+			s_SolidShader.AddInstanceProperty("TM", JSH_FORMAT_R32G32B32A32_FLOAT, 3u);
+		}
+
+		// Normal shader
+		{
+			jshGraphics::CreateVertexShader(L"NormalVertex.cso", &s_NormalShader.GetVertexShader());
+			jshGraphics::CreatePixelShader(L"NormalPixel.cso", &s_NormalShader.GetPixelShader());
+
+			s_NormalShader.AddVertexProperty("Position", JSH_FORMAT_R32G32B32_FLOAT, 0u);
+			s_NormalShader.AddVertexProperty("Normal", JSH_FORMAT_R32G32B32_FLOAT, 0u);
+			s_NormalShader.AddVertexProperty("TexCoord", JSH_FORMAT_R32G32_FLOAT, 0u);
+			s_NormalShader.AddVertexProperty("Tangent", JSH_FORMAT_R32G32B32_FLOAT, 0u);
+			s_NormalShader.AddVertexProperty("Bitangent", JSH_FORMAT_R32G32B32_FLOAT, 0u);
+
+			s_NormalShader.AddInstanceProperty("TM", JSH_FORMAT_R32G32B32A32_FLOAT, 0u);
+			s_NormalShader.AddInstanceProperty("TM", JSH_FORMAT_R32G32B32A32_FLOAT, 1u);
+			s_NormalShader.AddInstanceProperty("TM", JSH_FORMAT_R32G32B32A32_FLOAT, 2u);
+			s_NormalShader.AddInstanceProperty("TM", JSH_FORMAT_R32G32B32A32_FLOAT, 3u);
+		}
+	}
+
+	SolidShader objects::s_SolidShader;
+	NormalShader objects::s_NormalShader;
+	Shader objects::s_SpriteShader;
+	RawData objects::s_SpriteRawData;
+
 }

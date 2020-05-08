@@ -30,9 +30,9 @@ namespace jshGraphics_dx11 {
 	/////////////////////////BUFFER//////////////////////
 	void CreateBuffer(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Buffer* buffer);
 
-	void BindVertexBuffer(const jsh::Buffer& buffer, uint32 slot, jsh::CommandList cmd);
-	void BindIndexBuffer(const jsh::Buffer& buffer, jsh::CommandList cmd);
-	void BindConstantBuffer(const jsh::Buffer& buffer, uint32 slot, JSH_SHADER_TYPE constShaderType, jsh::CommandList cmd);
+	void BindVertexBuffers(const jsh::Buffer* buffers, uint32 slot, uint32 count, const uint32* strides, const uint32* offsets, jsh::CommandList cmd);
+	void BindIndexBuffer(const jsh::Buffer& buffer, JSH_FORMAT format, uint32 offset, jsh::CommandList cmd);
+	void BindConstantBuffers(const jsh::Buffer* buffers, uint32 slot, uint32 count, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 
 	void UpdateBuffer(jsh::Buffer& res, void* data, uint32 size, jsh::CommandList cmd);
 
@@ -85,6 +85,7 @@ namespace jshGraphics_dx11 {
 	void DrawIndexed(uint32 indicesCount, jsh::CommandList cmd);
 	void Draw(uint32 vertexCount, jsh::CommandList cmd);
 	void DrawInstanced(uint32 vertexPerInstance, uint32 instances, uint32 startVertex, uint32 startInstance, jsh::CommandList cmd);
+	void DrawIndexedInstanced(uint32 indexPerInstance, uint32 instances, uint32 startIndex, uint32 startVertex, uint32 startInstance, jsh::CommandList cmd);
 
 	void SetResolution(uint32 width, uint32 height);
 	void SetFullscreen(bool fullscreen);

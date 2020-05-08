@@ -38,7 +38,7 @@ namespace jsh {
 
 		Shader* m_pShader;
 
-		InstanceBuffer m_InstanceBuffer;
+		//InstanceBuffer m_InstanceBuffer;
 
 		BlurEffect m_BlurRenderPass;
 

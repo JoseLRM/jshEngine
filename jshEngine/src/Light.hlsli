@@ -15,7 +15,7 @@ inline float3 LoadLightColor(float3 position, float3 normal, float3 toCamera, fl
 	while (i < JSH_GFX_MAX_LIGHTS) {
 		if (light[i].type == 0) break;
 		
-		float3 toLight = light[i].position - position;
+		float3 toLight = light[i].position.xyz - position;
 		float distance = length(toLight);
 		toLight = normalize(toLight);
 
@@ -30,12 +30,9 @@ inline float3 LoadLightColor(float3 position, float3 normal, float3 toCamera, fl
 		count += light[i].color * intensity;
 		i++;
 	}
-	count /= i;
 
 	// ambient
-	if (count.x < 0.2f) count.x = 0.2f;
-	if (count.y < 0.2f) count.y = 0.2f;
-	if (count.z < 0.2f) count.z = 0.2f;
+    count = max(count, 0.2f);
 
 	return count;
 }

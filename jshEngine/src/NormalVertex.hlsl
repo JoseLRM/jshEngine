@@ -1,5 +1,4 @@
 #include "Camera.hlsli"
-#include "Instance.hlsli"
 
 struct VS_IN {
 	float3 position : Position;
@@ -7,6 +6,8 @@ struct VS_IN {
 	float2 texCoord : TexCoord;
 	float3 tangent : Tangent;
 	float3 bitangent : Bitangent;
+    
+	matrix tm : TM;
 };
 
 struct VS_OUT {
@@ -14,6 +15,7 @@ struct VS_OUT {
 	float3x3 tanBiNor : FragTanBiNor;
 	float2 texCoord : FragTexCoord;
 	float3 toCamera : FragToCamera;
+    
 	float4 position : SV_Position;
 };
 
@@ -21,14 +23,12 @@ VS_OUT main( VS_IN input )
 {
 	VS_OUT output;
 
-	output.fragPos = mul(float4(input.position, 1.f), instance.tm);
-	output.tanBiNor = mul(float3x3(input.tangent, input.bitangent, input.normal), (float3x3)instance.tm);
-
+	output.fragPos = mul(float4(input.position, 1.f), input.tm);
+	output.tanBiNor = mul(float3x3(input.tangent, input.bitangent, input.normal), (float3x3)input.tm);
+	output.toCamera = normalize(output.fragPos - camera.position.xyz);
+    output.position = mul(float4(output.fragPos, 1.f), camera.vm);
 	output.texCoord = input.texCoord;
 
-	output.toCamera = normalize(output.fragPos - camera.position.xyz);
-
-	output.position = mul(mul(float4(output.fragPos, 1.f), camera.vm), camera.pm);
-
+    
 	return output;
 }

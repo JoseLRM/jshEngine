@@ -141,15 +141,6 @@
     <ClCompile Include="src\Renderer3D.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\Rendering3DPass.cpp">
-      <Filter>Renderer\RenderPasses</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Rendering2DPass.cpp">
-      <Filter>Renderer\RenderPasses</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Renderer2D.cpp">
-      <Filter>Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="src\Mesh.cpp">
       <Filter>Graphics\Objects</Filter>
     </ClCompile>
@@ -158,6 +149,18 @@
     </ClCompile>
     <ClCompile Include="src\StateManager.cpp">
       <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RawData.cpp">
+      <Filter>Graphics\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DrawRenderPass.cpp">
+      <Filter>Renderer\RenderPasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Shader.cpp">
+      <Filter>Graphics\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ConstantBuffer.cpp">
+      <Filter>Graphics\Objects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -332,21 +335,6 @@
     <ClInclude Include="src\Renderer3D.h">
       <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\MeshBatch.h">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\SpriteBatch.h">
-      <Filter>Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering2DPass.h">
-      <Filter>Renderer\RenderPasses</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Rendering3DPass.h">
-      <Filter>Renderer\RenderPasses</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Renderer2D.h">
-      <Filter>Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="src\TaskSystem.h">
       <Filter>System\TaskSystem</Filter>
     </ClInclude>
@@ -359,33 +347,21 @@
     <ClInclude Include="src\StateManager.h">
       <Filter>System</Filter>
     </ClInclude>
+    <ClInclude Include="src\ConstantBuffer.h">
+      <Filter>Graphics\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RenderQueue.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DrawRenderPass.h">
+      <Filter>Renderer\RenderPasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SpriteRenderQueue.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\SolidVertex.hlsl">
-      <Filter>Graphics\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="src\NormalPixel.hlsl">
-      <Filter>Graphics\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="src\NormalVertex.hlsl">
-      <Filter>Graphics\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="src\OutlineMaskPixel.hlsl">
-      <Filter>Graphics\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="src\OutlineMaskVertex.hlsl">
-      <Filter>Graphics\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="src\SimpleColPixel.hlsl">
-      <Filter>Graphics\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="src\SimpleColVertex.hlsl">
-      <Filter>Graphics\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="src\SimpleTexPixel.hlsl">
-      <Filter>Graphics\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="src\SimpleTexVertex.hlsl">
       <Filter>Graphics\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="src\SolidPixel.hlsl">
@@ -415,6 +391,12 @@
     <FxCompile Include="src\SpritePixel.hlsl">
       <Filter>Graphics\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="src\NormalVertex.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\NormalPixel.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Camera.hlsli">
@@ -423,13 +405,7 @@
     <None Include="src\common.hlsli">
       <Filter>Graphics\Shaders</Filter>
     </None>
-    <None Include="src\Instance.hlsli">
-      <Filter>Graphics\Shaders</Filter>
-    </None>
     <None Include="src\Light.hlsli">
-      <Filter>Graphics\Shaders</Filter>
-    </None>
-    <None Include="src\Material.hlsli">
       <Filter>Graphics\Shaders</Filter>
     </None>
   </ItemGroup>

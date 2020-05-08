@@ -112,20 +112,21 @@ namespace jsh {
 			Transform& trans = jshScene::GetTransform(entity);
 			vec3 pos = trans.GetLocalPosition();
 
-			m_ProjectionMatrix = XMMatrixTranspose(XMMatrixOrthographicLH(m_Dimension, m_Dimension / m_Aspect, m_Near, m_Far));
-			m_ViewMatrix = XMMatrixTranspose(XMMatrixTranslation(-pos.x, -pos.y, 1.f));
+			m_ProjectionMatrix = XMMatrixOrthographicLH(m_Dimension, m_Dimension / m_Aspect, -1000.f, 1000.f);
+			//m_ViewMatrix = XMMatrixTranslation(-pos.x, -pos.y, 0.f);
+			m_ViewMatrix = XMMatrixIdentity();
 		}
 	}
 	void CameraComponent::UpdateMatrices3D() noexcept
 	{
 		if (IsOrthographic()) {
-			m_ProjectionMatrix = XMMatrixTranspose(XMMatrixOrthographicLH(m_Dimension, m_Dimension / m_Aspect, m_Near, m_Far));
+			m_ProjectionMatrix = XMMatrixOrthographicLH(m_Dimension, m_Dimension / m_Aspect, m_Near, m_Far);
 		}
 		else {
 			if (m_Near <= 0.f) m_Near = 0.001f;
 			if (m_Far <= 0.f) m_Far = 0.001f;
 
-			m_ProjectionMatrix = XMMatrixTranspose(XMMatrixPerspectiveLH(m_Dimension, m_Dimension / m_Aspect, m_Near, m_Far));
+			m_ProjectionMatrix = XMMatrixPerspectiveLH(m_Dimension, m_Dimension / m_Aspect, m_Near, m_Far);
 		}
 
 		XMVECTOR direction = XMVectorSet(0.f, 0.f, 1.f, 0.f);
@@ -138,7 +139,7 @@ namespace jsh {
 		direction = XMVector3Transform(direction, XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, 0.f));
 
 		const auto target = XMVECTOR(position) + direction;
-		m_ViewMatrix = XMMatrixTranspose(XMMatrixLookAtLH(position, target, XMVectorSet(0.f, 1.f, 0.f, 0.f)));
+		m_ViewMatrix = XMMatrixLookAtLH(position, target, XMVectorSet(0.f, 1.f, 0.f, 0.f));
 		transform.SetRotation(rotation);
 	}
 

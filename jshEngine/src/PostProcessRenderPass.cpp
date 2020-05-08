@@ -4,11 +4,18 @@
 #include "Components.h"
 #include "PostProcess.h"
 
+#include "EventSystem.h"
+
 namespace jsh {
 
 	void PostProcessRenderPass::Create()
 	{
-		m_BloomEffect.Create();
+		m_BloomEffect.Create(jshGraphics::GetResolution());
+
+		jshEvent::Register<ResolutionEvent>(JSH_EVENT_LAYER_SYSTEM, [this](ResolutionEvent& e) {
+			m_BloomEffect.SetResolution(e.resolution.x, e.resolution.y);
+			return true;
+		});
 
 		{
 			jsh::vec4 aux;
@@ -52,7 +59,7 @@ namespace jsh {
 			ccData.y = PP->GetBrightness();
 
 			jshGraphics::UpdateBuffer(m_ColorCorrectionBuffer, &ccData, 0u, cmd);
-			jshGraphics::BindConstantBuffer(m_ColorCorrectionBuffer, 0u, JSH_SHADER_TYPE_PIXEL, cmd);
+			jshGraphics::BindConstantBuffers(&m_ColorCorrectionBuffer, 0u, 1u, JSH_SHADER_TYPE_PIXEL, cmd);
 
 			jshGraphics::PostProcess(offscreenRTV, mainRTV, nullptr, nullptr, 0u, reinterpret_cast<PixelShader*>(jshGraphics::Get("ColorCorrectionPixel")), cmd);
 		}

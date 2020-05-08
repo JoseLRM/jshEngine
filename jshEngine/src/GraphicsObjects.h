@@ -13,25 +13,32 @@
 
 namespace jsh {
 
+	class InstanceBuffer {
+		uint32 m_Size;
+		Buffer m_Buffer;
+
+	public:
+		void Create(uint32 size);
+		void Update(void* data, uint32 size, CommandList cmd);
+		
+		inline Buffer& GetBuffer() noexcept { return m_Buffer; }
+	};
+
 	class Texture {
 	public:
 		TextureRes resource;
 		SamplerState samplerState;
+
+		inline void Bind(uint32 resourceSlot, uint32 samplerSlot, JSH_SHADER_TYPE shaderType, CommandList cmd) const
+		{
+			jshGraphics::BindTexture(resource, resourceSlot, shaderType, cmd);
+			jshGraphics::BindSamplerState(samplerState, samplerSlot, shaderType, cmd);
+		}
 	};
 
 	struct Sprite {
 		vec4 coords = {0.f, 0.f, 1.f, 1.f};
 		Texture* texture = nullptr;
-	};
-
-	/////////////////////////////INSTANCE BUFFER//////////////////////////
-	class InstanceBuffer {
-		Buffer m_Buffer;
-
-	public:
-		void Create();
-		void Bind(JSH_SHADER_TYPE shaderType, jsh::CommandList cmd) const;
-		void UpdateBuffer(XMMATRIX* tm, jsh::CommandList cmd);
 	};
 
 	////////////////////////////MODEL//////////////////////////////

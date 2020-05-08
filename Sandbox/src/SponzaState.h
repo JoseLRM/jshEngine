@@ -4,16 +4,22 @@
 
 class SponzaState : public jsh::State {
 
+	jsh::Model model;
 	jsh::Entity sponza = jsh::INVALID_ENTITY;
+	jsh::Renderer3D renderer;
 
 public:
 	SponzaState() {}
 
+	void Load() override
+	{
+		jshLoader::LoadModel("res/models/Sponza/sponza.obj", "sponza", &model);
+	}
+
 	void Initialize() override
 	{
+		jshEngine::SetRenderer(&renderer);
 		sponza = jshScene::CreateEntity(jsh::NameComponent("Sponza"));
-		jsh::Model model;
-		jshLoader::LoadModel("res/models/Sponza/sponza.obj", "sponza", &model);
 		model.CreateEntity(sponza);
 
 		jsh::CameraComponent cameraComp;

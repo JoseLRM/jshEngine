@@ -7,30 +7,44 @@
 #define jshGfx(x) if(x != 0) throw jshGfxException
 #define jshGfxNullAPIException jsh::Exception(L"Invalid GraphicsAPI");
 
-// config
-#define JSH_GFX_COMMANDLISTS_COUNT 32
-
-#define JSH_GFX_VERTEX_BUFFERS_COUNT 16
-#define JSH_GFX_CONSTANT_BUFFERS_COUNT 16
-#define JSH_GFX_INPUT_LAYOUT_COUNT 16
-#define JSH_GFX_TEXTURES_COUNT 16
-#define JSH_GFX_SAMPLER_STATES_COUNT 16
-#define JSH_GFX_RASTERIZER_STATES_COUNT 16
-#define JSH_GFX_BLEND_STATES_COUNT 16
-#define JSH_GFX_RENDER_TARGETS_COUNT 16
-#define JSH_GFX_VIEWPORTS_COUNT 16
-
-#define JSH_GFX_MAX_LIGHTS 120
-
 // shader slots
 #define JSH_GFX_SLOT_CBUFFER_CAMERA		0
 #define JSH_GFX_SLOT_CBUFFER_LIGHTS		1
-#define JSH_GFX_SLOT_CBUFFER_INSTANCE	2
-#define JSH_GFX_SLOT_CBUFFER_MATERIAL	3
+#define JSH_GFX_SLOT_CBUFFER_FREE0		2
 
-#define JSH_GFX_SLOT_TEXTURE2D_DIFFUSE	0
-#define JSH_GFX_SLOT_TEXTURE2D_NORMAL	1
-#define JSH_GFX_SLOT_TEXTURE2D_SPECULAR	2
+#define JSH_GFX_SLOT_TEXTURE2D_FREE0	0
+#define JSH_GFX_SLOT_TEXTURE2D_FREE1	1
+#define JSH_GFX_SLOT_TEXTURE2D_FREE2	2
+#define JSH_GFX_SLOT_TEXTURE2D_FREE3	3
+#define JSH_GFX_SLOT_TEXTURE2D_FREE4	4
+#define JSH_GFX_SLOT_TEXTURE2D_FREE5	5
+#define JSH_GFX_SLOT_TEXTURE2D_FREE6	6
+#define JSH_GFX_SLOT_TEXTURE2D_FREE7	7
+#define JSH_GFX_SLOT_TEXTURE2D_FREE8	8
+#define JSH_GFX_SLOT_TEXTURE2D_FREE9	9
+#define JSH_GFX_SLOT_TEXTURE2D_FREE10	10
+#define JSH_GFX_SLOT_TEXTURE2D_FREE11	11
+#define JSH_GFX_SLOT_TEXTURE2D_FREE12	12
+#define JSH_GFX_SLOT_TEXTURE2D_FREE13	13
+#define JSH_GFX_SLOT_TEXTURE2D_FREE14	14
+#define JSH_GFX_SLOT_TEXTURE2D_FREE15	15
+
+#define JSH_GFX_SLOT_SAMPLER_FREE0		0
+#define JSH_GFX_SLOT_SAMPLER_FREE1		1
+#define JSH_GFX_SLOT_SAMPLER_FREE2		2
+#define JSH_GFX_SLOT_SAMPLER_FREE3		3
+#define JSH_GFX_SLOT_SAMPLER_FREE4		4
+#define JSH_GFX_SLOT_SAMPLER_FREE5		5
+#define JSH_GFX_SLOT_SAMPLER_FREE6		6
+#define JSH_GFX_SLOT_SAMPLER_FREE7		7
+#define JSH_GFX_SLOT_SAMPLER_FREE8		8
+#define JSH_GFX_SLOT_SAMPLER_FREE9		9
+#define JSH_GFX_SLOT_SAMPLER_FREE10		10
+#define JSH_GFX_SLOT_SAMPLER_FREE11		11
+#define JSH_GFX_SLOT_SAMPLER_FREE12		12
+#define JSH_GFX_SLOT_SAMPLER_FREE13		13
+#define JSH_GFX_SLOT_SAMPLER_FREE14		14
+#define JSH_GFX_SLOT_SAMPLER_FREE15		15
 
 enum JSH_GRAPHICS_API : uint8 {
 	JSH_GRAPHCS_API_NULL, 
@@ -71,14 +85,35 @@ enum JSH_BIND_FLAG
 	JSH_BIND_VIDEO_ENCODER = 0x400L
 };
 enum JSH_TOPOLOGY {
-
 	JSH_TOPOLOGY_TRIANGLES,
 	JSH_TOPOLOGY_TRIANGLE_STRIP,
 	JSH_TOPOLOGY_LINES,
 	JSH_TOPOLOGY_LINE_STRIP,
 	JSH_TOPOLOGY_POINTS
-
 };
+
+namespace jshGraphics {
+
+	constexpr uint32 GetTopologyVertexCount(JSH_TOPOLOGY topology)
+	{
+		switch (topology)
+		{
+		case JSH_TOPOLOGY_TRIANGLES:
+			return 3;
+		case JSH_TOPOLOGY_TRIANGLE_STRIP:
+			return 3;
+		case JSH_TOPOLOGY_LINES:
+			return 2;
+		case JSH_TOPOLOGY_LINE_STRIP:
+			return 2;
+		case JSH_TOPOLOGY_POINTS:
+			return 1;
+		default:
+			return 0;
+		}
+	}
+
+}
 
 enum JSH_USAGE {
 	JSH_USAGE_DEFAULT = 0,
@@ -224,6 +259,149 @@ enum JSH_FORMAT {
 	JSH_FORMAT_FORCE_UINT = 0xffffffff
 
 };
+
+namespace jshGraphics {
+	constexpr uint32 GetFormatStride(JSH_FORMAT format) {
+		switch (format)
+		{
+		case JSH_FORMAT_UNKNOWN:
+			return 0u;
+		case JSH_FORMAT_R32G32B32A32_TYPELESS:
+			return 16u;
+		case JSH_FORMAT_R32G32B32A32_FLOAT:
+			return 16u;
+		case JSH_FORMAT_R32G32B32A32_UINT:
+			return 16u;
+		case JSH_FORMAT_R32G32B32A32_SINT:
+			return 16u;
+		case JSH_FORMAT_R32G32B32_TYPELESS:
+			return 12u;
+		case JSH_FORMAT_R32G32B32_FLOAT:
+			return 12u;
+		case JSH_FORMAT_R32G32B32_UINT:
+			return 12u;
+		case JSH_FORMAT_R32G32B32_SINT:
+			return 12u;
+		case JSH_FORMAT_R16G16B16A16_TYPELESS:
+			return 8u;
+		case JSH_FORMAT_R16G16B16A16_FLOAT:
+			return 8u;
+		case JSH_FORMAT_R16G16B16A16_UNORM:
+			return 8u;
+		case JSH_FORMAT_R16G16B16A16_UINT:
+			return 8u;
+		case JSH_FORMAT_R16G16B16A16_SNORM:
+			return 8u;
+		case JSH_FORMAT_R16G16B16A16_SINT:
+			return 8u;
+		case JSH_FORMAT_R32G32_TYPELESS:
+			return 8u;
+		case JSH_FORMAT_R32G32_FLOAT:
+			return 8u;
+		case JSH_FORMAT_R32G32_UINT:
+			return 8u;
+		case JSH_FORMAT_R32G32_SINT:
+			return 8u;
+		case JSH_FORMAT_R8G8B8A8_TYPELESS:
+			return 4u;
+		case JSH_FORMAT_R8G8B8A8_UNORM:
+			return 4u;
+		case JSH_FORMAT_R8G8B8A8_UNORM_SRGB:
+			return 4u;
+		case JSH_FORMAT_R8G8B8A8_UINT:
+			return 4u;
+		case JSH_FORMAT_R8G8B8A8_SNORM:
+			return 4u;
+		case JSH_FORMAT_R8G8B8A8_SINT:
+			return 4u;
+		case JSH_FORMAT_R16G16_TYPELESS:
+			return 4u;
+		case JSH_FORMAT_R16G16_FLOAT:
+			return 4u;
+		case JSH_FORMAT_R16G16_UNORM:
+			return 4u;
+		case JSH_FORMAT_R16G16_UINT:
+			return 4u;
+		case JSH_FORMAT_R16G16_SNORM:
+			return 4u;
+		case JSH_FORMAT_R16G16_SINT:
+			return 4u;
+		case JSH_FORMAT_R32_TYPELESS:
+			return 4u;
+		case JSH_FORMAT_D32_FLOAT:
+			return 4u;
+		case JSH_FORMAT_R32_FLOAT:
+			return 4u;
+		case JSH_FORMAT_R32_UINT:
+			return 4u;
+		case JSH_FORMAT_R32_SINT:
+			return 4u;
+		case JSH_FORMAT_R24G8_TYPELESS:
+			return 4u;
+		case JSH_FORMAT_D24_UNORM_S8_UINT:
+			return 4u;
+		case JSH_FORMAT_R24_UNORM_X8_TYPELESS:
+			return 4u;
+		case JSH_FORMAT_X24_TYPELESS_G8_UINT:
+			return 4u;
+		case JSH_FORMAT_R8G8_TYPELESS:
+			return 2u;
+		case JSH_FORMAT_R8G8_UNORM:
+			return 2u;
+		case JSH_FORMAT_R8G8_UINT:
+			return 2u;
+		case JSH_FORMAT_R8G8_SNORM:
+			return 2u;
+		case JSH_FORMAT_R8G8_SINT:
+			return 2u;
+		case JSH_FORMAT_R16_TYPELESS:
+			return 2u;
+		case JSH_FORMAT_R16_FLOAT:
+			return 2u;
+		case JSH_FORMAT_D16_UNORM:
+			return 2u;
+		case JSH_FORMAT_R16_UNORM:
+			return 2u;
+		case JSH_FORMAT_R16_UINT:
+			return 2u;
+		case JSH_FORMAT_R16_SNORM:
+			return 2u;
+		case JSH_FORMAT_R16_SINT:
+			return 2u;
+		case JSH_FORMAT_R8_TYPELESS:
+			return 1u;
+		case JSH_FORMAT_R8_UNORM:
+			return 1u;
+		case JSH_FORMAT_R8_UINT:
+			return 1u;
+		case JSH_FORMAT_R8_SNORM:
+			return 1u;
+		case JSH_FORMAT_R8_SINT:
+			return 1u;
+		case JSH_FORMAT_A8_UNORM:
+			return 1u;
+		case JSH_FORMAT_R8G8_B8G8_UNORM:
+			return 4u;
+		case JSH_FORMAT_G8R8_G8B8_UNORM:
+			return 4u;
+		case JSH_FORMAT_B8G8R8A8_UNORM:
+			return 4u;
+		case JSH_FORMAT_B8G8R8X8_UNORM:
+			return 4u;
+		case JSH_FORMAT_B8G8R8A8_TYPELESS:
+			return 4u;
+		case JSH_FORMAT_B8G8R8A8_UNORM_SRGB:
+			return 4u;
+		case JSH_FORMAT_B8G8R8X8_TYPELESS:
+			return 4u;
+		case JSH_FORMAT_B8G8R8X8_UNORM_SRGB:
+			return 4u;
+		default:
+			assert("Unknown stride :(");
+			return 0u;
+		}
+	}
+}
 
 enum JSH_TEXTURE_ADDRESS_MODE
 {

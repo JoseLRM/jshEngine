@@ -71,7 +71,9 @@ namespace jshGraphics {
 
 		jshGraphics::SetTopology(JSH_TOPOLOGY_TRIANGLE_STRIP, cmd);
 
-		jshGraphics::BindVertexBuffer(g_VertexBuffer, 0u, cmd);
+		uint32 stride = 2 * sizeof(float);
+		uint32 offset = 0u;
+		jshGraphics::BindVertexBuffers(&g_VertexBuffer, 0u, 1u, &stride, &offset, cmd);
 		jshGraphics::BindInputLayout(g_InputLayout, cmd);
 		jshGraphics::BindVertexShader(g_VertexShader, cmd);
 		jshGraphics::BindPixelShader((ps == nullptr) ? g_DefaultPixelShader : *ps, cmd);

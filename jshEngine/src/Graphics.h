@@ -30,4 +30,27 @@ namespace jshGraphics {
 	void SetFullscreen(bool fullscreen);
 	bool InFullscreen();
 
+	bool GenerateInputLayout(jsh::Shader* shader, jsh::RawData* rawData, jsh::InputLayout* il);
+
+	class objects {
+		static jsh::SolidShader s_SolidShader;
+		static jsh::NormalShader s_NormalShader;
+		static jsh::Shader s_SpriteShader;
+
+		static jsh::RawData s_SpriteRawData;
+
+#ifdef JSH_ENGINE
+	public:
+#endif 
+		static void Initialize();
+
+	public:
+		inline static jsh::Shader* GetSpriteShader() { return &s_SpriteShader; }
+		inline static jsh::SolidShader* GetSolidShader() { return &s_SolidShader; }
+		inline static jsh::NormalShader* GetNormalShader() { return &s_NormalShader; }
+
+
+		inline static jsh::RawData* GetSpriteRawData() { return &s_SpriteRawData; }
+	};
+
 }

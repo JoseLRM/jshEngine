@@ -64,8 +64,6 @@ class State2D : public jsh::State {
 	jsh::Texture* tex;
 	jsh::Texture* tex2;
 
-	jsh::Renderer2D renderer;
-
 	void CreateEntities(uint32 count) {
 		jsh::vector<jsh::Entity> entities;
 		jshScene::CreateEntities(count, &entities, jsh::SpriteComponent());
@@ -104,7 +102,6 @@ public:
 
 	void Initialize() override
 	{
-		jshEngine::SetRenderer(&renderer);
 		jshEngine::GetRenderer()->SetMainCamera(jshScene::CreateEntity(jsh::CameraComponent(), jsh::PostProcessComponent()));
 		jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(jshEngine::GetRenderer()->GetMainCamera());
 		camera->SetOrthographicMatrix();
@@ -123,6 +120,7 @@ public:
 	void Update(float dt) override
 	{
 		if (jshInput::IsKeyPressed('G')) CreateEntities(1000);
+		return;
 
 		if (jshInput::IsKey('E')) system.SetExecuteType(JSH_ECS_SYSTEM_MULTITHREADED);
 		else system.SetExecuteType(JSH_ECS_SYSTEM_SAFE);

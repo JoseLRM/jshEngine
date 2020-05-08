@@ -4,7 +4,6 @@
 #include "TaskSystem.h"
 #include "Timer.h"
 #include "Graphics.h"
-#include "Renderer2D.h"
 #include "Renderer3D.h"
 #include "Debug.h"
 #include "State.h"
@@ -70,6 +69,8 @@ namespace jshEngine {
 				jshLogE("Cant't initialize ImGui");
 				return false;
 			});
+
+			SetRenderer(new Renderer3D());
 
 			jshScene::Initialize();
 
@@ -222,6 +223,10 @@ namespace jshEngine {
 	// RENDERER
 	void SetRenderer(jsh::Renderer* renderer)
 	{
+		if (g_pRenderer) {
+			g_pRenderer->Close();
+			delete g_pRenderer;
+		}
 		g_pRenderer = renderer;
 		if (g_Initialized) g_pRenderer->Initialize();
 	}
@@ -244,8 +249,8 @@ namespace jshEngine {
 
 	// VERSION
 	constexpr uint64 g_MajorVersion = 0u;
-	constexpr uint64 g_MinorVersion = 4u;
-	constexpr uint64 g_RevisionVersion = 2u;
+	constexpr uint64 g_MinorVersion = 1u;
+	constexpr uint64 g_RevisionVersion = 0u;
 
 	uint64 GetMajorVersion()
 	{

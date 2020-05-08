@@ -1,19 +1,29 @@
 #include "Camera.hlsli"
 
+struct VS_IN
+{
+    float2 pos : Position;
+    
+    matrix tm : TM;
+    float4 texCoord : TexCoord;
+    float4 color : Color;
+    bool t : Texture;
+};
+
 struct VS_OUT {
-	float4 color : FragColor;
-	float2 texCoord : FragTexCoord;
-	uint16 texID : FragTextureID;
+	float4 color : Color;
+	float2 texCoord : TexCoord;
+    bool t : Texture;
 	float4 position : SV_Position;
 };
 
-VS_OUT main( float2 pos : Position, matrix tm : TM, float4 color : Color, float4 texCoord : TexCoord, uint16 texID : TextureID )
+VS_OUT main(VS_IN input)
 {
 	VS_OUT vsout;
-	vsout.color = color;
-	vsout.position = mul(mul(mul(float4(pos, 0.f, 1.f), tm), camera.vm), camera.pm);
-	vsout.texCoord = pos + 0.5f;
-	vsout.texCoord = float2(texCoord.x, texCoord.y) + (float2(vsout.texCoord.x, 1.f - vsout.texCoord.y) *  texCoord.zw);
-	vsout.texID = texID;
+	vsout.color = input.color;
+    vsout.position = mul(mul(float4(input.pos, 0.f, 1.f), input.tm), camera.vm);
+    vsout.texCoord = input.pos + 0.5f;
+    vsout.texCoord = float2(input.texCoord.x, input.texCoord.y) + (float2(vsout.texCoord.x, 1.f - vsout.texCoord.y) * input.texCoord.zw);
+    vsout.t = input.t;
 	return vsout;
 }

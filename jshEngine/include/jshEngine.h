@@ -7,7 +7,6 @@
 #include "..//src/TaskSystem.h"
 #include "..//src/Window.h"
 #include "..//src/Graphics.h"
-#include "..//src/Renderer2D.h"
 #include "..//src/Renderer3D.h"
 #include "..//src/Debug.h"
 #include "..//src/EventSystem.h"

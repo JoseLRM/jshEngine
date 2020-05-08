@@ -31,7 +31,6 @@ namespace jsh {
 
 		struct {
 			XMMATRIX vm;
-			XMMATRIX pm;
 
 			jsh::vec4 position;
 			jsh::vec4 aux0;

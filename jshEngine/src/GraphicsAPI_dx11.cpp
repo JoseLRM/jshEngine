@@ -16,48 +16,50 @@ namespace jshGraphics_dx11 {
 
 	//////////////////GRAPHICS PRIMITIVES////////////////////
 
-	struct Buffer_dx11 {
+	struct Buffer_dx11 : public jsh::_internal::Buffer_Internal {
 		ComPtr<ID3D11Buffer> ptr;
 	};
 
-	struct InputLayout_dx11 {
+	struct InputLayout_dx11 : public jsh::_internal::InputLayout_Internal {
 		ComPtr<ID3D11InputLayout> ptr;
 	};
 
-	struct VertexShader_dx11 {
+	struct VertexShader_dx11 : public jsh::_internal::VertexShader_Internal {
 		ComPtr<ID3D11VertexShader> ptr;
 		ComPtr<ID3DBlob> blob;
 	};
 
-	struct PixelShader_dx11 {
+	struct PixelShader_dx11 : public jsh::_internal::PixelShader_Internal {
 		ComPtr<ID3D11PixelShader> ptr;
 	};
 
-	struct Texture_dx11 {
+	struct Texture_dx11 : public jsh::_internal::TextureRes_Internal {
 		ComPtr<ID3D11Texture2D> texturePtr;
 		ComPtr<ID3D11ShaderResourceView> shaderSrcView;
 		ComPtr<ID3D11DepthStencilView> depthStencilView;
 	};
 
-	typedef D3D11_VIEWPORT Viewport_dx11;
+	struct Viewport_dx11 : public jsh::_internal::Viewport_Internal {
+		D3D11_VIEWPORT viewport;
+	};
 
-	struct SamplerState_dx11 {
+	struct SamplerState_dx11 : public jsh::_internal::SamplerState_Internal {
 		ComPtr<ID3D11SamplerState> ptr;
 	};
 
-	struct BlendState_dx11 {
+	struct BlendState_dx11 : public jsh::_internal::BlendState_Internal {
 		ComPtr<ID3D11BlendState> ptr;
 	};
 
-	struct DepthStencilState_dx11 {
+	struct DepthStencilState_dx11 : public jsh::_internal::DepthStencilState_Internal {
 		ComPtr<ID3D11DepthStencilState> statePtr;
 	};
 
-	struct RasterizerState_dx11 {
+	struct RasterizerState_dx11 : public jsh::_internal::RasterizerState_Internal {
 		ComPtr<ID3D11RasterizerState> ptr;
 	};
 
-	struct RenderTargetView_dx11 {
+	struct RenderTargetView_dx11 : public jsh::_internal::RenderTargetView_Internal {
 		ComPtr<ID3D11RenderTargetView> ptr;
 		ComPtr<ID3D11Texture2D> resourcePtr;
 		ComPtr<ID3D11ShaderResourceView> shaderResView;
@@ -380,7 +382,6 @@ namespace jshGraphics_dx11 {
 	{
 		auto buffer = std::make_shared<Buffer_dx11>();
 		b->internalAllocation = buffer;
-		b->desc = *d;
 
 		D3D11_BUFFER_DESC desc;
 		desc.BindFlags = d->BindFlags;
@@ -399,42 +400,43 @@ namespace jshGraphics_dx11 {
 
 		jshGfx(g_Device->CreateBuffer(&desc, (s == nullptr) ? nullptr : &subres, buffer->ptr.GetAddressOf()));
 	}
-	void BindVertexBuffer(const jsh::Buffer& b, uint32 slot, jsh::CommandList cmd)
+	void BindVertexBuffers(const jsh::Buffer* b, uint32 slot, uint32 count, const uint32* strides, const uint32* offsets, jsh::CommandList cmd)
 	{
-		assert(b.IsValid());
+		ID3D11Buffer* buffers[JSH_GFX_VERTEX_BUFFERS_COUNT];
 
-		Buffer_dx11* buffer = ToInternal(b);
+		for(uint32 i = 0; i < count; ++i) {
+			buffers[i] = ToInternal(b[i])->ptr.Get();
+		}
 
-		const UINT strides = b.desc.StructureByteStride;
-		const UINT offset = 0U;
-		g_DeferredContext[cmd]->IASetVertexBuffers(slot, 1, buffer->ptr.GetAddressOf(), &strides, &offset);
+		g_DeferredContext[cmd]->IASetVertexBuffers(slot, count, buffers, strides, offsets);
 
 		return;
 	}
-	void BindIndexBuffer(const jsh::Buffer& b, jsh::CommandList cmd)
+	void BindIndexBuffer(const jsh::Buffer& b, JSH_FORMAT format, uint32 offset, jsh::CommandList cmd)
 	{
 		assert(b.IsValid());
 
 		Buffer_dx11* buffer = ToInternal(b);
-		g_DeferredContext[cmd]->IASetIndexBuffer(buffer->ptr.Get(), DXGI_FORMAT_R32_UINT, 0);
+		g_DeferredContext[cmd]->IASetIndexBuffer(buffer->ptr.Get(), ParseFormat(format), offset);
 
 		return;
 	}
-	void BindConstantBuffer(const jsh::Buffer& b, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
+	void BindConstantBuffers(const jsh::Buffer* b, uint32 slot, uint32 count, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
 	{
-		assert(b.IsValid());
-
-		Buffer_dx11* buffer = ToInternal(b);
+		ID3D11Buffer* buffers[JSH_GFX_CONSTANT_BUFFERS_COUNT];
+		for (uint32 i = 0; i < count; ++i) {
+			buffers[i] = ToInternal(b[i])->ptr.Get();
+		}
 
 		switch (shaderType) {
 		case JSH_SHADER_TYPE_VERTEX:
-			g_DeferredContext[cmd]->VSSetConstantBuffers(slot, 1, buffer->ptr.GetAddressOf());
+			g_DeferredContext[cmd]->VSSetConstantBuffers(slot, count, buffers);
 			break;
 		case JSH_SHADER_TYPE_PIXEL:
-			g_DeferredContext[cmd]->PSSetConstantBuffers(slot, 1, buffer->ptr.GetAddressOf());
+			g_DeferredContext[cmd]->PSSetConstantBuffers(slot, count, buffers);
 			break;
 		case JSH_SHADER_TYPE_GEOMETRY:
-			g_DeferredContext[cmd]->GSSetConstantBuffers(slot, 1, buffer->ptr.GetAddressOf());
+			g_DeferredContext[cmd]->GSSetConstantBuffers(slot, count, buffers);
 			break;
 		case JSH_SHADER_TYPE_NULL:
 		default:
@@ -447,14 +449,14 @@ namespace jshGraphics_dx11 {
 
 	void UpdateBuffer(jsh::Buffer& b, void* data, uint32 size, jsh::CommandList cmd)
 	{
-		assert(b.desc.Usage != JSH_USAGE_IMMUTABLE && b.desc.ByteWidth >= size);
 		Buffer_dx11* buffer = ToInternal(b);
+		assert(buffer->desc.Usage != JSH_USAGE_IMMUTABLE && buffer->desc.ByteWidth >= size);
 
-		if (b.desc.Usage == JSH_USAGE_DYNAMIC) {
+		if (buffer->desc.Usage == JSH_USAGE_DYNAMIC) {
 			D3D11_MAPPED_SUBRESOURCE map;
 			g_DeferredContext[cmd]->Map(buffer->ptr.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &map);
 
-			memcpy(map.pData, data, (size == 0u) ? b.desc.ByteWidth : size);
+			memcpy(map.pData, data, (size == 0u) ? buffer->desc.ByteWidth : size);
 
 			g_DeferredContext[cmd]->Unmap(buffer->ptr.Get(), 0u);
 		}
@@ -522,7 +524,6 @@ namespace jshGraphics_dx11 {
 	{
 		auto texture = std::make_shared<Texture_dx11>();
 		t->internalAllocation = texture;
-		t->desc = *d;
 
 		D3D11_TEXTURE2D_DESC texDesc;
 		texDesc.ArraySize = d->ArraySize;
@@ -641,18 +642,18 @@ namespace jshGraphics_dx11 {
 		auto viewport = std::make_shared<Viewport_dx11>();
 		vp->internalAllocation = viewport;
 
-		viewport->Width = width;
-		viewport->Height = height;
-		viewport->MaxDepth = 1.f;
-		viewport->MinDepth = 0.f;
-		viewport->TopLeftX = x;
-		viewport->TopLeftY = y;
+		viewport->viewport.Width = width;
+		viewport->viewport.Height = height;
+		viewport->viewport.MaxDepth = 1.f;
+		viewport->viewport.MinDepth = 0.f;
+		viewport->viewport.TopLeftX = x;
+		viewport->viewport.TopLeftY = y;
 	}
 	void BindViewport(const jsh::Viewport& vp, uint32 slot, jsh::CommandList cmd)
 	{
 		assert(vp.IsValid());
 		Viewport_dx11* viewport = ToInternal(vp);
-		g_DeferredContext[cmd]->RSSetViewports(1, viewport);
+		g_DeferredContext[cmd]->RSSetViewports(1, &viewport->viewport);
 	}
 
 	/////////////////////////SAMPLER STATE////////////////////////////////////////
@@ -793,8 +794,6 @@ namespace jshGraphics_dx11 {
 	{
 		auto RTV = std::make_shared<RenderTargetView_dx11>();
 		rtv->internalAllocation = RTV;
-		rtv->desc = *d;
-		rtv->resDesc = *td;
 
 		// resource
 		D3D11_TEXTURE2D_DESC texDesc;
@@ -867,6 +866,10 @@ namespace jshGraphics_dx11 {
 	void DrawInstanced(uint32 vertexPerInstance, uint32 instances, uint32 startVertex, uint32 startInstance, jsh::CommandList cmd)
 	{
 		g_DeferredContext[cmd]->DrawInstanced(vertexPerInstance, instances, startVertex, startInstance);
+	}
+	void DrawIndexedInstanced(uint32 indexPerInstance, uint32 instances, uint32 startIndex, uint32 startVertex, uint32 startInstance, jsh::CommandList cmd)
+	{
+		g_DeferredContext[cmd]->DrawIndexedInstanced(indexPerInstance, instances, startIndex, startVertex, startInstance);
 	}
 
 	void SetResolution(uint32 width, uint32 height)
