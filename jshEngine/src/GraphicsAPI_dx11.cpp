@@ -2,6 +2,7 @@
 
 #include "WinLib.h"
 #include "Window.h"
+#include "Graphics.h"
 #include "DirectX11Lib.h"
 
 #include "safe_queue.h"
@@ -237,35 +238,93 @@ namespace jshGraphics_dx11 {
 	{
 		return (D3D11_RTV_DIMENSION)rtv;
 	}
+	constexpr DXGI_MODE_SCALING ParseScaling(const JSH_MODE_SCALING s)
+	{
+		return (DXGI_MODE_SCALING)s;
+	}
+	constexpr DXGI_MODE_SCANLINE_ORDER ParseScanlineOrder(const JSH_MODE_SCANLINE_ORDER s)
+	{
+		return (DXGI_MODE_SCANLINE_ORDER)s;
+	}
 
-	void CreateBackBuffer()
+	void CreateBackBuffer(DXGI_FORMAT format)
 	{
 		auto RTV = std::make_shared<RenderTargetView_dx11>();
 		g_RenderTargetView.internalAllocation = RTV;
 
 		D3D11_RENDER_TARGET_VIEW_DESC desc;
-		desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		desc.Format = format;
 		desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 		desc.Texture2D.MipSlice = 0u;
-
+		
 		jshGfx(g_SwapChain->GetBuffer(0u, __uuidof(ID3D11Resource), &RTV->resourcePtr));
 		jshGfx(g_Device->CreateRenderTargetView(RTV->resourcePtr.Get(), &desc, &RTV->ptr));
 	}
 
 	bool Initialize() {
 
+		// load adapters
+		{
+			ComPtr<IDXGIFactory1> factory;
+			jshGfx(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)& factory));
+
+			IDXGIAdapter1* adapter;
+			for (uint32 i = 0; factory->EnumAdapters1(i, &adapter) != DXGI_ERROR_NOT_FOUND; ++i) {
+
+				IDXGIOutput* output;
+				for (uint32 j = 0; adapter->EnumOutputs(j, &output) != DXGI_ERROR_NOT_FOUND; ++j) {
+
+					jsh::GraphicsAdapter jshAdapter;
+					uint32 modesCount = 0u;
+					DXGI_MODE_DESC* desc;
+
+					jshAdapter.ptr = adapter;
+
+					output->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, 0u, &modesCount, nullptr);
+					desc = new DXGI_MODE_DESC[modesCount];
+					output->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, 0u, &modesCount, desc);
+
+					for (uint32 w = 0; w < modesCount; ++w) {
+						DXGI_MODE_DESC& d = desc[w];
+
+						jsh::OutputMode mode;
+
+						mode.format = (JSH_FORMAT)d.Format;
+						mode.resolution.x = d.Width;
+						mode.resolution.y = d.Height;
+						mode.refreshRateNumerator = d.RefreshRate.Numerator;
+						mode.refreshRateDenominator = d.RefreshRate.Denominator;
+						mode.scaling = (JSH_MODE_SCALING)d.Scaling;
+						mode.scanlineOrdering = (JSH_MODE_SCANLINE_ORDER)d.ScanlineOrdering;
+						mode.ptr = output;
+
+						jshAdapter.AddMode(mode);
+					}
+
+					jshGraphics::_internal::AddAdapter(jshAdapter);
+					delete[] desc;
+				}
+
+			}
+		}
+
+		// Set default output mode
+		const jsh::OutputMode& outputMode = jshGraphics::GetAdapters().back().GetModes().back();
+		jshGraphics::SetOutputMode(outputMode);
+
+		// Create swap chain
 		HWND windowHandle = reinterpret_cast<HWND>(jshWindow::GetWindowHandle());
 
 		DXGI_SWAP_CHAIN_DESC swapChainDescriptor;
 		jshZeroMemory(&swapChainDescriptor, sizeof(DXGI_SWAP_CHAIN_DESC));
 		swapChainDescriptor.BufferCount = 1;
-		swapChainDescriptor.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-		swapChainDescriptor.BufferDesc.Height = 0;
-		swapChainDescriptor.BufferDesc.Width = 0;
-		swapChainDescriptor.BufferDesc.RefreshRate.Denominator = 0;
-		swapChainDescriptor.BufferDesc.RefreshRate.Numerator = 0;
-		swapChainDescriptor.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-		swapChainDescriptor.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+		swapChainDescriptor.BufferDesc.Format = ParseFormat(outputMode.format);
+		swapChainDescriptor.BufferDesc.Height = outputMode.resolution.y;
+		swapChainDescriptor.BufferDesc.Width = outputMode.resolution.x;
+		swapChainDescriptor.BufferDesc.RefreshRate.Denominator = outputMode.refreshRateDenominator;
+		swapChainDescriptor.BufferDesc.RefreshRate.Numerator = outputMode.refreshRateNumerator;
+		swapChainDescriptor.BufferDesc.Scaling = ParseScaling(outputMode.scaling);
+		swapChainDescriptor.BufferDesc.ScanlineOrdering = ParseScanlineOrder(outputMode.scanlineOrdering);
 		swapChainDescriptor.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDescriptor.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 		swapChainDescriptor.OutputWindow = windowHandle;
@@ -289,7 +348,7 @@ namespace jshGraphics_dx11 {
 			&g_ImmediateContext
 		));
 
-		CreateBackBuffer();
+		CreateBackBuffer(ParseFormat(outputMode.format));
 
 		// multithreading support
 		D3D11_FEATURE_DATA_THREADING data;
@@ -872,20 +931,20 @@ namespace jshGraphics_dx11 {
 		g_DeferredContext[cmd]->DrawIndexedInstanced(indexPerInstance, instances, startIndex, startVertex, startInstance);
 	}
 
-	void SetResolution(uint32 width, uint32 height)
+	void SetOutputMode(jsh::OutputMode mode)
 	{
 		RenderTargetView_dx11* rtv = ToInternal(g_RenderTargetView);
 
 		rtv->ptr.Reset();
 		rtv->resourcePtr.Reset();
 		
-		g_SwapChain->ResizeBuffers(1u, width, height, DXGI_FORMAT_B8G8R8A8_UNORM, 0u);
+		g_SwapChain->ResizeBuffers(1u, mode.resolution.x, mode.resolution.y, ParseFormat(mode.format), 0u);
 
-		CreateBackBuffer();
+		CreateBackBuffer(ParseFormat(mode.format));
 	}
-	void SetFullscreen(bool fullscreen)
+	void SetFullscreen(bool fullscreen, const jsh::OutputMode& outputMode)
 	{
-		g_SwapChain->SetFullscreenState(BOOL(fullscreen), nullptr);
+		g_SwapChain->SetFullscreenState(BOOL(fullscreen), fullscreen ? reinterpret_cast<IDXGIOutput*>(outputMode.ptr) : nullptr);
 	}
 
 }

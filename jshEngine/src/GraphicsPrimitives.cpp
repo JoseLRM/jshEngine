@@ -6,6 +6,11 @@
 #include "GraphicsAPI_dx11.h"
 #include "EventSystem.h"
 
+#ifdef JSH_IMGUI
+#include "Window.h"
+#endif 
+
+
 using namespace jsh;
 using namespace jsh::_internal;
 
@@ -224,12 +229,6 @@ namespace jshGraphics {
 	{
 		// MAIN FRAME BUFFER
 		{
-			JSH_RENDER_TARGET_VIEW_DESC rtvDesc;
-			jshZeroMemory(&rtvDesc, sizeof(JSH_RENDER_TARGET_VIEW_DESC));
-			rtvDesc.Format = JSH_FORMAT_B8G8R8A8_UNORM;
-			rtvDesc.ViewDimension = JSH_RTV_DIMENSION_TEXTURE2D;
-			rtvDesc.Texture2D.MipSlice = 0u;
-
 			JSH_DEPTH_STENCIL_DESC dsDesc;
 			jshZeroMemory(&dsDesc, sizeof(JSH_DEPTH_STENCIL_DESC));
 			dsDesc.DepthEnable = true;
@@ -243,8 +242,8 @@ namespace jshGraphics {
 			dsResDesc.BindFlags = JSH_BIND_DEPTH_STENCIL;
 			dsResDesc.CPUAccessFlags = 0u;
 			dsResDesc.Format = JSH_FORMAT_D24_UNORM_S8_UINT;
-			dsResDesc.Width = 1080;
-			dsResDesc.Height = 720;
+			dsResDesc.Width = jshGraphics::GetOutputMode().resolution.x;
+			dsResDesc.Height = jshGraphics::GetOutputMode().resolution.y;
 			dsResDesc.MipLevels = 1u;
 			dsResDesc.MiscFlags = 0u;
 			dsResDesc.SampleDesc.Count = 1u;
@@ -278,8 +277,8 @@ namespace jshGraphics {
 			res.BindFlags = JSH_BIND_RENDER_TARGET | JSH_BIND_SHADER_RESOURCE;
 			res.CPUAccessFlags = 0u;
 			res.Format = JSH_FORMAT_R8G8B8A8_UNORM;
-			res.Width = 1080;
-			res.Height = 720;
+			res.Width = jshGraphics::GetResolutionWidth();
+			res.Height = jshGraphics::GetResolutionHeight();
 			res.MipLevels = 1u;
 			res.MiscFlags = 0u;
 			res.SampleDesc.Count = 1u;
@@ -298,7 +297,7 @@ namespace jshGraphics {
 			samplerDesc.AddressW = JSH_TEXTURE_ADDRESS_WRAP;
 			samplerDesc.Filter = JSH_FILTER_MIN_MAG_MIP_LINEAR;
 			jshGraphics::CreateSamplerState(&samplerDesc, &s_DefaultSamplerState);
-			jshGraphics::CreateViewport(0, 0, 1080, 720, &s_DefaultViewport);
+			jshGraphics::CreateViewport(0, 0, jshGraphics::GetResolution().x, jshGraphics::GetResolution().y, &s_DefaultViewport);
 		}
 
 		// DEFAULT BLEND STATES
@@ -327,16 +326,16 @@ namespace jshGraphics {
 		}
 
 		// CHANGE RESOLUTION
-		jshEvent::Register<ResolutionEvent>(JSH_EVENT_LAYER_SYSTEM, [](ResolutionEvent& e) {
+		jshEvent::Register<OutputModeEvent>(JSH_EVENT_LAYER_SYSTEM, [](OutputModeEvent& e) {
 			
-			jshGraphics::CreateViewport(0.f, 0.f, e.resolution.x, e.resolution.y, &s_DefaultViewport);
-			jshGraphics::ResizeRenderTargetView(s_OffscreenRenderTargetView, e.resolution.x, e.resolution.y);
+			jshGraphics::CreateViewport(0.f, 0.f, e.outputMode.resolution.x, e.outputMode.resolution.y, &s_DefaultViewport);
+			jshGraphics::ResizeRenderTargetView(s_OffscreenRenderTargetView, e.outputMode.resolution.x, e.outputMode.resolution.y);
 
 			JSH_TEXTURE2D_DESC desc = GetTextureDesc(s_DefaultDepthStencilView);
-			desc.Width = e.resolution.x;
-			desc.Height = e.resolution.y;
+			desc.Width = e.outputMode.resolution.x;
+			desc.Height = e.outputMode.resolution.y;
 			jshGraphics::CreateTextureRes(&desc, nullptr, &s_DefaultDepthStencilView);
-			
+
 			return true;
 		});
 	}

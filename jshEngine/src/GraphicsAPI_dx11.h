@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GraphicsPrimitives.h"
-
+#include "GraphicsAdapter.h"
 
 namespace jshGraphics_dx11 {
 
@@ -87,7 +87,7 @@ namespace jshGraphics_dx11 {
 	void DrawInstanced(uint32 vertexPerInstance, uint32 instances, uint32 startVertex, uint32 startInstance, jsh::CommandList cmd);
 	void DrawIndexedInstanced(uint32 indexPerInstance, uint32 instances, uint32 startIndex, uint32 startVertex, uint32 startInstance, jsh::CommandList cmd);
 
-	void SetResolution(uint32 width, uint32 height);
-	void SetFullscreen(bool fullscreen);
+	void SetOutputMode(jsh::OutputMode mode);
+	void SetFullscreen(bool fullscreen, const jsh::OutputMode& outputMode);
 
 }

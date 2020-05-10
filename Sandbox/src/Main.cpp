@@ -5,6 +5,8 @@
 
 struct State : public jsh::State {
 
+	ParticleGenerator particles;
+
 	jsh::Model model;
 
 	void Load() override;
@@ -17,7 +19,7 @@ struct State : public jsh::State {
 
 int main()
 {
-	jshEngine::Initialize(new State2D());
+	jshEngine::Initialize(new State());
 	jshEngine::Run();
 	jshEngine::Close();
 
@@ -61,34 +63,40 @@ void State::Initialize()
 			}
 		}
 	}
+
+	particles.Initialize();
 }
 
 
 void State::Update(float dt)
 {
 	static bool actived = false;
+	jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(jshEngine::GetRenderer()->GetMainCamera());
+
 	if (jshInput::IsKeyPressed('C')) {
 		actived = !actived;
 		if (actived) jshWindow::HideMouse();
 		else jshWindow::ShowMouse();
 	}
 	if (actived) {
-		jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(jshEngine::GetRenderer()->GetMainCamera());
 		camera->UpdateFirstPerson3D(0.5f, 0.5f, 5.f, 5.f, dt);
 	}
+
+	jsh::Transform& camTrans = jshScene::GetTransform(camera->entity);
+	jsh::vec3 pos = camTrans.GetLocalPosition();
+	particles.Update(dt, 0.f, 0.f, 0.f, true);
 
 	if (jshInput::IsKeyPressed(JSH_KEY_F5)) 
 		jshEngine::LoadState(new State2D());
 
-	if (jshInput::IsKeyPressed('R')) jshGraphics::SetResolution(1080 / 2, 720 / 2);
-	if (jshInput::IsKeyPressed('T')) jshGraphics::SetResolution(1080, 720);
-	if (jshInput::IsKeyPressed('Y')) jshGraphics::SetResolution(1080 * 2, 720 * 2);
 	if (jshInput::IsKeyPressed('U')) jshGraphics::SetFullscreen(!jshGraphics::InFullscreen());
 }
 
 void State::Render()
 {
 	jsh::MeshComponent* meshComp = jshScene::GetComponent<jsh::MeshComponent>(1);
+
+	jshImGui(particles.ShowImGuiWindow());
 }
 
 void State::Close()

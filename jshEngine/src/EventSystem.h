@@ -4,6 +4,8 @@
 #include <functional>
 #include <vector>
 
+#include "GraphicsAdapter.h"
+
 #define JSH_EVENT_LAYER_SYSTEM		0
 #define JSH_EVENT_LAYER_FOCUSED_GUI 1
 #define JSH_EVENT_LAYER_GUI0		2
@@ -246,10 +248,10 @@ namespace jsh {
 	struct WindowLostFocusEvent : public jsh::Event {};
 
 	// GRAPHICS EVENTS
-	struct ResolutionEvent : public jsh::Event {
-		uvec2 resolution;
-		ResolutionEvent(uint32 width, uint32 height)
-			: resolution(width, height) {}
+	struct OutputModeEvent : public jsh::Event {
+		OutputMode outputMode;
+		OutputModeEvent(const jsh::OutputMode& mode)
+			: outputMode(mode) {}
 	};
 
 	struct FullscreenEvent : public jsh::Event {
@@ -270,7 +272,7 @@ namespace jsh {
 	jshEventDefineListener(WindowMovedListener, WindowMovedEvent);
 	jshEventDefineListener(WindowGainFocusListener, WindowGainFocusEvent);
 	jshEventDefineListener(WindowLostFocusListener, WindowLostFocusEvent);
-	jshEventDefineListener(ResolutionListener, ResolutionEvent);
+	jshEventDefineListener(OutputModeListener, OutputModeEvent);
 	jshEventDefineListener(FullscreenListener, FullscreenEvent);
 
 }

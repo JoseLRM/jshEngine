@@ -29,38 +29,42 @@ namespace jsh {
 
 	void Renderer3D::Render()
 	{
-		// Draw
-		m_RenderQueue.Begin();
+		// Fill render queues
+		{
+			m_RenderQueue.Begin();
 
-		auto& meshList = jshScene::_internal::GetComponentsList()[MeshComponent::ID];
-		m_RenderQueue.Reserve(meshList.size() / MeshComponent::SIZE);
+			auto& meshList = jshScene::_internal::GetComponentsList()[MeshComponent::ID];
+			m_RenderQueue.Reserve(meshList.size() / MeshComponent::SIZE);
 
-		for (uint32 i = 0; i < meshList.size(); i += MeshComponent::SIZE) {
+			for (uint32 i = 0; i < meshList.size(); i += MeshComponent::SIZE) {
 
-			MeshComponent* meshComp = reinterpret_cast<MeshComponent*>(&meshList[i]);
-			Transform& transform = jshScene::GetTransform(meshComp->entity);
+				MeshComponent* meshComp = reinterpret_cast<MeshComponent*>(&meshList[i]);
+				Transform& transform = jshScene::GetTransform(meshComp->entity);
 
-			if (meshComp->mesh == nullptr) continue;
+				if (meshComp->mesh == nullptr) continue;
 
-			// TODO: Frustum culling
+				// TODO: Frustum culling
 
-			m_RenderQueue.Draw(meshComp->mesh, &transform);
-		}
-		m_SpriteRenderQueue.Begin();
-
-		auto& spriteList = jshScene::_internal::GetComponentsList()[SpriteComponent::ID];
-		m_SpriteRenderQueue.Reserve(spriteList.size() / SpriteComponent::SIZE);
-
-		for (uint32 i = 0; i < spriteList.size(); i += SpriteComponent::SIZE) {
-			SpriteComponent* sprComp = reinterpret_cast<SpriteComponent*>(&spriteList[i]);
-			Transform& trans = jshScene::GetTransform(sprComp->entity);
-			m_SpriteRenderQueue.Draw(sprComp->sprite, sprComp->color, XMMatrixTranspose(trans.GetWorldMatrix()), trans.GetWorldPosition().z);
+				m_RenderQueue.Draw(meshComp->mesh, &transform);
+			}
+			m_RenderQueue.End();
 		}
 
-		m_SpriteRenderQueue.End();
+		{
+			m_SpriteRenderQueue.Begin();
 
+			auto& spriteList = jshScene::_internal::GetComponentsList()[SpriteComponent::ID];
+			m_SpriteRenderQueue.Reserve(spriteList.size() / SpriteComponent::SIZE);
 
-		m_RenderQueue.End();
+			for (uint32 i = 0; i < spriteList.size(); i += SpriteComponent::SIZE) {
+				SpriteComponent* sprComp = reinterpret_cast<SpriteComponent*>(&spriteList[i]);
+				Transform& trans = jshScene::GetTransform(sprComp->entity);
+				m_SpriteRenderQueue.Draw(sprComp->sprite, sprComp->color, XMMatrixTranspose(trans.GetWorldMatrix()), trans.GetWorldPosition().z);
+			}
+
+			m_SpriteRenderQueue.End();
+		}
+
 		m_RenderGraph.Render(jshScene::GetComponent<CameraComponent>(m_MainCamera));
 	}
 

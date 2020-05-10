@@ -35,13 +35,11 @@ namespace jshWindow {
 			LPARAM newLParam = lParam;
 
 			if (message == WM_MOUSEMOVE) {
-				vec2 mPos = vec2(LOWORD(lParam), HIWORD(lParam));
-				mPos /= vec2(jshWindow::GetWidth(), jshWindow::GetHeight());
-				uvec2 aux = jshGraphics::GetResolution();
-				mPos *= vec2(aux.x, aux.y);
-				aux = uvec2(mPos.x, mPos.y);
+				uvec2 mPos = uvec2(LOWORD(lParam), HIWORD(lParam));
+				mPos /= jshGraphics::GetResolution();
+				mPos *= uvec2(jshWindow::GetWidth(), jshWindow::GetHeight());
 
-				LPARAM newLParam = *((LPARAM*)& aux.x);
+				LPARAM newLParam = *((LPARAM*)& mPos.x);
 			}
 
 			ImGui_ImplWin32_WndProcHandler(windowHandle, message, wParam, newLParam);

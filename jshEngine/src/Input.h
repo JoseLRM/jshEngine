@@ -2,10 +2,9 @@
 
 #include "common.h"
 
-#define JSH_MOUSE_LEFT			0x01
-#define JSH_MOUSE_RIGHT			 0x02
-#define JSH_MOUSE_CENTER         0x03
-#define JSH_MOUSE_MBUTTON        0x04    
+#define JSH_MOUSE_LEFT			0
+#define JSH_MOUSE_RIGHT			1
+#define JSH_MOUSE_CENTER        2
 
 #define JSH_KEY_BACK           0x08
 #define JSH_KEY_TAB            0x09

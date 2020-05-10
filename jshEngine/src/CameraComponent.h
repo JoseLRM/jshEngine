@@ -13,11 +13,13 @@ namespace jsh {
 		bool m_Orthographic = false;
 
 		float m_Dimension = 1.f;
-		float m_Aspect = 1080.f / 720.f;
+		float m_Aspect;
 		float m_Near = 0.5f;
 		float m_Far = 100000.f;
 
 	public:
+		CameraComponent();
+
 		void UpdateFirstPerson3D(float hSensibility, float vSensibility, float hSpeed, float vSpeed, float dt) noexcept;
 
 		inline void SetPerspectiveMatrix() noexcept { m_Orthographic = false; }

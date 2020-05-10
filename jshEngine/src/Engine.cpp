@@ -27,6 +27,9 @@ namespace jshEngine {
 	}
 #endif 
 
+	void BeginUpdate(float dt);
+	void EndUpdate(float dt);
+
 	bool g_Initialized = false;
 	bool g_Closed = false;
 	uint32 g_FPS = 0u;
@@ -122,12 +125,14 @@ namespace jshEngine {
 				g_State.Prepare();
 
 				// update
+				BeginUpdate(g_DeltaTime);
 				g_State.Update(g_DeltaTime);
 
 				if (fixedUpdateCount >= 0.01666666f) {
 					fixedUpdateCount -= 0.01666666f;
 					g_State.FixedUpdate();
 				}
+				EndUpdate(g_DeltaTime);
 
 				// render
 				if (g_pRenderer) {
@@ -193,6 +198,24 @@ namespace jshEngine {
 			return false;
 		}
 		return true;
+	}
+
+	///////////////////////////////////////UPDATE/////////////////////////////////////
+
+	void BeginUpdate(float dt)
+	{
+
+	}
+	void EndUpdate(float dt)
+	{
+		// Update Camera matrices
+		{
+			auto& cameras = jshScene::_internal::GetComponentsList()[CameraComponent::ID];
+			for (uint32 i = 0; i < cameras.size(); i += CameraComponent::SIZE) {
+				CameraComponent* camera = reinterpret_cast<CameraComponent*>(&cameras[i]);
+				camera->UpdateMatrices();
+			}
+		}
 	}
 
 	////////////////////////////////////////STATE MANAGEMENT////////////////////////////

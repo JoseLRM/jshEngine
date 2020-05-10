@@ -12,8 +12,8 @@ namespace jsh {
 	{
 		m_BloomEffect.Create(jshGraphics::GetResolution());
 
-		jshEvent::Register<ResolutionEvent>(JSH_EVENT_LAYER_SYSTEM, [this](ResolutionEvent& e) {
-			m_BloomEffect.SetResolution(e.resolution.x, e.resolution.y);
+		jshEvent::Register<OutputModeEvent>(JSH_EVENT_LAYER_SYSTEM, [this](OutputModeEvent& e) {
+			m_BloomEffect.SetResolution(e.outputMode.resolution.x, e.outputMode.resolution.y);
 			return true;
 		});
 

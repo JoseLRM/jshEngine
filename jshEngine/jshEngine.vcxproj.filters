@@ -162,6 +162,9 @@
     <ClCompile Include="src\ConstantBuffer.cpp">
       <Filter>Graphics\Objects</Filter>
     </ClCompile>
+    <ClCompile Include="src\GraphicsAdapter.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Window.h">
@@ -358,6 +361,9 @@
     </ClInclude>
     <ClInclude Include="src\SpriteRenderQueue.h">
       <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GraphicsAdapter.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

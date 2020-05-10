@@ -191,9 +191,11 @@ namespace jsh {
 			uint32 begin = 0u;
 			uint32 indexCount = 0u;
 
-			if (indexCount >= JSH_GFX_BATCH_COUNT * JSH_GFX_MAX_INSTANCE_SIZE) break;
+			const uint32 maxIndex = JSH_GFX_BATCH_COUNT * JSH_GFX_MAX_INSTANCE_SIZE - shader->GetInstanceSize();
 
 			for (; i < instances.size(); ++i) {
+
+				if (indexCount >= maxIndex) break;
 
 				auto& instance = instances[i];
 				if (texture != instance.sprite.texture) {

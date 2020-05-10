@@ -6,6 +6,7 @@
 #include "Engine.h"
 #include "State.h"
 #include "Renderer.h"
+#include "Graphics.h"
 
 namespace jshDebug {
 
@@ -68,6 +69,7 @@ namespace jshDebug {
 	bool g_ShowShaders = false;
 	bool g_ShowTextures = false;
 	bool g_ShowRenderer = false;
+	bool g_ShowGraphics = false;
 	bool g_ShowImGuiDemo = false;
 
 	void ShowImGuiWindow()
@@ -89,6 +91,7 @@ namespace jshDebug {
 				ImGui::EndMenu();
 			}
 			if (ImGui::Button("Renderer")) g_ShowRenderer = !g_ShowRenderer;
+			if (ImGui::Button("Graphics")) g_ShowGraphics = !g_ShowGraphics;
 
 			if (ImGui::Button("ImGui Demo")) g_ShowImGuiDemo = !g_ShowImGuiDemo;
 
@@ -115,6 +118,7 @@ namespace jshDebug {
 			}
 			ImGui::End();
 		}
+		if (g_ShowGraphics) g_ShowGraphics = jshGraphics::ShowImGuiWindow();
 		if (g_ShowImGuiDemo) ImGui::ShowDemoWindow(&g_ShowImGuiDemo);
 	}
 

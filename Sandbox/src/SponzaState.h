@@ -41,9 +41,6 @@ public:
 		}
 		if (actived) jshScene::GetComponent<jsh::CameraComponent>(jshEngine::GetRenderer()->GetMainCamera())->UpdateFirstPerson3D(0.5f, 0.5f, 350.f, 350.f, dt);
 
-		if (jshInput::IsKeyPressed('R')) jshGraphics::SetResolution(1080 / 2, 720 / 2);
-		if (jshInput::IsKeyPressed('T')) jshGraphics::SetResolution(1080, 720);
-		if (jshInput::IsKeyPressed('Y')) jshGraphics::SetResolution(1080 * 2, 720 * 2);
 		if (jshInput::IsKeyPressed('U')) jshGraphics::SetFullscreen(!jshGraphics::InFullscreen());
 	}
 

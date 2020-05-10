@@ -2,6 +2,7 @@
 
 #include "GraphicsPrimitives.h"
 #include "GraphicsObjects.h"
+#include "GraphicsAdapter.h"
 
 namespace jshGraphics {
 
@@ -23,10 +24,9 @@ namespace jshGraphics {
 #ifdef JSH_IMGUI
 	void BeginImGui();
 	void EndImGui(const jsh::RenderTargetView& rtv);
+	bool ShowImGuiWindow();
 #endif
 
-	void SetResolution(uint32 width, uint32 height);
-	jsh::uvec2 GetResolution();
 	void SetFullscreen(bool fullscreen);
 	bool InFullscreen();
 

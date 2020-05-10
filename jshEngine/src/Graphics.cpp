@@ -7,22 +7,32 @@
 #include "Renderer.h"
 #include "Window.h"
 #include "EventSystem.h"
+#include "Engine.h"
 
 using namespace jsh;
 
 namespace jshGraphics {
 
 	JSH_GRAPHICS_API g_GraphicsAPI = JSH_GRAPHCS_API_NULL;
-	uvec2 g_Resolution;
 	bool g_Fullscreen;
 
 	bool Initialize()
 	{
 		g_GraphicsAPI = JSH_GRAPHCS_API_DIRECTX11;
 
-		g_Resolution = { (uint32)jshWindow::GetWidth(), (uint32)jshWindow::GetHeight() };
-
 		bool result = jshGraphics_dx11::Initialize();
+
+		{
+			
+			bool fullscreen = true;
+#ifdef JSH_DEBUG
+			//fullscreen = false;
+#endif 
+			uint32 width = jshGraphics::GetResolutionWidth();
+			uint32 height = jshGraphics::GetResolutionHeight();
+			jshWindow::SetBounds(GetMonitorResolution().x / 2 - width / 2, GetMonitorResolution().y / 2 - height / 2, width, height);
+			SetFullscreen(fullscreen);
+		}
 
 		/*
 
@@ -139,6 +149,46 @@ namespace jshGraphics {
 	{
 		jshGraphics_dx11::EndImGui(rtv);
 	}
+	bool ShowImGuiWindow()
+	{
+		bool result = true;
+		static bool showAdapters = false;
+
+		if (ImGui::Begin("Graphics")) {
+
+			if (ImGui::Button(showAdapters ? "Hide Adapters" : "Show Adapters")) showAdapters = !showAdapters;
+
+			if (ImGui::Button("Close")) result = false;
+		}
+		ImGui::End();
+
+		if (showAdapters) {
+			if (ImGui::Begin("Adapters")) {
+
+				auto& adapters = GetAdapters();
+
+				for (uint32 i = 0; i < adapters.size(); ++i) {
+					const GraphicsAdapter& adapter = adapters[i];
+
+					if (ImGui::TreeNode("Adapter")) {
+
+						auto& modes = adapter.GetModes();
+						for (uint32 j = 0; j < modes.size(); ++j) {
+							const OutputMode& mode = modes[j];
+							ImGui::Separator();
+							ImGui::Text("Resolution: %u / %u", mode.resolution.x, mode.resolution.y);
+							if (ImGui::Button((std::string("Set Mode") + std::to_string(j)).c_str())) jshGraphics::SetOutputMode(mode);
+						}
+
+						ImGui::TreePop();
+					}
+				}
+			}
+			ImGui::End();
+		}
+
+		return result;
+	}
 #endif
 
 	JSH_GRAPHICS_API GetAPI()
@@ -146,31 +196,12 @@ namespace jshGraphics {
 		return g_GraphicsAPI;
 	}
 
-	//////////////////////////RESOLUTION///////////////////////
-	void SetResolution(uint32 width, uint32 height)
-	{
-		if (width == 0 || height == 0) {
-			jshLogW("Invalid Resolution: %u, %u", width, height);
-			return;
-		}
-		if (width == g_Resolution.x && height == g_Resolution.y) return;
-
-		jshGraphics_dx11::SetResolution(width, height);
-
-		g_Resolution = uvec2(width, height);
-
-		jsh::ResolutionEvent e(width, height);
-		jshEvent::Dispatch(e);
-	}
-	uvec2 GetResolution()
-	{
-		return g_Resolution;
-	}
+	//////////////////////////FULLSCREEN///////////////////////
 	void SetFullscreen(bool fullscreen)
 	{
 		if (g_Fullscreen == fullscreen) return;
 
-		jshGraphics_dx11::SetFullscreen(fullscreen);
+		jshGraphics_dx11::SetFullscreen(fullscreen, jshGraphics::GetOutputMode());
 		g_Fullscreen = fullscreen;
 
 		jsh::FullscreenEvent e(fullscreen);

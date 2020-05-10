@@ -95,6 +95,7 @@
   <ItemGroup>
     <ClCompile Include="src\BloomEffect.cpp" />
     <ClCompile Include="src\ConstantBuffer.cpp" />
+    <ClCompile Include="src\GraphicsAdapter.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\RawData.cpp" />
     <ClCompile Include="src\Engine.cpp" />
@@ -136,6 +137,7 @@
     <ClInclude Include="src\BloomEffect.h" />
     <ClInclude Include="src\ConstantBuffer.h" />
     <ClInclude Include="src\DefaultLoadState.h" />
+    <ClInclude Include="src\GraphicsAdapter.h" />
     <ClInclude Include="src\RenderQueue.h" />
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\Mesh.h" />

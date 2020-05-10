@@ -7,6 +7,11 @@
 
 namespace jsh {
 
+	CameraComponent::CameraComponent()
+	{
+		m_Aspect = (float)jshGraphics::GetResolution().x / (float)jshGraphics::GetResolution().y;
+	}
+
 	void CameraComponent::SetDimension(float dimension) noexcept
 	{
 		m_Dimension = dimension;
