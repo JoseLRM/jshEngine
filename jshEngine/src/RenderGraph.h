@@ -42,6 +42,7 @@ namespace jsh {
 			vec4 lightPos;
 			vec4 data;
 			vec4 color;
+			vec4 direction;
 		};
 		struct alignas(16) {
 			Light lights[JSH_GFX_MAX_LIGHTS];

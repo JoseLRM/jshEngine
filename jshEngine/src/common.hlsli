@@ -1,8 +1,7 @@
 #ifndef JSH_COMMON
 #define JSH_COMMON
 
-#define JSH_GFX_MAX_LIGHTS 120
-#define JSH_GFX_MAX_MATERIALS 50
+#define JSH_GFX_MAX_LIGHTS 120u
 
 #define JSH_GFX_SLOT_CBUFFER_CAMERA		b0
 #define JSH_GFX_SLOT_CBUFFER_LIGHTS		b1
@@ -63,6 +62,7 @@ struct Light {
 	float intensity;
 	unsigned int type;
 	float4 color;
+	float4 direction;
 };
 
 #endif

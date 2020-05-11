@@ -82,9 +82,16 @@ namespace jsh {
 
 				if (lightComp->lightType == 0) continue;
 
+				Transform& trans = jshScene::GetTransform(lightComp->entity);
+
+				vec3 rotation = trans.GetLocalRotation();
+				XMVECTOR rotated = XMVector3Rotate( XMVectorSet(0.f, 0.f, -1.f, 1.f), XMQuaternionRotationRollPitchYaw(rotation.x, rotation.y, rotation.z));
+				rotation = rotated;
+
 				Light& light = m_LightBufferData.lights[count++];
 				light.color = lightComp->color;
-				light.lightPos = *(vec4*)& jshScene::GetTransform(lightComp->entity).GetWorldPosition();
+				light.direction = vec4(rotation.x, rotation.y, rotation.z, lightComp->spotRange);
+				light.lightPos = *(vec4*)& trans.GetWorldPosition();
 				light.data.x = lightComp->quadraticAttenuation;
 				light.data.y = lightComp->constantAttenuation;
 				light.data.z = lightComp->intensity;
