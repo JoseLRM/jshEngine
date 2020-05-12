@@ -59,7 +59,7 @@ namespace jshInput {
 		// KEYS
 		// events
 		for (uint8 i = 0; i < 255; ++i) {
-			if (g_Keys[i]) {
+			if (g_Keys[i] || g_KeysReleased[i]) {
 				KeyEvent e(i);
 				if (g_KeysPressed[i]) e = KeyEvent(i, JSH_EVENT_PRESSED);
 				else if (g_KeysReleased[i]) e = KeyEvent(i, JSH_EVENT_RELEASED);
@@ -76,7 +76,7 @@ namespace jshInput {
 		// MOUSE BUTTONS
 		// events
 		for (uint8 i = 0; i < 3; ++i) {
-			if (g_Mouse[i]) {
+			if (g_Mouse[i] || g_MouseReleased[i]) {
 				MouseEvent e(JSH_EVENT_BUTTON);
 				jshEvent::Dispatch(e);
 

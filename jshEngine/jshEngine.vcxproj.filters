@@ -49,6 +49,9 @@
     <Filter Include="System\TaskSystem">
       <UniqueIdentifier>{bc313ae2-786a-44b4-b842-300b83257917}</UniqueIdentifier>
     </Filter>
+    <Filter Include="System\Gui">
+      <UniqueIdentifier>{29869d28-f2d9-4906-818b-080c6f428f64}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Graphics.cpp">
@@ -164,6 +167,12 @@
     </ClCompile>
     <ClCompile Include="src\GraphicsAdapter.cpp">
       <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GuiSystem.cpp">
+      <Filter>System\Gui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GuiComponent.cpp">
+      <Filter>System\Gui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -365,6 +374,18 @@
     <ClInclude Include="src\GraphicsAdapter.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="src\GuiComponent.h">
+      <Filter>System\Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GuiSystem.h">
+      <Filter>System\Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GuiCanvasComponent.h">
+      <Filter>System\Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GuiEventComponent.h">
+      <Filter>System\Gui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\SolidVertex.hlsl">
@@ -401,6 +422,9 @@
       <Filter>Graphics\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="src\NormalPixel.hlsl">
+      <Filter>Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="src\GuiVertex.hlsl">
       <Filter>Graphics\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

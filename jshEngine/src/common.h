@@ -29,3 +29,6 @@
 #include <memory>
 #include <sstream>
 #include <algorithm>
+#include <functional>
+#include <vector>
+#include <queue>

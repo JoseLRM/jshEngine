@@ -28,9 +28,73 @@ public:
 		camera->SetOrthographicMatrix();
 		camera->Set2D();
 		camera->SetDimension(10.f);
-		jshScene::GetComponent<jsh::PostProcessComponent>(jshEngine::GetRenderer()->GetMainCamera())->SetBloomEffect(true);
 
 		particles.Initialize();
+
+		//gui
+		jsh::Entity canvas = jshScene::CreateEntity(jsh::GuiCanvasComponent());
+		jsh::Entity gui = jshScene::CreateSEntity(canvas, jsh::GuiComponent(), jsh::SpriteComponent(jshColor::RED), jsh::GuiEventComponent());
+		jsh::Entity guiChild = jshScene::CreateSEntity(gui, jsh::GuiComponent(), jsh::SpriteComponent(jshColor::BLUE), jsh::GuiEventComponent());
+		jsh::GuiComponent* guiComp = jshScene::GetComponent<jsh::GuiComponent>(gui);
+
+		guiComp->SetConstraintX(JSH_GUI_CONSTRAINT_TYPE_PIXEL, 10.f);
+		guiComp->SetConstraintY(JSH_GUI_CONSTRAINT_TYPE_PIXEL, 30.f);
+		guiComp->ReverseY();
+		guiComp->SetConstraintWidth(JSH_GUI_CONSTRAINT_TYPE_RELATIVE, 0.1f);
+		guiComp->SetConstraintHeight(JSH_GUI_CONSTRAINT_TYPE_ASPECT, 1.f);
+		guiComp->SetLeftCorner();
+		guiComp->SetBottomCorner();
+
+		guiComp = jshScene::GetComponent<jsh::GuiComponent>(guiChild);
+		guiComp->SetConstraintX(JSH_GUI_CONSTRAINT_TYPE_CENTER);
+		guiComp->SetConstraintY(JSH_GUI_CONSTRAINT_TYPE_CENTER);
+		guiComp->SetConstraintWidth(JSH_GUI_CONSTRAINT_TYPE_ASPECT, 2.f);
+		guiComp->SetConstraintWidth(JSH_GUI_CONSTRAINT_TYPE_RELATIVE, 0.5f);
+
+		jsh::GuiEventComponent* guiClicked = jshScene::GetComponent<jsh::GuiEventComponent>(gui);
+		guiClicked->OnClickedFn = [](jsh::Entity entity, jsh::MouseButtonEvent& e) {
+			if (e.buttonCode == JSH_MOUSE_LEFT && e.IsPressed()) {
+				jsh::Color& color = jshScene::GetComponent<jsh::SpriteComponent>(entity)->color;
+				e.Kill();
+				color.x+=20;
+			}
+		};
+		guiClicked->OnContactFn = [](jsh::Entity gui, uint8 mode) {
+			if (mode == JSH_EVENT_RELEASED) {
+				jsh::Color& color = jshScene::GetComponent<jsh::SpriteComponent>(gui)->color;
+				color.y += 20;
+			}
+		};
+
+		guiClicked = jshScene::GetComponent<jsh::GuiEventComponent>(guiChild);
+		guiClicked->OnClickedFn = [](jsh::Entity entity, jsh::MouseButtonEvent& e) {
+			if (e.buttonCode == JSH_MOUSE_LEFT && e.IsPressed()) {
+				jsh::Color& color = jshScene::GetComponent<jsh::SpriteComponent>(entity)->color;
+				e.Kill();
+				color.x += 20;
+			}
+		};
+		guiClicked->OnContactFn = [](jsh::Entity gui, uint8 mode) {
+			if (mode == JSH_EVENT_RELEASED) {
+				jsh::Color& color = jshScene::GetComponent<jsh::SpriteComponent>(gui)->color;
+				color.y += 20;
+			}
+		};
+		guiClicked->OnFocusFn = [](jsh::Entity gui, uint8 mode, bool& lostFocus) {
+		
+			jsh::Color& color = jshScene::GetComponent<jsh::SpriteComponent>(gui)->color;
+			if (mode == JSH_EVENT_PRESSED) {
+				color.z = 255;
+			}
+			else if (mode == JSH_EVENT_RELEASED) {
+				color.z = 0;
+			}
+			else {
+				color.z++;
+				if (color.z == 255) lostFocus = true;
+			}
+			
+		};
 	}
 
 	void Update(float dt) override
@@ -47,7 +111,7 @@ public:
 
 	void Render() override
 	{
-		jshImGui(particles.ShowImGuiWindow());
+		particles.Render();
 	}
 
 	void Close() override

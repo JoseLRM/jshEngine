@@ -354,7 +354,7 @@ namespace jshScene {
 	{
 		EntityData& ed = g_EntityData[parent];
 		*size = ed.sonsCount;
-		if (ed.sonsCount != 0) *sonsArray = &g_Entities[ed.handleIndex + 1];
+		if (sonsArray && ed.sonsCount != 0) *sonsArray = &g_Entities[ed.handleIndex + 1];
 	}
 
 	jsh::Entity GetEntityParent(jsh::Entity entity) {
@@ -368,6 +368,11 @@ namespace jshScene {
 	jsh::Layer* GetLayerOf(jsh::Entity entity)
 	{
 		return g_EntityData[entity].layer;
+	}
+
+	bool IsEmpty(jsh::Entity entity)
+	{
+		return g_EntityData[entity].indices.empty();
 	}
 
 	////////////////////////////////COMPONENTS////////////////////////////////

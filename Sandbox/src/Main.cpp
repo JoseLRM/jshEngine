@@ -19,7 +19,7 @@ struct State : public jsh::State {
 
 int main()
 {
-	jshEngine::Initialize(new State());
+	jshEngine::Initialize(new State2D());
 	jshEngine::Run();
 	jshEngine::Close();
 

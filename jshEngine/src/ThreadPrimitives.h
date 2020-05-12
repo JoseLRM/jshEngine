@@ -1,10 +1,7 @@
 #pragma once
 
 #include "common.h"
-#include <vector>
-#include <queue>
 #include <condition_variable>
-#include <functional>
 #include <atomic>
 
 // temp

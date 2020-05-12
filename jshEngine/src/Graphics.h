@@ -36,6 +36,7 @@ namespace jshGraphics {
 		static jsh::SolidShader s_SolidShader;
 		static jsh::NormalShader s_NormalShader;
 		static jsh::Shader s_SpriteShader;
+		static jsh::Shader s_GuiShader;
 
 		static jsh::RawData s_SpriteRawData;
 
@@ -45,9 +46,10 @@ namespace jshGraphics {
 		static void Initialize();
 
 	public:
-		inline static jsh::Shader* GetSpriteShader() { return &s_SpriteShader; }
 		inline static jsh::SolidShader* GetSolidShader() { return &s_SolidShader; }
 		inline static jsh::NormalShader* GetNormalShader() { return &s_NormalShader; }
+		inline static jsh::Shader* GetSpriteShader() { return &s_SpriteShader; }
+		inline static jsh::Shader* GetGuiShader() { return &s_GuiShader; }
 
 
 		inline static jsh::RawData* GetSpriteRawData() { return &s_SpriteRawData; }

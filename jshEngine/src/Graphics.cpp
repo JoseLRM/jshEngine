@@ -232,6 +232,24 @@ namespace jshGraphics {
 			s_SpriteShader.AddInstanceProperty("Texture", JSH_FORMAT_R32_UINT, 0u);
 		}
 
+		// Gui shader
+		{
+			s_GuiShader = Shader(88);
+
+			jshGraphics::CreateVertexShader(L"GuiVertex.cso", &s_GuiShader.GetVertexShader());
+			jshGraphics::CreatePixelShader(L"SpritePixel.cso", &s_GuiShader.GetPixelShader());
+
+			s_GuiShader.AddVertexProperty("Position", JSH_FORMAT_R32G32_FLOAT, 0u);
+
+			s_GuiShader.AddInstanceProperty("TM", JSH_FORMAT_R32G32B32A32_FLOAT, 0u);
+			s_GuiShader.AddInstanceProperty("TM", JSH_FORMAT_R32G32B32A32_FLOAT, 1u);
+			s_GuiShader.AddInstanceProperty("TM", JSH_FORMAT_R32G32B32A32_FLOAT, 2u);
+			s_GuiShader.AddInstanceProperty("TM", JSH_FORMAT_R32G32B32A32_FLOAT, 3u);
+			s_GuiShader.AddInstanceProperty("TexCoord", JSH_FORMAT_R32G32B32A32_FLOAT, 0u);
+			s_GuiShader.AddInstanceProperty("Color", JSH_FORMAT_R8G8B8A8_UNORM, 0u);
+			s_GuiShader.AddInstanceProperty("Texture", JSH_FORMAT_R32_UINT, 0u);
+		}
+
 		// Solid shader
 		{
 			jshGraphics::CreateVertexShader(L"SolidVertex.cso", &s_SolidShader.GetVertexShader());
@@ -267,6 +285,7 @@ namespace jshGraphics {
 	SolidShader objects::s_SolidShader;
 	NormalShader objects::s_NormalShader;
 	Shader objects::s_SpriteShader;
+	Shader objects::s_GuiShader;
 	RawData objects::s_SpriteRawData;
 
 }

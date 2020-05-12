@@ -46,9 +46,19 @@ namespace jsh {
 			m_Instances.reserve(count);
 		}
 
-		inline void Draw(const Sprite& sprite, const Color& color, const XMMATRIX& tm, float layer)
+		inline void DrawSprite(const Sprite& sprite, const Color& color, const XMMATRIX& tm, float layer)
 		{
 			m_Instances.emplace_back(sprite, color, tm, layer);
+		}
+		inline void DrawQuad(const vec3& position, vec2 size, float rotation, Color color, float layer) {
+			XMMATRIX tm = XMMatrixTranspose(XMMatrixScaling(size.x, size.y, 0.f) * XMMatrixRotationZ(rotation) * XMMatrixTranslation(position.x, position.y, position.z));
+			constexpr Sprite nullSprite;
+			m_Instances.emplace_back(nullSprite, color, tm, layer);
+		}
+		inline void DrawQuad(const vec3& position, vec2 size, Color color, float layer) {
+			XMMATRIX tm = XMMatrixTranspose(XMMatrixScaling(size.x, size.y, 0.f) * XMMatrixTranslation(position.x, position.y, position.z));
+			constexpr Sprite nullSprite;
+			m_Instances.emplace_back(nullSprite, color, tm, layer);
 		}
 
 		inline void End()

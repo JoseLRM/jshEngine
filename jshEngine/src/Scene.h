@@ -129,6 +129,7 @@ namespace jshScene {
 	jsh::Entity GetEntityParent(jsh::Entity entity);
 	jsh::Transform& GetTransform(jsh::Entity entity);
 	jsh::Layer* GetLayerOf(jsh::Entity entity);
+	bool IsEmpty(jsh::Entity entity);
 
 	void DestroyEntity(jsh::Entity entity) noexcept;
 

@@ -96,6 +96,8 @@
     <ClCompile Include="src\BloomEffect.cpp" />
     <ClCompile Include="src\ConstantBuffer.cpp" />
     <ClCompile Include="src\GraphicsAdapter.cpp" />
+    <ClCompile Include="src\GuiComponent.cpp" />
+    <ClCompile Include="src\GuiSystem.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\RawData.cpp" />
     <ClCompile Include="src\Engine.cpp" />
@@ -138,6 +140,10 @@
     <ClInclude Include="src\ConstantBuffer.h" />
     <ClInclude Include="src\DefaultLoadState.h" />
     <ClInclude Include="src\GraphicsAdapter.h" />
+    <ClInclude Include="src\GuiCanvasComponent.h" />
+    <ClInclude Include="src\GuiEventComponent.h" />
+    <ClInclude Include="src\GuiComponent.h" />
+    <ClInclude Include="src\GuiSystem.h" />
     <ClInclude Include="src\RenderQueue.h" />
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\Mesh.h" />
@@ -201,6 +207,14 @@
     <ClInclude Include="src\Math.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="src\GuiVertex.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)/Sandbox/%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
     <FxCompile Include="src\NormalPixel.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>

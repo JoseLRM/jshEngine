@@ -20,8 +20,7 @@ namespace jsh {
 
 	XMMATRIX Transform::GetLocalMatrix() const noexcept
 	{
-		XMVECTOR radRotation = XMVectorSet(m_LocalRotation.x, m_LocalRotation.y, m_LocalRotation.z, 1.f);
-		return XMMatrixScalingFromVector(GetLocalScaleDXV()) * XMMatrixRotationRollPitchYawFromVector(radRotation)
+		return XMMatrixScalingFromVector(GetLocalScaleDXV()) * XMMatrixRotationRollPitchYawFromVector(XMVectorSet(m_LocalRotation.x, m_LocalRotation.y, m_LocalRotation.z, 1.f))
 			* XMMatrixTranslationFromVector(GetLocalPositionDXV());
 	}
 
@@ -38,7 +37,7 @@ namespace jsh {
 	vec3 Transform::GetWorldScale() noexcept
 	{
 		if (m_Modified) UpdateWorldMatrix();
-		return *(vec3*)& GetWorldScaleDXV();
+		return vec3(((vec3*)&m_WorldMatrix._11)->Mag(), ((vec3*)& m_WorldMatrix._21)->Mag(), ((vec3*)& m_WorldMatrix._31)->Mag());
 	}
 	XMVECTOR Transform::GetWorldPositionDXV() noexcept
 	{
@@ -74,7 +73,7 @@ namespace jsh {
 
 		XMMatrixDecompose(&scale, &rotation, &position, XMLoadFloat4x4(&m_WorldMatrix));
 
-		return scale;
+		return XMVectorAbs(scale);
 	}
 
 	XMMATRIX Transform::GetWorldMatrix() noexcept

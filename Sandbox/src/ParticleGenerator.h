@@ -2,22 +2,27 @@
 
 #include "jshEngine.h"
 
-struct ParticleComponent : public jsh::Component<ParticleComponent> {
+struct Particle {
+
+	jsh::vec3 position;
+	jsh::vec2 size;
+	float rotation;
 	float creationTime;
 	float lifeTime;
 	float alpha = 0;
 
 	jsh::vec3 velocity;
 	float rotationVel;
+	jsh::Color color;
 
-	ParticleComponent() : creationTime(0.f), lifeTime(0.f), velocity(), rotationVel(0.f) {}
-	ParticleComponent(float t0, float t1, jsh::vec3 vel, float rotationVel) : creationTime(t0), lifeTime(t1), velocity(vel), rotationVel(rotationVel) {}
+	Particle() : creationTime(0.f), lifeTime(0.f), velocity(), rotationVel(0.f) {}
+	Particle(jsh::vec3 position, jsh::vec2 size, float rotation, float t0, float t1, jsh::vec3 vel, float rotationVel, jsh::Color color) : position(position), size(size), rotation(rotation), creationTime(t0), lifeTime(t1), velocity(vel), rotationVel(rotationVel), color(color) {}
 };
-jshDefineComponent(ParticleComponent);
 
 class ParticleGenerator {
 
-	float m_GenerationTime = 0.0005f;
+	float m_GenerationTime = 0.001f;
+	uint32 m_GenerationCount = 1u;
 	float m_GenTimeCount = 0u;
 	float m_TimeCount = 0u;
 
@@ -33,6 +38,7 @@ class ParticleGenerator {
 	jsh::vec3 m_Deviation = {0.f, 0.f, 0.f};
 
 	jsh::Entity m_Parent;
+	std::vector<Particle> particles;
 
 	float random()
 	{
@@ -62,77 +68,67 @@ public:
 		m_GenTimeCount += dt;
 
 		while (m_GenerationTime <= m_GenTimeCount) {
+
+			particles.reserve(m_GenerationCount);
 			m_GenTimeCount -= m_GenerationTime;
+			for (uint32 i = 0; i < m_GenerationCount; ++i) {
 
-			if (!create) break;
+				if (!create) break;
 
-			constexpr jsh::Color colors[3] = {
-				jshColor::RED,
-				jshColor::GREEN,
-				jshColor::BLUE,
-			};
-			
-			jsh::vec3 vel;
-			vel.x = random(m_Direction.x - m_Deviation.x / 2.f, m_Direction.x + m_Deviation.x / 2.f);
-			vel.y = random(m_Direction.y - m_Deviation.y / 2.f, m_Direction.y + m_Deviation.y / 2.f);
-			vel.z = random(m_Direction.z - m_Deviation.z / 2.f, m_Direction.z + m_Deviation.z / 2.f);
+				constexpr jsh::Color colors[3] = {
+					jshColor::RED,
+					jshColor::GREEN,
+					jshColor::BLUE,
+				};
 
-			float rotationVel = random(4.f, 200.f);
+				jsh::vec3 vel;
+				vel.x = random(m_Direction.x - m_Deviation.x / 2.f, m_Direction.x + m_Deviation.x / 2.f);
+				vel.y = random(m_Direction.y - m_Deviation.y / 2.f, m_Direction.y + m_Deviation.y / 2.f);
+				vel.z = random(m_Direction.z - m_Deviation.z / 2.f, m_Direction.z + m_Deviation.z / 2.f);
 
-			float lifeTime = random(m_MinLifeTime, m_MaxLifeTime);
+				float rotationVel = random(4.f, 200.f);
 
-			jsh::Entity entity = jshScene::CreateSEntity(m_Parent, jsh::SpriteComponent(colors[uint32(random(3))]), ParticleComponent(m_TimeCount, lifeTime, vel, ToRadians(rotationVel)));
-			jsh::Transform& trans = jshScene::GetTransform(entity);
-			trans.SetPosition({ x, y, z });
-			trans.SetRotation({ 0.f, 0.f, ToRadians(random() * 360.f) });
-
-			float size = random(m_MinSize, m_MaxSize);
-			trans.SetScale({ size, size, 0.f });
+				float lifeTime = random(m_MinLifeTime, m_MaxLifeTime);
+				float size = random(m_MinSize, m_MaxSize);
+				particles.emplace_back(Particle({ x, y, z }, { size, size }, ToRadians(random() * 360.f), m_TimeCount, lifeTime, vel, ToRadians(rotationVel), colors[uint32(random(3))]));
+			}
 		}
 
-		jsh::Entity* sons;
-		uint32 size = 0u;
-		jshScene::GetEntitySons(m_Parent, &sons, &size);
+		for (uint32 i = 0; i < particles.size(); ++i) {
 
-		for (uint32 i = 0; i < size; ++i) {
-			jsh::Entity entity = sons[i];
+			Particle& particle = particles[i];
 
-			ParticleComponent* particleComp = jshScene::GetComponent<ParticleComponent>(entity);
-			jsh::SpriteComponent* spriteComp = jshScene::GetComponent<jsh::SpriteComponent>(entity);
-			jsh::Transform& trans = jshScene::GetTransform(entity);
+			particle.position += particle.velocity * dt;
+			particle.rotation += particle.rotationVel * dt;
 
-			jsh::vec3 pos = trans.GetLocalPosition();
-			pos += particleComp->velocity * dt;
-			trans.SetPosition(pos);
-
-			jsh::vec3 rot = trans.GetLocalRotation();
-			rot.z += particleComp->rotationVel * dt;
-			trans.SetRotation(rot);
-
-			jsh::Color& color = spriteComp->color;
-			if (particleComp->alpha > 0) {
-				float a = color.w;
-				a -= particleComp->alpha * dt;
+			if (particle.alpha > 0) {
+				float a = particle.color.w;
+				a -= particle.alpha * dt;
 				if (a > 255.f) a = 255.f;
 				else if (a < 0.f) a = 0.f;
-				color.w = (byte)a;
+				particle.color.w = (byte)a;
 			}
-			else if (abs(particleComp->creationTime + particleComp->lifeTime - m_TimeCount) <= m_AlphaTime) {
-				particleComp->alpha = 255.f / abs(particleComp->creationTime + particleComp->lifeTime - m_TimeCount);
+			else if (abs(particle.creationTime + particle.lifeTime - m_TimeCount) <= m_AlphaTime) {
+				particle.alpha = 255.f / abs(particle.creationTime + particle.lifeTime - m_TimeCount);
 			}
 		}
 
-		for (int32 i = size - 1; i >= 0; --i) {
-			jsh::Entity entity = sons[i];
-			ParticleComponent* particleComp = jshScene::GetComponent<ParticleComponent>(entity);
-			if (particleComp->creationTime + particleComp->lifeTime <= m_TimeCount) jshScene::DestroyEntity(entity);
+		for (int32 i = particles.size() - 1; i >= 0; --i) {
+			Particle& particle = particles[i];
+			if (particle.creationTime + particle.lifeTime <= m_TimeCount) particles.erase(particles.begin() + i);
 		}
+
 	}
 
 #ifdef JSH_IMGUI
 	void ShowImGuiWindow() {
 		if (ImGui::Begin("Particles")) {
-			ImGui::SliderFloat("Generation Time", &m_GenerationTime, 0.0005f, 1.f);
+			ImGui::Text("Count: %u", particles.size());
+			ImGui::SliderFloat("Generation Time", &m_GenerationTime, 0.001f, 1.f);
+			int g = m_GenerationCount;
+			ImGui::DragInt("Generation Count", &g);
+			if (g < 0) g = 0;
+			m_GenerationCount = g;
 			ImGui::DragFloat2("Size", &m_MinSize, 0.01f);
 			ImGui::SliderFloat("Alpha Time", &m_AlphaTime, 0.0001f, 1.f);
 			ImGui::DragFloat2("Life Time", &m_MinLifeTime, 0.01f);
@@ -142,5 +138,20 @@ public:
 		ImGui::End();
 	}
 #endif
+
+	void Render()
+	{
+		jsh::Renderer3D& renderer = *reinterpret_cast<jsh::Renderer3D*>(jshEngine::GetRenderer());
+		auto& batch = renderer.GetSpriteRenderQueue();
+
+		batch.Reserve(particles.size());
+
+		for (auto it = particles.begin(); it != particles.end(); ++it) {
+			Particle& particle = *it;
+			batch.DrawQuad(particle.position, particle.size, particle.rotation, particle.color, 0.f);
+		}
+
+		ShowImGuiWindow();
+	}
 
 };

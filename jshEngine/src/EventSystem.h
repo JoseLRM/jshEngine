@@ -7,13 +7,8 @@
 #include "GraphicsAdapter.h"
 
 #define JSH_EVENT_LAYER_SYSTEM		0
-#define JSH_EVENT_LAYER_FOCUSED_GUI 1
-#define JSH_EVENT_LAYER_GUI0		2
-#define JSH_EVENT_LAYER_GUI1		3
-#define JSH_EVENT_LAYER_GUI2		4
-#define JSH_EVENT_LAYER_GUI3		5
-#define JSH_EVENT_LAYER_GUI4		6
-#define JSH_EVENT_LAYER_DEFAULT		7
+#define JSH_EVENT_LAYER_GUI			1
+#define JSH_EVENT_LAYER_DEFAULT		2
 
 namespace jsh {
 

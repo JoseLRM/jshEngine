@@ -8,3 +8,6 @@
 #include "NameComponent.h"
 #include "PostProcessComponent.h"
 #include "SpriteComponent.h"
+#include "GuiComponent.h"
+#include "GuiCanvasComponent.h"
+#include "GuiEventComponent.h"

@@ -14,6 +14,7 @@ public:
 	void Load() override
 	{
 		jshLoader::LoadModel("res/models/Sponza/sponza.obj", "sponza", &model);
+		//jshLoader::LoadModel("res/models/jose.fbx", "jose", &model);
 	}
 
 	void Initialize() override

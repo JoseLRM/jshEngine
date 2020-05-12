@@ -9,6 +9,7 @@
 #include "State.h"
 #include "DefaultLoadState.h"
 #include "StateManager.h"
+#include "GuiSystem.h"
 
 using namespace jsh;
 using namespace jsh::_internal;
@@ -40,6 +41,8 @@ namespace jshEngine {
 	StateManager g_State;
 
 	Renderer* g_pRenderer;
+
+	GuiSystem g_GuiSystem;
 
 	bool Initialize(jsh::State* state, jsh::State* loadState)
 	{
@@ -76,6 +79,8 @@ namespace jshEngine {
 			SetRenderer(new Renderer3D());
 
 			jshScene::Initialize();
+
+			g_GuiSystem.Initialize();
 
 			LoadState(state, loadState);
 			
@@ -168,6 +173,7 @@ namespace jshEngine {
 	bool Close()
 	{
 		try {
+
 			if (!g_pRenderer->Close()) return false;
 
 			if (g_Closed) return false;
@@ -204,7 +210,7 @@ namespace jshEngine {
 
 	void BeginUpdate(float dt)
 	{
-
+		g_GuiSystem.Update(dt);
 	}
 	void EndUpdate(float dt)
 	{
