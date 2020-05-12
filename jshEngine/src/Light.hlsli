@@ -39,7 +39,7 @@ inline float3 LoadLightColor(float3 position, float3 normal, float3 toCamera, fl
                 toLight = light[i].position.xyz - position;
                 
                 range = dot(normalize(toLight), light[i].direction.xyz);
-                diffuseRange = light[i].direction.w * 0.9f;
+                diffuseRange = light[i].direction.w * 0.95f;
                 if (range > light[i].direction.w)
                 {
                     distance = length(toLight);

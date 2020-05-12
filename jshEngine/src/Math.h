@@ -475,5 +475,6 @@ namespace jshColor {
 	constexpr jsh::Color RED(jsh::Color(255u, 0u, 0u, 255u));
 	constexpr jsh::Color GREEN(jsh::Color(0u, 255u, 0u, 255u));
 	constexpr jsh::Color BLUE(jsh::Color(0u, 0u, 255u, 255u));
+	constexpr jsh::Color GREY(uint8 n) { return jsh::Color(n, n, n, 255); }
 
 }

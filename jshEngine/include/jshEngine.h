@@ -19,3 +19,4 @@
 
 // data structures
 #include "..//src/vector.h"
+#include "..//src/Image.h"

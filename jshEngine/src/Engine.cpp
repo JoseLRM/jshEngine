@@ -279,7 +279,7 @@ namespace jshEngine {
 	// VERSION
 	constexpr uint64 g_MajorVersion = 0u;
 	constexpr uint64 g_MinorVersion = 1u;
-	constexpr uint64 g_RevisionVersion = 0u;
+	constexpr uint64 g_RevisionVersion = 1u;
 
 	uint64 GetMajorVersion()
 	{

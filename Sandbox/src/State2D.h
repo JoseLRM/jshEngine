@@ -16,9 +16,19 @@ public:
 		tex->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
 		jshLoader::LoadTexture("res/textures/skybox.jpg", &tex->resource);
 
-		tex2 = jshGraphics::CreateTexture("Skybox2");
+		tex2 = jshGraphics::CreateTexture("Image");
 		tex2->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
-		jshLoader::LoadTexture("res/textures/skybox2.png", &tex2->resource);
+		// texture
+		jsh::Image image(100, 100, JSH_FORMAT_R8G8B8A8_UNORM);
+
+		jsh::Color* buffer = reinterpret_cast<jsh::Color*>(image.GetBuffer());
+		for (uint32 x = 0; x < image.GetWidth(); ++x) {
+			for (uint32 y = 0; y < image.GetHeight(); ++y) {
+				buffer[x + (y * image.GetWidth())] = jshColor::GREY(uint8(((float)rand() / RAND_MAX) * 255.f));
+			}
+		}
+
+		jshLoader::CreateTexture(image, &tex2->resource);
 	}
 
 	void Initialize() override
@@ -95,6 +105,7 @@ public:
 			}
 			
 		};
+
 	}
 
 	void Update(float dt) override

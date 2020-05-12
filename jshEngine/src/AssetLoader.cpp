@@ -6,6 +6,7 @@
 #include "Graphics.h"
 #include "AssetLoader.h"
 #include <sstream>
+#include "Image.h"
 
 #include "stb/stb_lib.h"
 
@@ -282,6 +283,27 @@ namespace jshLoader
 		stbi_image_free(data);
 
 		return true;
+	}
+
+	void CreateTexture(const jsh::Image& image, jsh::TextureRes* tex)
+	{
+		JSH_TEXTURE2D_DESC desc;
+		desc.ArraySize = 1u;
+		desc.BindFlags = JSH_BIND_SHADER_RESOURCE;
+		desc.CPUAccessFlags = 0u;
+		desc.Format = image.GetFormat();
+		desc.Width = image.GetWidth();
+		desc.Height = image.GetHeight();
+		desc.MipLevels = 1u;
+		desc.MiscFlags = 0u;
+		desc.SampleDesc.Count = 1u;
+		desc.SampleDesc.Quality = 0u;
+		desc.Usage = JSH_USAGE_DEFAULT;
+		JSH_SUBRESOURCE_DATA sData;
+		sData.pSysMem = image.GetBuffer();
+		sData.SysMemPitch = image.GetWidth() * jshGraphics::GetFormatStride(image.GetFormat());
+
+		jshGraphics::CreateTextureRes(&desc, &sData, tex);
 	}
 
 }

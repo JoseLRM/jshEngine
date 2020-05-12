@@ -938,7 +938,7 @@ namespace jshGraphics_dx11 {
 		rtv->ptr.Reset();
 		rtv->resourcePtr.Reset();
 		
-		g_SwapChain->ResizeBuffers(1u, mode.resolution.x, mode.resolution.y, ParseFormat(mode.format), 0u);
+		g_SwapChain->ResizeBuffers(1u, mode.resolution.x, mode.resolution.y, ParseFormat(mode.format), DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
 
 		CreateBackBuffer(ParseFormat(mode.format));
 	}
