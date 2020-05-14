@@ -16,8 +16,8 @@ namespace jsh {
 
 		uint32 m_InstanceSize = 64u;
 
-		jsh::vector<VertexProperty> m_VertexProperties;
-		jsh::vector<VertexProperty> m_InstanceProperties;
+		std::vector<VertexProperty> m_VertexProperties;
+		std::vector<VertexProperty> m_InstanceProperties;
 
 #ifdef JSH_ENGINE
 	public:
@@ -35,11 +35,11 @@ namespace jsh {
 
 		inline void AddVertexProperty(const char* name, JSH_FORMAT format, uint32 index) noexcept
 		{
-			m_VertexProperties.push_back({ name, format, index }, 2);
+			m_VertexProperties.emplace_back(name, format, index);
 		}
 		inline void AddInstanceProperty(const char* name, JSH_FORMAT format, uint32 index) noexcept
 		{
-			m_InstanceProperties.push_back({ name, format, index }, 2);
+			m_InstanceProperties.emplace_back(name, format, index);
 		}
 
 		// getters
@@ -47,16 +47,16 @@ namespace jsh {
 		inline PixelShader& GetPixelShader() noexcept { return m_PS; }
 		inline GeometryShader& GetGeometryShader() noexcept { return m_GS; }
 
-		inline jsh::vector<VertexProperty>& GetVertexProperties() noexcept { return m_VertexProperties; }
-		inline jsh::vector<VertexProperty>& GetInstanceProperties() noexcept { return m_InstanceProperties; }
+		inline std::vector<VertexProperty>& GetVertexProperties() noexcept { return m_VertexProperties; }
+		inline std::vector<VertexProperty>& GetInstanceProperties() noexcept { return m_InstanceProperties; }
 
 		inline uint32 GetInstanceSize() const noexcept { return m_InstanceSize; }
 
 		virtual ConstantData CreateConstantData() { return ConstantData(); }
 		virtual void BindConstantData(ConstantData& cd, CommandList cmd) {}
 
-		virtual void SetInstanceData(byte* data, Transform* trans);
-		virtual void SetInstanceData(byte* data, const XMMATRIX& tm, const Sprite& sprite, const Color& color);
+		virtual void SetInstanceData(uint8* data, Transform* trans);
+		virtual void SetInstanceData(uint8* data, const XMMATRIX& tm, const Sprite& sprite, const Color& color);
 
 #ifdef JSH_IMGUI
 		virtual void ShowConstantDataInfo(ConstantData& cd) {}

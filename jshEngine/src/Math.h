@@ -1,27 +1,6 @@
 #pragma once
 
-#include <stdint.h>
-#include <cmath>
-#include <DirectXMath.h>
-
-using namespace DirectX;
-
-using byte		= uint8_t;
-using wchar		= wchar_t;
-
-using uint8		= uint8_t;
-using uint16	= uint16_t;
-using uint32	= uint32_t;
-using uint64	= uint64_t;
-
-using int8		= int8_t;
-using int16		= int16_t;
-using int32		= int32_t;
-using int64		= int64_t;
-
-typedef int BOOL;
-#define FALSE 0
-#define TRUE 1
+#include "types.h"
 
 #define ToRadians(x) x * 0.0174533f
 #define ToDegrees(x) x / 0.0174533f
@@ -52,12 +31,12 @@ namespace jsh {
 		{
 			return vec(x + v.x, y + v.y);
 		}
-		inline void operator+=(const float v) noexcept
+		inline void operator+=(const T v) noexcept
 		{
 			x += v;
 			y += v;
 		}
-		inline vec operator+(const float v) const noexcept
+		inline vec operator+(const T v) const noexcept
 		{
 			return vec(x + v, y + v);
 		}
@@ -72,12 +51,12 @@ namespace jsh {
 		{
 			return vec(x - v.x, y - v.y);
 		}
-		inline void operator-=(const float v) noexcept
+		inline void operator-=(const T v) noexcept
 		{
 			x -= v;
 			y -= v;
 		}
-		inline vec operator-(const float v) const noexcept
+		inline vec operator-(const T v) const noexcept
 		{
 			return vec(x - v, y - v);
 		}
@@ -92,12 +71,12 @@ namespace jsh {
 		{
 			return vec(x * v.x, y * v.y);
 		}
-		inline void operator*=(const float v) noexcept
+		inline void operator*=(const T v) noexcept
 		{
 			x *= v;
 			y *= v;
 		}
-		inline vec operator*(const float v) const noexcept
+		inline vec operator*(const T v) const noexcept
 		{
 			return vec(x * v, y * v);
 		}
@@ -112,12 +91,12 @@ namespace jsh {
 		{
 			return vec(x / v.x, y / v.y);
 		}
-		inline void operator/=(const float v) noexcept
+		inline void operator/=(const T v) noexcept
 		{
 			x /= v;
 			y /= v;
 		}
-		inline vec operator/(const float v) const noexcept
+		inline vec operator/(const T v) const noexcept
 		{
 			return vec(x / v, y / v);
 		}
@@ -176,13 +155,13 @@ namespace jsh {
 		{
 			return vec(x + v.x, y + v.y, z + v.z);
 		}
-		inline void operator+=(const float v) noexcept
+		inline void operator+=(const T v) noexcept
 		{
 			x += v;
 			y += v;
 			z += v;
 		}
-		inline vec operator+(const float v) const noexcept
+		inline vec operator+(const T v) const noexcept
 		{
 			return vec(x + v, y + v, z + v);
 		}
@@ -198,13 +177,13 @@ namespace jsh {
 		{
 			return vec(x - v.x, y - v.y, z - v.z);
 		}
-		inline void operator-=(const float v) noexcept
+		inline void operator-=(const T v) noexcept
 		{
 			x -= v;
 			y -= v;
 			z -= v;
 		}
-		inline vec operator-(const float v) const noexcept
+		inline vec operator-(const T v) const noexcept
 		{
 			return vec(x - v, y - v, z - v);
 		}
@@ -220,13 +199,13 @@ namespace jsh {
 		{
 			return vec(x * v.x, y * v.y, z * v.z);
 		}
-		inline void operator*=(const float v) noexcept
+		inline void operator*=(const T v) noexcept
 		{
 			x *= v;
 			y *= v;
 			z *= v;
 		}
-		inline vec operator*(const float v) const noexcept
+		inline vec operator*(const T v) const noexcept
 		{
 			return vec(x * v, y * v, z * v);
 		}
@@ -242,13 +221,13 @@ namespace jsh {
 		{
 			return vec(x / v.x, y / v.y, z / v.z);
 		}
-		inline void operator/=(const float v) noexcept
+		inline void operator/=(const T v) noexcept
 		{
 			x /= v;
 			y /= v;
 			z /= v;
 		}
-		inline vec operator/(const float v) const noexcept
+		inline vec operator/(const T v) const noexcept
 		{
 			return vec(x / v, y / v, z / v);
 		}
@@ -309,14 +288,14 @@ namespace jsh {
 		{
 			return vec(x + v.x, y + v.y, z + v.z, w + v.w);
 		}
-		inline void operator+=(const float v) noexcept
+		inline void operator+=(const T v) noexcept
 		{
 			x += v;
 			y += v;
 			z += v;
 			w += v;
 		}
-		inline vec operator+(const float v) const noexcept
+		inline vec operator+(const T v) const noexcept
 		{
 			return vec(x + v, y + v, z + v, w + v);
 		}
@@ -340,7 +319,7 @@ namespace jsh {
 			z -= v;
 			w -= v;
 		}
-		inline vec operator-(const float v) const noexcept
+		inline vec operator-(const T v) const noexcept
 		{
 			return vec(x - v, y - v, z - v, w - v);
 		}
@@ -357,14 +336,14 @@ namespace jsh {
 		{
 			return vec(x * v.x, y * v.y, z * v.z, w * v.w);
 		}
-		inline void operator*=(const float v) noexcept
+		inline void operator*=(const T v) noexcept
 		{
 			x *= v;
 			y *= v;
 			z *= v;
 			w *= v;
 		}
-		inline vec operator*(const float v) const noexcept
+		inline vec operator*(const T v) const noexcept
 		{
 			return vec(x * v, y * v, z * v, w * v);
 		}
@@ -381,14 +360,14 @@ namespace jsh {
 		{
 			return vec(x / v.x, y / v.y, z / v.z, w / v.w);
 		}
-		inline void operator/=(const float v) noexcept
+		inline void operator/=(const T v) noexcept
 		{
 			x /= v;
 			y /= v;
 			z /= v;
 			w /= v;
 		}
-		inline vec operator/(const float v) const noexcept
+		inline vec operator/(const T v) const noexcept
 		{
 			return vec(x / v, y / v, z / v, w / v);
 		}
@@ -436,7 +415,7 @@ namespace jsh {
 	typedef Vector4D<int32>	 ivec4;
 	typedef Vector4D<uint32> uvec4;
 
-	typedef Vector4D<byte> Color;
+	typedef Vector4D<uint8> Color;
 
 #pragma endregion
 

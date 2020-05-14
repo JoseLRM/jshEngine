@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Entity.h"
-#include "vector.h"
+#include "common.h"
 
 namespace jsh {
 	struct BaseComponent;
@@ -29,7 +28,9 @@ namespace jsh {
 		uint32 entity = INVALID_ENTITY;
 
 	public:
-		jshImGui(virtual void ShowInfo() {});
+#ifdef JSH_IMGUI
+		virtual void ShowInfo() {}
+#endif
 
 	};
 

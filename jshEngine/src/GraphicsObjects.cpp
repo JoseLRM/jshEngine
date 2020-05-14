@@ -1,10 +1,9 @@
+#include "common.h"
+
 #include "GraphicsObjects.h"
 
-#include "Debug.h"
-#include <map>
 #include "Graphics.h"
 #include "Renderer.h"
-#include "Scene.h"
 
 using namespace jsh;
 
@@ -42,10 +41,10 @@ namespace jsh {
 			jshScene::GetTransform(meshComp->entity) = node->transform;
 		}
 
-		uint32 cant = node->sons.size();
+		uint32 cant = uint32(node->sons.size());
 		if (cant == 0) return;
 
-		jsh::vector<Entity> entities;
+		std::vector<Entity> entities;
 		if(node->name.size() == 0) jshScene::CreateSEntities(parent, cant, &entities, jsh::MeshComponent());
 		else jshScene::CreateSEntities(parent, cant, &entities, jsh::MeshComponent(), jsh::NameComponent());
 
@@ -64,7 +63,7 @@ namespace jshGraphics {
 	{
 		std::string s = name;
 		if (g_NamedData.find(s) != g_NamedData.end()) {
-			jshLogE("Duplicated name '%s'", name);
+			jshDebug::LogE("Duplicated name '%s'", name);
 		}
 		
 		g_NamedData[s] = data;
@@ -92,7 +91,7 @@ if (map.find(n) == map.end()) { \
 	map[n] = obj; \
 } \
 else { \
-	jshLogW("Duplicated graphics object, name '%s'", name); \
+	jshDebug::LogW("Duplicated graphics object, name '%s'", name); \
 } 
 
 #define GetObject(name, map) \
@@ -340,6 +339,7 @@ GetObject(name, g_RawData);
 		for (auto& it : map) {
 			if (ImGui::Button(it.first.c_str())) return it.second;
 		}
+		return nullptr;
 	}
 
 	jsh::Mesh* GetMeshImGui()

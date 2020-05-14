@@ -1,3 +1,4 @@
+#include "common.h"
 #include "StateManager.h"
 
 #include "State.h"
@@ -55,9 +56,9 @@ namespace jsh {
 
 		void StateManager::LoadState(State* state, State* loadingState)
 		{
-			assert(state != nullptr);
+			JSH_ASSERT(state != nullptr);
 			if (IsLoading() || m_NextState != nullptr) {
-				jshLogW("You can't load a state while is loading other");
+				jshDebug::LogW("You can't load a state while is loading other");
 				return;
 			}
 

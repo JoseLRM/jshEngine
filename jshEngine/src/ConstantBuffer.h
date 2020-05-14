@@ -2,7 +2,6 @@
 
 #include "GraphicsPrimitives.h"
 #include <vector>
-#include "vector.h"
 #include <map>
 
 namespace jsh {
@@ -16,7 +15,7 @@ namespace jsh {
 			Value(uint32 size, uint32 offset) : size(size), offset(offset) {}
 		};
 
-		std::vector<byte> m_Data;
+		std::vector<uint8> m_Data;
 		std::map<const char*, Value> m_Layout;
 		uint32 m_Size = 0u;
 
@@ -30,10 +29,10 @@ namespace jsh {
 
 		Buffer& Get(CommandList cmd) noexcept 
 		{ 
-			assert(m_Created && "You must create the constant buffer");
+			JSH_ASSERT(m_Created && "You must create the constant buffer");
 			if (m_Modified)
 			{
-				jshGraphics::UpdateBuffer(m_Buffer, m_Data.data(), m_Data.size(), cmd);
+				jshGraphics::UpdateBuffer(m_Buffer, m_Data.data(), uint32(m_Data.size()), cmd);
 				m_Modified = false;
 			}
 			return m_Buffer; 
@@ -43,7 +42,7 @@ namespace jsh {
 			return m_Size;
 		}
 
-		inline byte* data() noexcept { return m_Data.data(); }
+		inline uint8* data() noexcept { return m_Data.data(); }
 
 		inline void Update() noexcept { m_Modified = true; }
 

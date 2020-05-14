@@ -1,11 +1,13 @@
 #pragma once
 
 #include "common.h"
-#include "Exception.h"
 
-#define jshGfxException jsh::Exception(L"Graphics Exception")
-#define jshGfx(x) if(x != 0) throw jshGfxException
-#define jshGfxNullAPIException jsh::Exception(L"Invalid GraphicsAPI");
+#define jshGfxFatal(x) if(x != 0) jshFatalError("Graphics Error: '%s'", #x);
+#ifdef JSH_DEBUG
+#define jshGfx(x) jshGfxFatal(x)
+#else
+#define jshGfx(x) if(x != 0) jshDebug::LogE("Graphics: '%s', file: '%s', line: %u", #x, __FILE__, __LINE__)
+#endif
 
 // shader slots
 #define JSH_GFX_SLOT_CBUFFER_CAMERA		0
@@ -51,24 +53,10 @@ enum JSH_GRAPHICS_API : uint8 {
 	JSH_GRAPHCS_API_DIRECTX11
 };
 
-enum JSH_PRIMITIVE_TYPE : uint8 {
-	JSH_PRIMITIVE_INVALID,
-	JSH_PRIMITIVE_VERTEX_BUFFER,
-	JSH_PRIMITIVE_INDEX_BUFFER,
-	JSH_PRIMITIVE_CONSTANT_BUFFER,
-	JSH_PRIMITIVE_VERTEX_SHADER,
-	JSH_PRIMITIVE_PIXEL_SHADER,
-	JSH_PRIMITIVE_GEOMETRY_SHADER,
-	JSH_PRIMITIVE_HULL_SHADER,
-	JSH_PRIMITIVE_DOMAIN_SHADER,
-	JSH_PRIMITIVE_COMPUTE_SHADER,
-	JSH_PRIMITIVE_INPUT_LAYOUT,
-	JSH_PRIMITIVE_TEXTURE,
-	JSH_PRIMITIVE_SAMPLER_STATE,
-	JSH_PRIMITIVE_BLEND_STATE,
-	JSH_PRIMITIVE_DEPTHSTENCIL_STATE,
-	JSH_PRIMITIVE_RASTERIZER_STATE,
-	JSH_PRIMITIVE_RENDER_TARGET_VIEW
+enum JSH_RESOURCE_TYPE : uint8 {
+	JSH_RESOURCE_TYPE_INVALID,
+	JSH_RESOURCE_TYPE_BUFFER,
+	JSH_RESOURCE_TYPE_TEXTURE2D
 };
 
 enum JSH_LIGHT_TYPE : uint32 {
@@ -419,7 +407,7 @@ namespace jshGraphics {
 		case JSH_FORMAT_B8G8R8X8_UNORM_SRGB:
 			return 4u;
 		default:
-			assert("Unknown stride :(");
+			JSH_ASSERT("Unknown stride :(");
 			return 0u;
 		}
 	}

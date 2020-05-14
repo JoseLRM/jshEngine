@@ -1,3 +1,4 @@
+#include "common.h"
 #include "ConstantBuffer.h"
 
 namespace jsh {
@@ -9,14 +10,14 @@ namespace jsh {
 		// align data
 		uint32 reserve = 16 - (m_Data.size() % 16);
 		if (reserve != 0) {
-			uint32 index = m_Data.size();
+			uint32 index = uint32(m_Data.size());
 			m_Data.resize(index + reserve);
 			jshZeroMemory(m_Data.data() + index, reserve);
 		}
 
 		JSH_BUFFER_DESC desc;
 		desc.BindFlags = JSH_BIND_CONSTANT_BUFFER;
-		desc.ByteWidth = m_Data.size();
+		desc.ByteWidth = uint32(m_Data.size());
 		desc.CPUAccessFlags = CPUAccessFlags;
 		desc.MiscFlags = miscFlags;
 		desc.StructureByteStride = 0u;
@@ -37,13 +38,13 @@ namespace jsh {
 
 	void ConstantBuffer::AddValue(const char* name, void* value, uint32 size)
 	{
-		assert(!m_Created);
-		uint32 index = m_Data.size();
+		JSH_ASSERT(!m_Created);
+		uint32 index = uint32(m_Data.size());
 		if ((index + size - 1) / 16 != index / 16) index += index % 16;
 		m_Layout[name] = Value(size, index);
 		m_Data.resize(index + size);
 		memcpy(m_Data.data() + index, value, size);
-		m_Size = m_Data.size();
+		m_Size = uint32(m_Data.size());
 	}
 
 	void ConstantBuffer::SetValue(const char* name, void* value)

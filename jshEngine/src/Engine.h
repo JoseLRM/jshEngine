@@ -1,8 +1,6 @@
 #pragma once
 
-#include "common.h"
-
-#include "Scene.h"
+#include "types.h"
 
 namespace jsh {
 	class State;
@@ -14,6 +12,8 @@ namespace jshEngine {
 	bool Initialize(jsh::State* state, jsh::State* loadState = nullptr);
 	void Run();
 	bool Close();
+
+	void Exit(int code);
 
 	bool IsInitialized();
 

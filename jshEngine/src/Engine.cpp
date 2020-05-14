@@ -1,11 +1,10 @@
-#include "Engine.h"
+#include "common.h"
 
 #include "Window.h"
 #include "TaskSystem.h"
 #include "Timer.h"
 #include "Graphics.h"
 #include "Renderer3D.h"
-#include "Debug.h"
 #include "State.h"
 #include "DefaultLoadState.h"
 #include "StateManager.h"
@@ -31,8 +30,6 @@ namespace jshEngine {
 	void BeginUpdate(float dt);
 	void EndUpdate(float dt);
 
-	bool g_Initialized = false;
-	bool g_Closed = false;
 	uint32 g_FPS = 0u;
 	Time g_DeltaTime = 0.f;
 	uint32 g_FixedUpdateFrameRate;
@@ -44,35 +41,50 @@ namespace jshEngine {
 
 	GuiSystem g_GuiSystem;
 
+	enum JSH_ENGINE_STATE : uint8 {
+		JSH_ENGINE_STATE_NONE,
+		JSH_ENGINE_STATE_INITIALIZING,
+		JSH_ENGINE_STATE_INITIALIZED,
+		JSH_ENGINE_STATE_RUNNING,
+		JSH_ENGINE_STATE_CLOSING,
+		JSH_ENGINE_STATE_CLOSED
+	};
+	JSH_ENGINE_STATE g_EngineState = JSH_ENGINE_STATE_NONE;
+
 	bool Initialize(jsh::State* state, jsh::State* loadState)
 	{
-		if (g_Initialized) return false;
+		jshTimer::Initialize();
+		jshDebug::_internal::Initialize();
+
+		if (g_EngineState != JSH_ENGINE_STATE_NONE) {
+			jshDebug::LogW("jshEngine is already initialized");
+			return false;
+		}
+
+		g_EngineState = JSH_ENGINE_STATE_INITIALIZING;
 		
 		try {
-			jshTimer::Initialize();
 
 			if (!jshTask::Initialize()) {
-				jshLogE("Can't initialize jshTaskSystem");
+				jshDebug::LogE("Can't initialize jshTaskSystem");
 				return false;
 			}
 
 			SetFixedUpdateFrameRate(60u);
 
 			if (!jshWindow::Initialize()) {
-				jshLogE("Can't initialize jshWindow");
+				jshDebug::LogE("Can't initialize jshWindow");
 				return false;
 			}
 
 			if (!jshGraphics::Initialize()) {
-				jshLogE("Can't initialize jshGraphics");
+				jshDebug::LogE("Can't initialize jshGraphics");
 				return false;
 			}
 
-			if (!jshDebug::Initialize()) return false;
-
 			//im gui initialize
 			jshImGui(if (!jshGraphics::InitializeImGui()) {
-				jshLogE("Cant't initialize ImGui");
+				jshDebug::LogE("Cant't initialize ImGui");
 				return false;
 			});
 
@@ -86,19 +98,16 @@ namespace jshEngine {
 			
 			if(g_pRenderer) if(!g_pRenderer->Initialize()) return false;
 
-			jshLogI("jshEngine initialized");
-			g_Initialized = true;
-		}
-		catch (jsh::Exception e) {
-			e.what();
-			return false;
+			jshDebug::LogI("jshEngine initialized");
+			jshDebug::LogSeparator();
+			g_EngineState = JSH_ENGINE_STATE_INITIALIZED;
 		}
 		catch (std::exception e) {
-			jshLogE("%s", e.what());
+			jshFatalError("STD Exception: '%s'", e.what());
 			return false;
 		}
 		catch (...) {
-			jshLogE("Unknown error");
+			jshFatalError("Unknown error");
 			return false;
 		}
 		return true;
@@ -106,6 +115,11 @@ namespace jshEngine {
 
 	void Run()
 	{
+		if (g_EngineState != JSH_ENGINE_STATE_INITIALIZED) {
+			jshFatalError("You must initialize jshEngine");
+		}
+
+		g_EngineState = JSH_ENGINE_STATE_RUNNING;
 
 		try {
 
@@ -126,6 +140,8 @@ namespace jshEngine {
 				lastTime = actualTime;
 
 				fixedUpdateCount += g_DeltaTime;
+
+				if (g_DeltaTime > 0.2f) g_DeltaTime = 0.2f;
 
 				g_State.Prepare();
 
@@ -151,32 +167,37 @@ namespace jshEngine {
 				dtCount += g_DeltaTime;
 				fpsCount++;
 				if (dtCount >= SHOW_FPS_RATE) {
-					g_FPS = fpsCount / SHOW_FPS_RATE;
-					jshLogln("%u", g_FPS);
+					g_FPS = uint32(fpsCount / SHOW_FPS_RATE);
+					//jshDebug::Log("%u", g_FPS);
 					fpsCount = 0.f;
 					dtCount -= SHOW_FPS_RATE;
 				}
 			}
 		}
-		catch (jsh::Exception e) {
-			e.what();
-		}
 		catch (std::exception e) {
-			jshLogE("%s", e.what());
+			jshFatalError("STD Exception: '%s'", e.what());
 		}
 		catch (...) {
-			jshLogE("Unknown error");
+			jshFatalError("Unknown error");
 		}
-
 	}
 
 	bool Close()
 	{
+		jshDebug::LogSeparator();
+
+		if (g_EngineState == JSH_ENGINE_STATE_CLOSING || g_EngineState == JSH_ENGINE_STATE_CLOSED) {
+			jshDebug::LogW("jshEngine is already closed");
+		}
+		
+		g_EngineState = JSH_ENGINE_STATE_CLOSING;
+
 		try {
 
-			if (!g_pRenderer->Close()) return false;
-
-			if (g_Closed) return false;
+			if (g_pRenderer) {
+				if (!g_pRenderer->Close()) return false;
+				delete g_pRenderer;
+			}
 			
 			g_State.ClearState();
 
@@ -188,22 +209,27 @@ namespace jshEngine {
 
 			if (!jshGraphics::Close()) return false;
 
-			g_Closed = true;
-			jshLogI("jshEngine closed");
-		}
-		catch (jsh::Exception e) {
-			e.what();
-			return false;
+			jshDebug::LogI("jshEngine closed");
+			jshDebug::_internal::Close();
+			g_EngineState = JSH_ENGINE_STATE_CLOSED;
 		}
 		catch (std::exception e) {
-			jshLogE("%s",e.what());
+			jshFatalError("STD Exception: '%s'", e.what());
 			return false;
 		}
 		catch (...) {
-			jshLogE("Unknown error");
+			jshFatalError("Unknown error");
 			return false;
 		}
 		return true;
+	}
+
+	void Exit(int code)
+	{
+		if (g_EngineState != JSH_ENGINE_STATE_CLOSED) {
+			if (!Close()) jshDebug::LogE("Can't close jshEngine properly");
+		}
+		exit(code);
 	}
 
 	///////////////////////////////////////UPDATE/////////////////////////////////////
@@ -217,7 +243,7 @@ namespace jshEngine {
 		// Update Camera matrices
 		{
 			auto& cameras = jshScene::_internal::GetComponentsList()[CameraComponent::ID];
-			for (uint32 i = 0; i < cameras.size(); i += CameraComponent::SIZE) {
+			for (uint32 i = 0; i < cameras.size(); i += uint32(CameraComponent::SIZE)) {
 				CameraComponent* camera = reinterpret_cast<CameraComponent*>(&cameras[i]);
 				camera->UpdateMatrices();
 			}
@@ -246,7 +272,7 @@ namespace jshEngine {
 
 	bool IsInitialized()
 	{
-		return g_Initialized;
+		return g_EngineState != JSH_ENGINE_STATE_NONE && g_EngineState != JSH_ENGINE_STATE_INITIALIZING;
 	}
 
 	// RENDERER
@@ -257,7 +283,7 @@ namespace jshEngine {
 			delete g_pRenderer;
 		}
 		g_pRenderer = renderer;
-		if (g_Initialized) g_pRenderer->Initialize();
+		if (IsInitialized()) g_pRenderer->Initialize();
 	}
 
 	jsh::Renderer* GetRenderer()
@@ -300,25 +326,25 @@ namespace jshEngine {
 	}
 	const char* GetVersionStr()
 	{
-		const static std::string ss = g_MajorVersion << '.' << g_MinorVersion << '.' << g_RevisionVersion;
-		return ss.c_str();
+		const static std::string str = std::string(std::to_string(g_MajorVersion) + '.' + std::to_string(g_MinorVersion) + '.' + std::to_string(g_RevisionVersion));
+		return str.c_str();
 	}
 	const wchar* GetVersionStrW()
 	{
-		const static std::wstring ss = std::to_wstring(g_MajorVersion) + L'.' + std::to_wstring(g_MinorVersion) + L'.' + std::to_wstring(g_RevisionVersion);
-		return ss.c_str();
+		const static std::wstring str = std::wstring(std::to_wstring(g_MajorVersion) + L'.' + std::to_wstring(g_MinorVersion) + L'.' + std::to_wstring(g_RevisionVersion));
+		return str.c_str();
 	}
 
 	// PROPERTIES
 	const char* GetName()
 	{
-		const static std::string name = "jshEngine " + std::string(GetVersionStr());
-		return name.c_str();
+		const static std::string str = std::string("jshEngine " + std::string(GetVersionStr()));
+		return str.c_str();
 	}
 	const wchar* GetNameW()
 	{
-		const static std::wstring name = L"jshEngine " + std::wstring(GetVersionStrW());
-		return name.c_str();
+		const static std::wstring str = std::wstring(L"jshEngine " + std::wstring(GetVersionStrW()));
+		return str.c_str();
 	}
 
 }

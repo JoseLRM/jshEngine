@@ -23,7 +23,7 @@ VS_OUT main( VS_IN input )
 {
 	VS_OUT output;
 
-	output.fragPos = mul(float4(input.position, 1.f), input.tm);
+	output.fragPos = mul(float4(input.position, 1.f), input.tm).xyz;
 	output.tanBiNor = mul(float3x3(input.tangent, input.bitangent, input.normal), (float3x3)input.tm);
 	output.toCamera = normalize(output.fragPos - camera.position.xyz);
     output.position = mul(float4(output.fragPos, 1.f), camera.vm);

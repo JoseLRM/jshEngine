@@ -1,9 +1,6 @@
 #pragma once
 
 #include "common.h"
-#include "Component.h"
-#include <string>
-#include "Timer.h"
 
 #define JSH_ECS_SYSTEM_SAFE				0u
 #define JSH_ECS_SYSTEM_PARALLEL			1u
@@ -18,8 +15,8 @@ namespace jsh {
 #ifdef JSH_ENGINE
 	public:
 #endif
-		jsh::vector<uint16> m_RequestedComponents;
-		jsh::vector<uint16> m_OptionalComponents;
+		std::vector<uint16> m_RequestedComponents;
+		std::vector<uint16> m_OptionalComponents;
 
 		bool m_IndividualSystem = true;
 		bool m_TreeMode = false;
@@ -40,7 +37,7 @@ namespace jsh {
 		}
 
 		virtual void UpdateEntity(Entity entity, BaseComponent** components, float deltaTime) {}
-		virtual void UpdateEntities(jsh::vector<BaseComponent**>& components, float deltaTime) {}
+		virtual void UpdateEntities(std::vector<BaseComponent**>& components, float deltaTime) {}
 
 		inline bool IsIndividualSystem() const noexcept { return m_IndividualSystem; }
 		inline bool IsCollectiveSystem() const noexcept { return !m_IndividualSystem; }
@@ -48,7 +45,7 @@ namespace jsh {
 		inline void SetIndividualSystem() noexcept { m_IndividualSystem = true; }
 		inline void SetCollectiveSystem() noexcept 
 		{ 
-			assert(m_ExecuteType != JSH_ECS_SYSTEM_MULTITHREADED); 
+			JSH_ASSERT(m_ExecuteType != JSH_ECS_SYSTEM_MULTITHREADED); 
 			m_IndividualSystem = false; 
 		}
 
@@ -57,7 +54,7 @@ namespace jsh {
 
 		inline void SetExecuteType(uint8 type) noexcept
 		{
-			assert(type <= 2 && IsCollectiveSystem() ? type != JSH_ECS_SYSTEM_MULTITHREADED : true);
+			JSH_ASSERT(type <= 2 && IsCollectiveSystem() ? type != JSH_ECS_SYSTEM_MULTITHREADED : true);
 			m_ExecuteType = type;
 		}
 
@@ -71,8 +68,8 @@ namespace jsh {
 
 		inline uint32 GetSystemID() const noexcept { return m_SystemID; }
 
-		inline jsh::vector<uint16>& GetRequestedComponents() noexcept { return m_RequestedComponents; }
-		inline jsh::vector<uint16>& GetOptionalComponents() noexcept { return m_OptionalComponents; }
+		inline std::vector<uint16>& GetRequestedComponents() noexcept { return m_RequestedComponents; }
+		inline std::vector<uint16>& GetOptionalComponents() noexcept { return m_OptionalComponents; }
 
 		inline void AddRequestedComponent(uint16 ID) noexcept
 		{

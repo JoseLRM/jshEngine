@@ -1,11 +1,5 @@
 #pragma once
 
-#include "GraphicsPrimitives.h"
-#include "vector.h"
-#include "Transform.h"
-#include <vector>
-#include "Entity.h"
-
 #include "Mesh.h"
 #include "RawData.h"
 #include "Shader.h"
@@ -14,7 +8,7 @@
 namespace jsh {
 
 	class InstanceBuffer {
-		uint32 m_Size;
+		uint32 m_Size = 0u;
 		Buffer m_Buffer;
 
 	public:

@@ -1,6 +1,4 @@
-#include "Scene.h"
-#include "TaskSystem.h"
-#include "Timer.h"
+#include "common.h"
 
 namespace jsh {
 	uint32 System::s_SystemCount = 0;
@@ -12,18 +10,18 @@ namespace jshScene {
 
 	using namespace _internal;
 
-	jsh::vector<Entity> g_Entities;
+	std::vector<Entity> g_Entities;
 	std::vector<EntityData> g_EntityData;
-	jsh::vector<Entity> g_FreeEntityData;
+	std::vector<Entity> g_FreeEntityData;
 
-	std::vector<std::vector<byte>> g_Components;
+	std::vector<std::vector<uint8>> g_Components;
 
 	PerformanceTest g_PerformanceTest;
 	
 	std::map<const char*, std::unique_ptr<Layer>> g_Layers;
 
 	namespace _internal {
-		jsh::vector<jsh::Entity>& GetEntitiesList()
+		std::vector<jsh::Entity>& GetEntitiesList()
 		{
 			return g_Entities;
 		}
@@ -31,7 +29,7 @@ namespace jshScene {
 		{
 			return g_EntityData;
 		}
-		std::vector<std::vector<byte>>& GetComponentsList()
+		std::vector<std::vector<uint8>>& GetComponentsList()
 		{
 			return g_Components;
 		}
@@ -57,7 +55,7 @@ namespace jshScene {
 	{
 		g_Components.reserve(GetComponentsCount());
 		for (uint16 id = 0; id < GetComponentsCount(); ++id) {
-			g_Components.push_back(std::vector<byte>());
+			g_Components.push_back(std::vector<uint8>());
 		}
 		// Create Layers
 		jshScene::CreateLayer("Default", 0);
@@ -95,15 +93,15 @@ namespace jshScene {
 
 		g_EntityData[entity].transform.entity = entity;
 		g_EntityData[entity].layer = JSH_DEFAULT_LAYER;
-		g_Entities.push_back(entity, 10u);
+		g_Entities.emplace_back(entity);
 		return entity;
 	}
-	void CreateEntities(uint32 cant, jsh::vector<Entity>* entities) noexcept
+	void CreateEntities(uint32 cant, std::vector<Entity>* entities) noexcept
 	{
 		if (entities) entities->reserve(cant);
 
 		size_t entityIndex = g_Entities.size();
-		g_Entities.resize(g_Entities.size() + cant);
+		g_Entities.reserve(cant);
 		while (!g_FreeEntityData.empty() && cant > 0) {
 			Entity entity = g_FreeEntityData.back();
 			g_FreeEntityData.pop_back();
@@ -113,21 +111,21 @@ namespace jshScene {
 			entityData.handleIndex = entityIndex++;
 			entityData.transform.entity = entity;
 
-			g_Entities.push_back_nr(entity);
-			if (entities) entities->push_back_nr(entity);
+			g_Entities.emplace_back(entity);
+			if (entities) entities->emplace_back(entity);
 		}
 
 		g_EntityData.reserve(cant);
 		Entity beginEntity = Entity(g_EntityData.size());
 		for (uint32 i = 0; i < cant; ++i) {
 			Entity entity = beginEntity + i;
-			g_Entities.push_back(entity);
+			g_Entities.emplace_back(entity);
 			EntityData ed;
 			ed.handleIndex = entityIndex + i;
 			ed.layer = JSH_DEFAULT_LAYER;
-			g_EntityData.push_back(ed);
+			g_EntityData.emplace_back(ed);
 			ed.transform.entity = entity;
-			if (entities) entities->push_back_nr(entity);
+			if (entities) entities->emplace_back(entity);
 		}
 	}
 
@@ -136,8 +134,8 @@ namespace jshScene {
 		Entity entity;
 
 		// update parents count
-		jsh::vector<Entity> parentsToUpdate;
-		parentsToUpdate.push_back(parent, 3);
+		std::vector<Entity> parentsToUpdate;
+		parentsToUpdate.emplace_back(parent);
 		while (!parentsToUpdate.empty()) {
 
 			Entity parentToUpdate = parentsToUpdate.back();
@@ -145,7 +143,7 @@ namespace jshScene {
 			EntityData& parentToUpdateEd = g_EntityData[parentToUpdate];
 			parentToUpdateEd.sonsCount++;
 
-			if (parentToUpdateEd.parent != INVALID_ENTITY) parentsToUpdate.push_back(parentToUpdateEd.parent, 3);
+			if (parentToUpdateEd.parent != INVALID_ENTITY) parentsToUpdate.emplace_back(parentToUpdateEd.parent);
 		}
 
 		if (g_FreeEntityData.size() != 0) {
@@ -169,15 +167,11 @@ namespace jshScene {
 
 		// special case, the parent and sons are in back of the list
 		if (index == g_Entities.size()) {
-			g_Entities.push_back(entity, 10u);
+			g_Entities.emplace_back(entity);
 			return entity;
 		}
 
-		if (g_Entities.reserve_request()) {
-			g_Entities.reserve(10u);
-		}
-
-		g_Entities.insert(index, entity);
+		g_Entities.insert(g_Entities.begin() + index, entity);
 
 		for (size_t i = index + 1; i < g_EntityData.size(); ++i) {
 			g_EntityData[i].handleIndex++;
@@ -186,11 +180,11 @@ namespace jshScene {
 		return entity;
 	}
 
-	void CreateSEntities(Entity parent, uint32 cant, jsh::vector<Entity>* entities) noexcept
+	void CreateSEntities(Entity parent, uint32 cant, std::vector<Entity>* entities) noexcept
 	{
 		// update parents count
-		jsh::vector<Entity> parentsToUpdate;
-		parentsToUpdate.push_back(parent, 3);
+		std::vector<Entity> parentsToUpdate;
+		parentsToUpdate.emplace_back(parent);
 		while (!parentsToUpdate.empty()) {
 
 			Entity e = parentsToUpdate.back();
@@ -198,17 +192,18 @@ namespace jshScene {
 			EntityData& eData = g_EntityData[e];
 			eData.sonsCount += cant;
 
-			if (eData.parent != INVALID_ENTITY) parentsToUpdate.push_back(eData.parent, 3);
+			if (eData.parent != INVALID_ENTITY) parentsToUpdate.emplace_back(eData.parent);
 		}
 
 		// reserve memory
-		g_Entities.reserve(cant);
+		size_t lastEntitiesSize = g_Entities.size();
+		g_Entities.resize(lastEntitiesSize + cant);
 
 		EntityData& parentData = g_EntityData[parent];
 		size_t entityIndex = size_t(parent) + size_t(parentData.sonsCount) - size_t(cant) + 1u;
 
 		// if the parent and sons aren't in back of the list
-		if (entityIndex != g_Entities.size()) {
+		if (entityIndex != lastEntitiesSize) {
 			size_t newDataIndex = size_t(parent) + size_t(parentData.sonsCount) + 1u;
 			// move old entities
 			for (size_t i = g_Entities.capacity() - 1; i >= newDataIndex; --i) {
@@ -230,7 +225,7 @@ namespace jshScene {
 			entityData.transform.entity = entity;
 			entityData.layer = JSH_DEFAULT_LAYER;
 			g_Entities[entityData.handleIndex] = entity;
-			if (entities) entities->push_back_nr(entity);
+			if (entities) entities->emplace_back(entity);
 		}
 
 		Entity firstEntity = Entity(g_EntityData.size());
@@ -245,9 +240,8 @@ namespace jshScene {
 			ed.layer = JSH_DEFAULT_LAYER;
 			g_EntityData.push_back(ed);
 			g_Entities[ed.handleIndex] = entity;
-			if (entities) entities->push_back_nr(entity);
+			if (entities) entities->emplace_back(entity);
 		}
-		g_Entities.add_pos(cant);
 	}
 
 	void DestroyEntity(Entity entity) noexcept
@@ -257,7 +251,7 @@ namespace jshScene {
 
 		// notify parents
 		if (entityData.parent != INVALID_ENTITY) {
-			jsh::vector<Entity> updateInheritance;
+			std::vector<Entity> updateInheritance;
 			updateInheritance.push_back(entityData.parent);
 			while (!updateInheritance.empty()) {
 
@@ -267,7 +261,7 @@ namespace jshScene {
 				EntityData& pData = g_EntityData[p];
 				pData.sonsCount -= cant;
 
-				if (pData.parent != INVALID_ENTITY) updateInheritance.push_back(pData.parent, 3);
+				if (pData.parent != INVALID_ENTITY) updateInheritance.emplace_back(pData.parent);
 
 			}
 		}
@@ -287,12 +281,12 @@ namespace jshScene {
 			ed.parent = INVALID_ENTITY;
 			ed.sonsCount = 0u;
 			ed.layer = JSH_DEFAULT_LAYER;
-			g_FreeEntityData.push_back_nr(e);
+			g_FreeEntityData.emplace_back(e);
 		}
 
 		// remove from entities & update indices
 		memcpy(&g_Entities[indexBeginDest], &g_Entities[indexBeginSrc], cpyCant * sizeof(Entity));
-		g_Entities.sub_pos(cant);
+		g_Entities.resize(g_Entities.size() - cant);
 		for (size_t i = indexBeginDest; i < g_Entities.size(); ++i) {
 			g_EntityData[g_Entities[i]].handleIndex = i;
 		}
@@ -391,7 +385,7 @@ namespace jshScene {
 			g_EntityData[entity].indices[componentID] = index;
 		}
 
-		void AddComponents(jsh::vector<Entity>& entities, BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept
+		void AddComponents(std::vector<Entity>& entities, BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept
 		{
 			auto& list = g_Components[componentID];
 			size_t index = list.size();
@@ -533,7 +527,7 @@ namespace jshScene {
 			uint32 cantOfComponents = Entity(request.size() + optional.size());
 
 			if (request.size() == 0) {
-				jshLogW("System '%s' haven't requested components", system->GetName());
+				jshDebug::LogW("System '%s' haven't requested components", system->GetName());
 				return;
 			}
 
@@ -552,9 +546,8 @@ namespace jshScene {
 			size_t sizeOfBestList = jshScene::GetComponentSize(idOfBestList);
 
 			// reserve memory for the pointers
-			jsh::vector<BaseComponent*> components;
-			components.reserve(cantOfComponents);
-			components.add_pos(cantOfComponents);
+			std::vector<BaseComponent*> components;
+			components.resize(cantOfComponents);
 
 			// for all the entities
 			BaseComponent* compOfBestList;
@@ -642,14 +635,14 @@ namespace jshScene {
 		{
 			g_PerformanceTest.Begin(system->GetSystemID());
 
-			jsh::vector<BaseComponent**> componentsList;
+			std::vector<BaseComponent**> componentsList;
 			// system requisites
 			auto& request = system->GetRequestedComponents();
 			auto& optional = system->GetOptionalComponents();
 			uint32 cantOfComponents = uint32(request.size() + optional.size());
 
 			if (request.size() == 0) {
-				jshLogW("System '%s' haven't requested components", system->GetName());
+				jshDebug::LogW("System '%s' haven't requested components", system->GetName());
 				return;
 			}
 
@@ -703,7 +696,7 @@ namespace jshScene {
 							components[j + request.size()] = comp;
 						}
 
-						componentsList.push_back(components, 50);
+						componentsList.emplace_back(components);
 						components = new BaseComponent * [cantOfComponents];
 					}
 				}
@@ -738,7 +731,7 @@ namespace jshScene {
 						components[j + request.size()] = comp;
 					}
 
-					componentsList.push_back(components, 50);
+					componentsList.emplace_back(components);
 					components = new BaseComponent * [cantOfComponents];
 
 				}
@@ -773,7 +766,7 @@ namespace jshScene {
 
 		auto it = g_Layers.find(name);
 		if (it != g_Layers.end()) {
-			jshLogW("Repeated Layer '%s'", name);
+			jshDebug::LogW("Repeated Layer '%s'", name);
 			return;
 		}
 
@@ -781,10 +774,10 @@ namespace jshScene {
 
 		// SET IDS
 		// sort
-		jsh::vector<Layer*> layers;
+		std::vector<Layer*> layers;
 		layers.reserve(g_Layers.size());
 		for (auto& it : g_Layers) {
-			layers.push_back_nr(it.second.get());
+			layers.emplace_back(it.second.get());
 		}
 		std::sort(layers.data(), layers.data() + layers.size() - 1u, [](Layer* layer0, Layer* layer1) {
 			return (*layer0) < (*layer1);
@@ -799,7 +792,7 @@ namespace jshScene {
 	{
 		auto it = g_Layers.find(name);
 		if (it == g_Layers.end()) {
-			jshLogE("Layer not found '%s'", name);
+			jshDebug::LogE("Layer not found '%s'", name);
 			return nullptr;
 		}
 		return (*it).second.get();
@@ -808,13 +801,13 @@ namespace jshScene {
 	{
 		auto it = g_Layers.find(name);
 		if (it == g_Layers.end()) {
-			jshLogE("Layer not found '%s'", name);
+			jshDebug::LogE("Layer not found '%s'", name);
 		}
 		g_Layers.erase(it);
 	}
 	uint32 GetLayerCount()
 	{
-		return g_Layers.size();
+		return uint32(g_Layers.size());
 	}
 
 }

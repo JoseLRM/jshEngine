@@ -1,4 +1,4 @@
-#include "Scene.h"
+#include "common.h"
 
 namespace jsh {
 

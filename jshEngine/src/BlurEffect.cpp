@@ -1,7 +1,8 @@
+#include "common.h"
+
 #include "BlurEffect.h"
 #include "Renderer.h"
 #include "PostProcess.h"
-#include "Debug.h"
 
 namespace jsh {
 
@@ -94,12 +95,12 @@ namespace jsh {
 	{
 		m_Resolution = uvec2(width, height) / 2;
 		jshGraphics::ResizeRenderTargetView(m_AuxRTV, m_Resolution.x, m_Resolution.y);
-		jshGraphics::CreateViewport(0.f, 0.f, m_Resolution.x, m_Resolution.y, &m_Viewport);
+		jshGraphics::CreateViewport(0.f, 0.f, float(m_Resolution.x), float(m_Resolution.y), &m_Viewport);
 	}
 
 	void BlurEffect::Render(RenderTargetView input, RenderTargetView output, Viewport viewport, DepthStencilState* dss, TextureRes* dsv, uint32 stencilRef, CommandList cmd)
 	{
-		assert(input.IsValid() && output.IsValid());
+		JSH_ASSERT(input.IsValid() && output.IsValid());
 
 		PixelShader* blurPS = nullptr;
 

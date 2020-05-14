@@ -1,10 +1,11 @@
 #pragma once
 
+#include "common.h"
+
+#include "Transform.h"
+#include "Entity.h"
+#include "Component.h"
 #include "System.h"
-#include "vector.h"
-#include "Debug.h"
-#include "Timer.h"
-#include <mutex>
 
 #include "Components.h"
 
@@ -12,26 +13,26 @@ namespace jshScene {
 
 	namespace _internal {
 
-		jsh::vector<jsh::Entity>& GetEntitiesList();
+		std::vector<jsh::Entity>& GetEntitiesList();
 		std::vector<jsh::EntityData>& GetEntityDataList();
-		std::vector<std::vector<byte>>& GetComponentsList();
+		std::vector<std::vector<uint8>>& GetComponentsList();
 
 		jsh::Entity DuplicateEntity(jsh::Entity duplicate, jsh::Entity parent);
 
 		void AddComponent(jsh::Entity entity, jsh::BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept;
-		void AddComponents(jsh::vector<jsh::Entity>& entities, jsh::BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept;
+		void AddComponents(std::vector<jsh::Entity>& entities, jsh::BaseComponent* comp, uint16 componentID, size_t componentSize) noexcept;
 
 		void RemoveComponent(jsh::Entity entity, uint16 componentID, size_t componentSize) noexcept;
 		jsh::BaseComponent* GetComponent(jsh::Entity entity, uint16 componentID) noexcept;
 		void RemoveComponents(jsh::EntityData& entityData) noexcept;
 
 		template<typename Component>
-		inline void AddComponents(jsh::vector<jsh::Entity>& entities, const Component& component)
+		inline void AddComponents(std::vector<jsh::Entity>& entities, const Component& component)
 		{
 			_internal::AddComponents(entities, (jsh::BaseComponent*)& component, Component::ID, Component::SIZE);
 		}
 		template<typename Component, typename... Args>
-		inline void AddComponents(jsh::vector<jsh::Entity>& entities, const Component& component, const Args& ... args)
+		inline void AddComponents(std::vector<jsh::Entity>& entities, const Component& component, const Args& ... args)
 		{
 			_internal::AddComponents(entities, (jsh::BaseComponent*)& component, Component::ID, Component::SIZE);
 			_internal::AddComponents(entities, args...);
@@ -81,12 +82,12 @@ namespace jshScene {
 		return entity;
 	}
 
-	void CreateEntities(uint32 cant, jsh::vector<jsh::Entity>* entities = nullptr) noexcept;
+	void CreateEntities(uint32 cant, std::vector<jsh::Entity>* entities = nullptr) noexcept;
 	template<typename Component, typename... Args>
-	void CreateEntities(uint32 cant, jsh::vector<jsh::Entity>* entities, const Component& component, const Args& ... args) noexcept
+	void CreateEntities(uint32 cant, std::vector<jsh::Entity>* entities, const Component& component, const Args& ... args) noexcept
 	{
 		bool notAlloc = !entities;
-		if (notAlloc) entities = new jsh::vector<jsh::Entity>();
+		if (notAlloc) entities = new std::vector<jsh::Entity>();
 		CreateEntities(cant, entities);
 		_internal::AddComponents(*entities, component, args...);
 		if (notAlloc) delete entities;
@@ -101,12 +102,12 @@ namespace jshScene {
 		return entity;
 	}
 
-	void CreateSEntities(jsh::Entity parent, uint32 cant, jsh::vector<jsh::Entity>* entities = nullptr) noexcept;
+	void CreateSEntities(jsh::Entity parent, uint32 cant, std::vector<jsh::Entity>* entities = nullptr) noexcept;
 	template<typename Component, typename... Args>
-	void CreateSEntities(jsh::Entity parent, uint32 cant, jsh::vector<jsh::Entity>* entities, const Component& component, const Args& ... args) noexcept
+	void CreateSEntities(jsh::Entity parent, uint32 cant, std::vector<jsh::Entity>* entities, const Component& component, const Args& ... args) noexcept
 	{
 		bool notAlloc = !entities;
-		if (notAlloc) entities = new jsh::vector<jsh::Entity>();
+		if (notAlloc) entities = new std::vector<jsh::Entity>();
 		CreateSEntities(parent, cant, entities);
 		_internal::AddComponents(*entities, component, args...);
 		if (notAlloc) delete entities;

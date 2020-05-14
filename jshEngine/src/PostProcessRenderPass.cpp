@@ -1,3 +1,4 @@
+#include "common.h"
 #include "PostProcessRenderPass.h"
 
 #include "Renderer.h"

@@ -8,6 +8,9 @@ class State2D : public jsh::State {
 	ParticleGenerator particles;
 	jsh::Texture* tex;
 	jsh::Texture* tex2;
+	jsh::Image image;
+
+	bool createParticles = false;
 
 public:
 	void Load() override
@@ -19,16 +22,8 @@ public:
 		tex2 = jshGraphics::CreateTexture("Image");
 		tex2->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
 		// texture
-		jsh::Image image(100, 100, JSH_FORMAT_R8G8B8A8_UNORM);
-
-		jsh::Color* buffer = reinterpret_cast<jsh::Color*>(image.GetBuffer());
-		for (uint32 x = 0; x < image.GetWidth(); ++x) {
-			for (uint32 y = 0; y < image.GetHeight(); ++y) {
-				buffer[x + (y * image.GetWidth())] = jshColor::GREY(uint8(((float)rand() / RAND_MAX) * 255.f));
-			}
-		}
-
-		jshLoader::CreateTexture(image, &tex2->resource);
+		image = jsh::Image(100, 100, JSH_FORMAT_R8G8B8A8_UNORM);
+		jshLoader::CreateTexture(image, &tex2->resource, true);
 	}
 
 	void Initialize() override
@@ -106,18 +101,41 @@ public:
 			
 		};
 
+		jshEvent::Register<jsh::MouseButtonEvent>(JSH_EVENT_LAYER_DEFAULT, [this](jsh::MouseButtonEvent& e) {
+			if (e.buttonCode == JSH_MOUSE_CENTER)
+			{
+				jshFatalError("La cagaste cochatumare %u", 69);
+			}
+
+			if (e.buttonCode == JSH_MOUSE_LEFT && e.IsPressed()) createParticles = true;
+			else if (e.buttonCode == JSH_MOUSE_LEFT && e.IsReleased()) createParticles = false;
+			return true;
+		});
 	}
 
 	void Update(float dt) override
 	{
 		jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(jshEngine::GetRenderer()->GetMainCamera());
 
-		bool create = jshInput::IsMouse(JSH_MOUSE_LEFT);
-
 		jsh::vec2 mousePos = camera->GetMousePos();
-		particles.Update(dt, mousePos.x, mousePos.y, 0.f, create);
+		particles.Update(dt, mousePos.x, mousePos.y, 0.f, createParticles);
 
 		if (jshInput::IsKeyPressed('U')) jshGraphics::SetFullscreen(!jshGraphics::InFullscreen());
+
+		if (jshInput::IsKeyPressed('W')) {
+			jshDebug::LogE("Que pasa crack, esto es un error");
+		}
+	}
+
+	void FixedUpdate() override
+	{
+		jsh::Color* buffer = reinterpret_cast<jsh::Color*>(image.GetBuffer());
+		for (uint32 x = 0; x < image.GetWidth(); ++x) {
+			for (uint32 y = 0; y < image.GetHeight(); ++y) {
+				buffer[x + (y * image.GetWidth())] = jshColor::GREY(uint8(((float)rand() / RAND_MAX) * 255.f));
+			}
+		}
+		jshGraphics::UpdateTexture(tex2->resource, buffer, 0u, 0u);
 	}
 
 	void Render() override

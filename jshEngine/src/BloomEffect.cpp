@@ -1,3 +1,4 @@
+#include "common.h"
 #include "BloomEffect.h"
 
 #include "Renderer.h"

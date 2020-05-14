@@ -1,3 +1,4 @@
+#include "common.h"
 #include "Shader.h"
 
 #include "Transform.h"
@@ -12,13 +13,13 @@ namespace jsh {
 		//if (m_GS.IsValid()) jshGraphics::BindGeometryShader(m_GS, cmd);
 	}
 
-	void Shader::SetInstanceData(byte* data, Transform* trans)
+	void Shader::SetInstanceData(uint8* data, Transform* trans)
 	{
 		XMMATRIX matrix = XMMatrixTranspose(trans->GetWorldMatrix());
 		memcpy(data, &matrix, sizeof(XMMATRIX));
 	}
 
-	void Shader::SetInstanceData(byte* data, const XMMATRIX& tm, const Sprite& sprite, const Color& color)
+	void Shader::SetInstanceData(uint8* data, const XMMATRIX& tm, const Sprite& sprite, const Color& color)
 	{
 		memcpy(data, &tm, sizeof(XMMATRIX));
 		memcpy(data + sizeof(XMMATRIX), &sprite.coords, sizeof(vec4));

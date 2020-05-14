@@ -1,6 +1,4 @@
-#include "TaskSystem.h"
-
-#include "Debug.h"
+#include "common.h"
 
 using namespace jsh;
 

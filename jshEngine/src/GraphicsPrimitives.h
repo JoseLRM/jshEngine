@@ -19,6 +19,7 @@ namespace jsh {
 		{
 			return name == other.name && format == other.format && index == other.index;
 		}
+		VertexProperty(const char* name, JSH_FORMAT format, uint32 index) : name(name), format(format), index(index) {}
 	};
 
 	struct Resource : public GraphicsPrimitive {};
@@ -43,10 +44,13 @@ namespace jsh {
 	struct RasterizerState : public GraphicsPrimitive {};
 
 	namespace _internal {
-		struct Buffer_Internal {
+		struct Resource_Internal {
+			JSH_RESOURCE_TYPE type = JSH_RESOURCE_TYPE_INVALID;
+		};
+		struct Buffer_Internal : public Resource_Internal {
 			JSH_BUFFER_DESC desc;
 		};
-		struct TextureRes_Internal {
+		struct TextureRes_Internal : public Resource_Internal {
 			JSH_TEXTURE2D_DESC desc;
 		};
 
@@ -112,6 +116,8 @@ namespace jshGraphics {
 	void BindTexture(const jsh::TextureRes& texture, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 	void BindTexture(const jsh::RenderTargetView& rtv, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 	void UnbindTexture(uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
+
+	void UpdateTexture(jsh::TextureRes& res, void* data, uint32 size, jsh::CommandList cmd);
 
 	const JSH_TEXTURE2D_DESC& GetTextureDesc(const jsh::TextureRes& res);
 

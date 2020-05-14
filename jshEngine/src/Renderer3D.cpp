@@ -1,3 +1,4 @@
+#include "common.h"
 #include "Renderer3D.h"
 
 namespace jsh {
@@ -40,9 +41,11 @@ namespace jsh {
 		// Fill render queues
 		{
 			auto& meshList = jshScene::_internal::GetComponentsList()[MeshComponent::ID];
-			m_RenderQueue.Reserve(meshList.size() / MeshComponent::SIZE);
+			const uint32 componentSize = uint32(MeshComponent::SIZE);
 
-			for (uint32 i = 0; i < meshList.size(); i += MeshComponent::SIZE) {
+			m_RenderQueue.Reserve(uint32(meshList.size()) / componentSize);
+
+			for (uint32 i = 0; i < meshList.size(); i += componentSize) {
 
 				MeshComponent* meshComp = reinterpret_cast<MeshComponent*>(&meshList[i]);
 				Transform& transform = jshScene::GetTransform(meshComp->entity);
@@ -57,9 +60,11 @@ namespace jsh {
 
 		{
 			auto& spriteList = jshScene::_internal::GetComponentsList()[SpriteComponent::ID];
-			m_SpriteRenderQueue.Reserve(spriteList.size() / SpriteComponent::SIZE);
+			const uint32 componentSize = uint32(SpriteComponent::SIZE);
 
-			for (uint32 i = 0; i < spriteList.size(); i += SpriteComponent::SIZE) {
+			m_SpriteRenderQueue.Reserve(uint32(spriteList.size()) / componentSize);
+
+			for (uint32 i = 0; i < spriteList.size(); i += componentSize) {
 				SpriteComponent* sprComp = reinterpret_cast<SpriteComponent*>(&spriteList[i]);
 				Transform& trans = jshScene::GetTransform(sprComp->entity);
 				if (jshScene::GetComponent<GuiComponent>(sprComp->entity)) m_GuiRenderQueue.DrawSprite(sprComp->sprite, sprComp->color, XMMatrixTranspose(trans.GetWorldMatrix()), trans.GetWorldPosition().z);
@@ -79,7 +84,7 @@ namespace jsh {
 	void Renderer3D::End()
 	{
 		jshGraphics::End();
-		jshGraphics::Present(0.f);
+		jshGraphics::Present(0u);
 	}
 
 	bool Renderer3D::Close()

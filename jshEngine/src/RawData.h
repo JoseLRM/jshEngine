@@ -1,7 +1,6 @@
 #pragma once
 
 #include "GraphicsPrimitives.h"
-#include "vector.h"
 
 namespace jsh {
 
@@ -16,9 +15,10 @@ namespace jsh {
 		struct VertexLayout {
 			VertexProperty prop;
 			uint32 offset;
-			byte* data;
+			uint8* data;
+			VertexLayout(const VertexProperty& vp, uint32 offset, uint8* data) : prop(vp), offset(offset), data(data) {}
 		};
-		jsh::vector<VertexLayout> m_VertexLayout;
+		std::vector<VertexLayout> m_VertexLayout;
 		uint32* m_pIndices;
 
 		uint32 m_VertexCount = 0u;
@@ -38,7 +38,7 @@ namespace jsh {
 		// setters
 		inline void AddVertexLayout(const char* name, JSH_FORMAT format, uint32 index, void* data) noexcept
 		{
-			m_VertexLayout.push_back({ name, format, index, 0u, reinterpret_cast<byte*>(data) }, 2);
+			m_VertexLayout.emplace_back(VertexProperty(name, format, index), 0u, reinterpret_cast<uint8*>(data));
 		}
 		inline void SetIndices(uint32* data, uint32 count, JSH_FORMAT format) noexcept
 		{
@@ -59,7 +59,7 @@ namespace jsh {
 		inline uint32 GetIndexCount() const noexcept { return m_IndexCount; }
 		inline JSH_TOPOLOGY GetTopology() const noexcept { return m_Topology; }
 
-		inline jsh::vector<VertexLayout>& GetVertexLayout() noexcept { return m_VertexLayout; }
+		inline std::vector<VertexLayout>& GetVertexLayout() noexcept { return m_VertexLayout; }
 
 		inline Buffer GetVertexBuffer() const noexcept { return m_VertexBuffer; }
 		inline Buffer GetIndexBuffer() const noexcept { return m_IndexBuffer; }

@@ -6,7 +6,7 @@ namespace jsh {
 
 	class SpriteRenderQueue {
 
-		Shader* m_Shader;
+		Shader* m_Shader = nullptr;
 		InputLayout m_InputLayout;
 
 		struct Instance {
@@ -19,7 +19,7 @@ namespace jsh {
 
 			inline bool operator< (const Instance& other) const noexcept
 			{
-				if (layer < other.layer) return true;
+				if (layer != other.layer) return layer < other.layer;
 				else return sprite.texture < other.sprite.texture;
 			}
 		};

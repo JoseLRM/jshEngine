@@ -1,12 +1,3 @@
-#pragma once
-
-#include "common.h"
-#include <condition_variable>
-#include <atomic>
-
-// temp
-#include "Debug.h"
-
 namespace jsh {
 
 	using Task = std::function<void()>;
@@ -15,7 +6,7 @@ namespace jsh {
 
 	class ThreadContext {
 		std::atomic<uint32> executedTasks = 0u;
-		uint32 taskCount;
+		uint32 taskCount = 0u;
 	public:
 		inline void Reset() noexcept
 		{
@@ -42,7 +33,7 @@ namespace jsh {
 		inline void Reserve(uint32 cant) noexcept
 		{
 			m_Threads.reserve(cant);
-			uint32 lastID = m_Threads.size();
+			uint32 lastID = uint32(m_Threads.size());
 			for (uint32 i = 0; i < cant; ++i) {
 				uint32 ID = i + lastID;
 				m_Threads.emplace_back([this, ID]() {

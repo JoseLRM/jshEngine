@@ -1,13 +1,13 @@
+#include "common.h"
+
 #include "Graphics.h"
 
 #include "GraphicsAPI_dx11.h"
 #include "PostProcess.h"
-#include "Debug.h"
 #include <map>
 #include "Renderer.h"
 #include "Window.h"
 #include "EventSystem.h"
-#include "Engine.h"
 
 using namespace jsh;
 
@@ -152,7 +152,7 @@ namespace jshGraphics {
 				count += jshGraphics::GetFormatStride(instanceProps[i].format);
 			}
 			if (count > JSH_GFX_MAX_INSTANCE_SIZE) {
-				throw jshException(L"Graphics Exception", L"You are exceeded the instance data limits, change 'JSH_GFX_MAX_INSTANCE_SIZE' in config.h");
+				jshFatalError("Graphics Error: %s", "You are exceeded the instance data limits, change 'JSH_GFX_MAX_INSTANCE_SIZE' in config.h");
 			}
 		}
 

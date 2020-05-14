@@ -1,23 +1,48 @@
-#include "Debug.h"
+#include "common.h"
 
 #include "WinLib.h"
 
 #include "TaskSystem.h"
-#include "Engine.h"
 #include "State.h"
 #include "Renderer.h"
 #include "Graphics.h"
+#include "Archive.h"
+
+#include <stdio.h>
+#ifdef JSH_CONSOLE
+#include <iostream>
+#endif
 
 namespace jshDebug {
 
-	bool Initialize()
-	{
+	std::string g_LogFilePath = "logs/";
+	jsh::TxtFile g_LogFile;
+	std::mutex g_LogMutex;
+
+	namespace _internal {
+		void Initialize()
+		{
 #ifdef JSH_CONSOLE
-		ShowConsole();
+			ShowConsole();
 #else
-		HideConsole();
+			HideConsole();
 #endif 
-		return true;
+
+			std::string dateStr = jshTimer::GetDate().ToString();
+			g_LogFilePath += dateStr + ".log";
+			g_LogFile << jshEngine::GetName() << '\n';
+		}
+
+		void Close()
+		{
+			RegisterLog();
+		}
+
+		void RegisterLog()
+		{
+			g_LogFile.SaveFile(g_LogFilePath.c_str(), false);
+			g_LogFile.str(std::string());
+		}
 	}
 
 #ifdef JSH_ENGINE
@@ -40,23 +65,115 @@ namespace jshDebug {
 		ShowWindow(console, SW_HIDE);
 	}
 
-	void ShowOkWindow(const wchar* const description, uint8 level) {
-		if (level == 0)
-			MessageBox(NULL, description, L"Just information", MB_ICONINFORMATION | MB_OK);
-		else if (level == 1)
-			MessageBox(NULL, description, L"Warning!", MB_ICONWARNING | MB_OK);
-		else
-			MessageBox(NULL, description, L"Error!!", MB_ICONERROR | MB_OK);
-	}
-
-	void ShowOkWindow(const wchar* const title, const wchar* const description, uint8 level)
+	std::string _LogToString(const char* s, va_list args)
 	{
-		if (level == 0)
-			MessageBox(NULL, description, title, MB_ICONINFORMATION | MB_OK);
-		else if (level == 1)
-			MessageBox(NULL, description, title, MB_ICONWARNING | MB_OK);
-		else
-			MessageBox(NULL, description, title, MB_ICONERROR | MB_OK);
+		char commandLine[200];
+		vsnprintf(&commandLine[0], 200, s, args);
+		return std::string(commandLine);
+	}
+	std::string LogToString(const char* s, ...)
+	{
+		va_list args;
+		va_start(args, s);
+		std::string str = std::move(_LogToString(s, args));
+		va_end(args);
+		return str;
+	}
+	inline void _Log(const char* s0, const char* s1, bool notifyTime = true)
+	{
+		std::lock_guard<std::mutex>lock(g_LogMutex);
+#ifdef JSH_CONSOLE
+		std::cout << s0;
+		std::cout << s1 << std::endl;
+#endif
+
+		if (notifyTime) {
+			jsh::Date date = jshTimer::GetDate();
+			g_LogFile << '[' << uint32(date.hour) << ':' << uint32(date.minute) << ':' << uint32(date.second) << ']' << s0 << s1 << '\n';
+		}
+		else {
+			g_LogFile << s0 << s1 << '\n';
+		}
+		if (g_LogFile.str().size() >= 1000) _internal::RegisterLog();
+	}
+	void Log(const char* s, ...)
+	{
+		va_list args;
+		va_start(args, s);
+		_Log("", _LogToString(s, args).c_str());
+		va_end(s);
+	}
+	void LogE(const char* s, ...)
+	{
+		va_list args;
+		va_start(args, s);
+		_Log("[ERROR] ", _LogToString(s, args).c_str());
+		va_end(s);
+		_internal::RegisterLog();
+	}
+	void LogI(const char* s, ...)
+	{
+		va_list args;
+		va_start(args, s);
+		_Log("[INFO] ", _LogToString(s, args).c_str());
+		va_end(s);
+	}
+	void LogW(const char* s, ...)
+	{
+		va_list args;
+		va_start(args, s);
+		_Log("[WARNING] ", _LogToString(s, args).c_str());
+		va_end(s);
+	}
+	void LogSeparator()
+	{
+		_Log("", "---------------------------------", false);
+	}
+	void _internal::LogA(const char* s, uint32 line, const char* file)
+	{
+		std::string logStr = LogToString("Assertion failed '%s', file: '%s', line: %u", s, file, line);
+		_Log("[ASSERT] ", logStr.c_str());
+		jshEngine::Close();
+
+		std::wstring logWStr;
+		logWStr.resize(logStr.size());
+		MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, logStr.c_str(), int(logStr.size()), &logWStr[0], int(logStr.size()));
+
+		std::wstring pathWStr;
+		pathWStr.resize(g_LogFilePath.size());
+		MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, g_LogFilePath.c_str(), int(g_LogFilePath.size()), &pathWStr[0], int(g_LogFilePath.size()));
+
+		MessageBox(NULL, std::wstring(logWStr + L". See " + pathWStr +  L" for more details.").c_str(), L"Assertion Failed", MB_ICONERROR | MB_OK);
+		jshEngine::Exit(1);
+	}
+	void _internal::LogF(const char* s, uint32 line, const char* file, ...)
+	{
+		std::string logStr = LogToString("File '%s', line: %u", file, line);
+
+		va_list args;
+		va_start(args, file);
+		std::string logStr2 = _LogToString(s, args);
+		va_end(args);
+
+		Log("[FATAL ERROR] '%s'. %s", logStr2.c_str(), logStr.c_str());
+
+		jshEngine::Close();
+
+		std::wstring logWStr;
+		std::wstring logWStr2;
+
+		logWStr.resize(logStr.size());
+		MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, logStr.c_str(), int(logStr.size()), &logWStr[0], int(logStr.size()));
+
+		logWStr2.resize(logStr2.size());
+		MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, logStr2.c_str(), int(logStr2.size()), &logWStr2[0], int(logStr2.size()));
+
+		std::wstring pathWStr;
+		pathWStr.resize(g_LogFilePath.size());
+		MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, g_LogFilePath.c_str(), g_LogFilePath.size(), &pathWStr[0], g_LogFilePath.size());
+
+		MessageBox(NULL, std::wstring(L"'" + logWStr2 + L"'. " + logWStr + L". See " + pathWStr + L" for more details.").c_str(), L"Fatal Error!!", MB_ICONERROR | MB_OK);
+		jshEngine::Exit(1);
 	}
 
 #ifdef JSH_IMGUI

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Scene.h"
+#include "common.h"
 
 namespace jsh {
 
-	class CameraComponent : public Component<CameraComponent> {
+	struct CameraComponent : public Component<CameraComponent> {
 
 		XMMATRIX m_ProjectionMatrix;
 		XMMATRIX m_ViewMatrix;

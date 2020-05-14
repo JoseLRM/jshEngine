@@ -8,7 +8,7 @@ namespace jsh {
 		uint32 m_Width;
 		uint32 m_Height;
 
-		byte* m_Buffer = nullptr;
+		uint8* m_Buffer = nullptr;
 
 		JSH_FORMAT m_Format;
 
@@ -35,7 +35,7 @@ namespace jsh {
 		inline uint32 GetHeight() const noexcept { return m_Height; }
 		inline uvec2 GetDimension() const noexcept { return { m_Width, m_Height }; }
 
-		inline byte* GetBuffer() const noexcept { return m_Buffer; }
+		inline uint8* GetBuffer() const noexcept { return m_Buffer; }
 		inline JSH_FORMAT GetFormat() const noexcept { return m_Format; }
 
 		constexpr inline uint32 Size() const noexcept 

@@ -1,3 +1,5 @@
+#include "common.h"
+
 #include "GraphicsAPI_dx11.h"
 
 #include "WinLib.h"
@@ -6,10 +8,7 @@
 #include "DirectX11Lib.h"
 
 #include "safe_queue.h"
-#include "vector.h"
-#include "Debug.h"
 
-#include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_win32.h"
 #include "ImGui/imgui_impl_dx11.h"
 
@@ -158,7 +157,7 @@ namespace jshGraphics_dx11 {
 		case JSH_TOPOLOGY_TRIANGLE_STRIP:
 			return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
 		default:
-			jshLogE("Invalid topology");
+			jshDebug::LogE("Invalid topology");
 			return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
 		}
 	}
@@ -174,7 +173,7 @@ namespace jshGraphics_dx11 {
 			return D3D11_BIND_CONSTANT_BUFFER;
 		case JSH_BUFFER_TYPE_NULL:
 		default:
-			jshLogE("Invalid topology");
+			jshDebug::LogE("Invalid topology");
 			return D3D11_BIND_VERTEX_BUFFER;
 		}
 	}
@@ -257,8 +256,8 @@ namespace jshGraphics_dx11 {
 		desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 		desc.Texture2D.MipSlice = 0u;
 		
-		jshGfx(g_SwapChain->GetBuffer(0u, __uuidof(ID3D11Resource), &RTV->resourcePtr));
-		jshGfx(g_Device->CreateRenderTargetView(RTV->resourcePtr.Get(), &desc, &RTV->ptr));
+		jshGfxFatal(g_SwapChain->GetBuffer(0u, __uuidof(ID3D11Resource), &RTV->resourcePtr));
+		jshGfxFatal(g_Device->CreateRenderTargetView(RTV->resourcePtr.Get(), &desc, &RTV->ptr));
 	}
 
 	bool Initialize() {
@@ -266,7 +265,7 @@ namespace jshGraphics_dx11 {
 		// load adapters
 		{
 			ComPtr<IDXGIFactory1> factory;
-			jshGfx(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)& factory));
+			jshGfxFatal(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)& factory));
 
 			IDXGIAdapter1* adapter;
 			for (uint32 i = 0; factory->EnumAdapters1(i, &adapter) != DXGI_ERROR_NOT_FOUND; ++i) {
@@ -333,7 +332,7 @@ namespace jshGraphics_dx11 {
 		swapChainDescriptor.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 		swapChainDescriptor.Windowed = TRUE;
 
-		jshGfx(D3D11CreateDeviceAndSwapChain(
+		jshGfxFatal(D3D11CreateDeviceAndSwapChain(
 			NULL,
 			D3D_DRIVER_TYPE_HARDWARE,
 			NULL,
@@ -351,9 +350,11 @@ namespace jshGraphics_dx11 {
 		CreateBackBuffer(ParseFormat(outputMode.format));
 
 		// multithreading support
+		/*
 		D3D11_FEATURE_DATA_THREADING data;
 		g_Device->CheckFeatureSupport(D3D11_FEATURE_THREADING, &data, sizeof(D3D11_FEATURE_DATA_THREADING));
-		jshLogI("%i, %i", data.DriverCommandLists, data.DriverConcurrentCreates);
+		jshDebug::LogI("%i, %i", data.DriverCommandLists, data.DriverConcurrentCreates);
+		*/
 
 		return true;
 	}
@@ -421,8 +422,8 @@ namespace jshGraphics_dx11 {
 		jsh::CommandList cmd;
 		if (!g_FreeCommandLists.pop(cmd)) {
 
-			cmd = g_ActiveCommandLists.size();
-			assert(cmd < JSH_GFX_COMMANDLISTS_COUNT);
+			cmd = jsh::CommandList(g_ActiveCommandLists.size());
+			JSH_ASSERT(cmd < JSH_GFX_COMMANDLISTS_COUNT);
 
 			g_Device->CreateDeferredContext(0u, &g_DeferredContext[cmd]);
 		}
@@ -473,7 +474,7 @@ namespace jshGraphics_dx11 {
 	}
 	void BindIndexBuffer(const jsh::Buffer& b, JSH_FORMAT format, uint32 offset, jsh::CommandList cmd)
 	{
-		assert(b.IsValid());
+		JSH_ASSERT(b.IsValid());
 
 		Buffer_dx11* buffer = ToInternal(b);
 		g_DeferredContext[cmd]->IASetIndexBuffer(buffer->ptr.Get(), ParseFormat(format), offset);
@@ -499,7 +500,7 @@ namespace jshGraphics_dx11 {
 			break;
 		case JSH_SHADER_TYPE_NULL:
 		default:
-			jshLogE("Invalid shader type");
+			jshDebug::LogE("Invalid shader type");
 			break;
 		}
 
@@ -509,7 +510,7 @@ namespace jshGraphics_dx11 {
 	void UpdateBuffer(jsh::Buffer& b, void* data, uint32 size, jsh::CommandList cmd)
 	{
 		Buffer_dx11* buffer = ToInternal(b);
-		assert(buffer->desc.Usage != JSH_USAGE_IMMUTABLE && buffer->desc.ByteWidth >= size);
+		JSH_ASSERT(buffer->desc.Usage != JSH_USAGE_IMMUTABLE && buffer->desc.ByteWidth >= size);
 
 		if (buffer->desc.Usage == JSH_USAGE_DYNAMIC) {
 			D3D11_MAPPED_SUBRESOURCE map;
@@ -530,7 +531,7 @@ namespace jshGraphics_dx11 {
 		auto inputLayout = std::make_shared<InputLayout_dx11>();
 		il->internalAllocation = inputLayout;
 
-		jsh::vector<D3D11_INPUT_ELEMENT_DESC> elements;
+		std::vector<D3D11_INPUT_ELEMENT_DESC> elements;
 		elements.reserve(cant);
 		for (uint32 i = 0; i < cant; ++i) {
 			elements[i] = ParseInputElementDesc(desc[i]);
@@ -541,7 +542,7 @@ namespace jshGraphics_dx11 {
 	}
 	void BindInputLayout(const jsh::InputLayout& il, jsh::CommandList cmd)
 	{
-		assert(il.IsValid());
+		JSH_ASSERT(il.IsValid());
 		InputLayout_dx11* inputLayout = ToInternal(il);
 		g_DeferredContext[cmd]->IASetInputLayout(inputLayout->ptr.Get());
 	}
@@ -567,13 +568,13 @@ namespace jshGraphics_dx11 {
 	}
 	void BindVertexShader(const jsh::VertexShader& vs, jsh::CommandList cmd)
 	{
-		assert(vs.IsValid());
+		JSH_ASSERT(vs.IsValid());
 		VertexShader_dx11* shader = ToInternal(vs);
 		g_DeferredContext[cmd]->VSSetShader(shader->ptr.Get(), nullptr, 0);
 	}
 	void BindPixelShader(const jsh::PixelShader& ps, jsh::CommandList cmd)
 	{
-		assert(ps.IsValid());
+		JSH_ASSERT(ps.IsValid());
 		PixelShader_dx11* shader = ToInternal(ps);
 		g_DeferredContext[cmd]->PSSetShader(shader->ptr.Get(), nullptr, 0);
 	}
@@ -630,7 +631,7 @@ namespace jshGraphics_dx11 {
 	}
 	void BindTexture(const jsh::TextureRes& t, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
 	{
-		assert(t.IsValid());
+		JSH_ASSERT(t.IsValid());
 		Texture_dx11* texture = ToInternal(t);
 
 		switch (shaderType)
@@ -646,15 +647,15 @@ namespace jshGraphics_dx11 {
 			break;
 		case JSH_SHADER_TYPE_NULL:
 		default:
-			jshLogE("Invalid shader type");
+			jshDebug::LogE("Invalid shader type");
 			break;
 		}
 	}
 	void BindTexture(const jsh::RenderTargetView& rtv, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
 	{
-		assert(rtv.IsValid());
+		JSH_ASSERT(rtv.IsValid());
 		RenderTargetView_dx11* RTV = ToInternal(rtv);
-		assert(RTV->shaderResView.Get() != nullptr);
+		JSH_ASSERT(RTV->shaderResView.Get() != nullptr);
 
 		switch (shaderType)
 		{
@@ -669,7 +670,7 @@ namespace jshGraphics_dx11 {
 			break;
 		case JSH_SHADER_TYPE_NULL:
 		default:
-			jshLogE("Invalid shader type");
+			jshDebug::LogE("Invalid shader type");
 			break;
 		}
 	}
@@ -690,8 +691,27 @@ namespace jshGraphics_dx11 {
 			break;
 		case JSH_SHADER_TYPE_NULL:
 		default:
-			jshLogE("Invalid shader type");
+			jshDebug::LogE("Invalid shader type");
 			break;
+		}
+	}
+
+	void UpdateTexture(jsh::TextureRes& res, void* data, uint32 size, jsh::CommandList cmd)
+	{
+		Texture_dx11* tex = ToInternal(res);
+		uint32 texSize = tex->desc.Width * tex->desc.Height * jshGraphics::GetFormatStride(tex->desc.Format);
+		JSH_ASSERT(tex->desc.Usage != JSH_USAGE_IMMUTABLE && texSize >= size);
+
+		if (tex->desc.Usage == JSH_USAGE_DYNAMIC) {
+			D3D11_MAPPED_SUBRESOURCE map;
+			g_DeferredContext[cmd]->Map(tex->texturePtr.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &map);
+
+			memcpy(map.pData, data, (size == 0u) ? texSize : size);
+
+			g_DeferredContext[cmd]->Unmap(tex->texturePtr.Get(), 0u);
+		}
+		else {
+			g_DeferredContext[cmd]->UpdateSubresource(tex->texturePtr.Get(), 0, nullptr, data, 0, 0);
 		}
 	}
 
@@ -710,7 +730,7 @@ namespace jshGraphics_dx11 {
 	}
 	void BindViewport(const jsh::Viewport& vp, uint32 slot, jsh::CommandList cmd)
 	{
-		assert(vp.IsValid());
+		JSH_ASSERT(vp.IsValid());
 		Viewport_dx11* viewport = ToInternal(vp);
 		g_DeferredContext[cmd]->RSSetViewports(1, &viewport->viewport);
 	}
@@ -740,7 +760,7 @@ namespace jshGraphics_dx11 {
 	}
 	void BindSamplerState(const jsh::SamplerState& ss, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
 	{
-		assert(ss.IsValid());
+		JSH_ASSERT(ss.IsValid());
 		SamplerState_dx11* samplerState = ToInternal(ss);
 		switch (shaderType) {
 		case JSH_SHADER_TYPE_VERTEX:
@@ -779,7 +799,7 @@ namespace jshGraphics_dx11 {
 	}
 	void BindBlendState(const jsh::BlendState& bs, jsh::CommandList cmd)
 	{
-		assert(bs.IsValid());
+		JSH_ASSERT(bs.IsValid());
 		BlendState_dx11* blendState = ToInternal(bs);
 		g_DeferredContext[cmd]->OMSetBlendState(blendState->ptr.Get(), nullptr, 0xffffffff);
 	}
@@ -810,14 +830,14 @@ namespace jshGraphics_dx11 {
 	}
 	void BindDepthStencilState(const jsh::DepthStencilState& ds, uint32 stencilRef, jsh::CommandList cmd)
 	{
-		assert(ds.IsValid());
+		JSH_ASSERT(ds.IsValid());
 		DepthStencilState_dx11* dsState = ToInternal(ds);
 		g_DeferredContext[cmd]->OMSetDepthStencilState(dsState->statePtr.Get(), stencilRef);
 	}
 	void ClearDepthStencilView(const jsh::TextureRes& tex, jsh::CommandList cmd)
 	{
 		Texture_dx11* texture = ToInternal(tex);
-		assert(texture->depthStencilView.Get() != nullptr);
+		JSH_ASSERT(texture->depthStencilView.Get() != nullptr);
 		g_DeferredContext[cmd]->ClearDepthStencilView(texture->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0u);
 	}
 
@@ -843,7 +863,7 @@ namespace jshGraphics_dx11 {
 	}
 	void BindRasterizerState(const jsh::RasterizerState& rs, jsh::CommandList cmd)
 	{
-		assert(rs.IsValid());
+		JSH_ASSERT(rs.IsValid());
 		RasterizerState_dx11* rasterizerState = ToInternal(rs);
 		g_DeferredContext[cmd]->RSSetState(rasterizerState->ptr.Get());
 	}
@@ -890,16 +910,16 @@ namespace jshGraphics_dx11 {
 	}
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, jsh::CommandList cmd)
 	{
-		assert(rtv.IsValid());
+		JSH_ASSERT(rtv.IsValid());
 		RenderTargetView_dx11* RTV = ToInternal(rtv);
 		g_DeferredContext[cmd]->OMSetRenderTargets(1u, RTV->ptr.GetAddressOf(), nullptr);
 	}
 	void BindRenderTargetView(const jsh::RenderTargetView& rtv, const jsh::TextureRes& tex, jsh::CommandList cmd)
 	{
-		assert(rtv.IsValid() && tex.IsValid());
+		JSH_ASSERT(rtv.IsValid() && tex.IsValid());
 		RenderTargetView_dx11* RTV = ToInternal(rtv);
 		Texture_dx11* texture = ToInternal(tex);
-		assert(texture->depthStencilView.Get() != nullptr);
+		JSH_ASSERT(texture->depthStencilView.Get() != nullptr);
 		g_DeferredContext[cmd]->OMSetRenderTargets(1u, RTV->ptr.GetAddressOf(), texture->depthStencilView.Get());
 	}
 	void ClearRenderTargetView(const jsh::RenderTargetView& rtv, float r, float g, float b, float a, jsh::CommandList cmd)
@@ -938,7 +958,7 @@ namespace jshGraphics_dx11 {
 		rtv->ptr.Reset();
 		rtv->resourcePtr.Reset();
 		
-		g_SwapChain->ResizeBuffers(1u, mode.resolution.x, mode.resolution.y, ParseFormat(mode.format), DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+		jshGfxFatal(g_SwapChain->ResizeBuffers(1u, mode.resolution.x, mode.resolution.y, ParseFormat(mode.format), DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH));
 
 		CreateBackBuffer(ParseFormat(mode.format));
 	}

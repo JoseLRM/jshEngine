@@ -1,3 +1,5 @@
+#include "common.h"
+
 #include "RenderGraph.h"
 
 #include "TaskSystem.h"
@@ -72,12 +74,14 @@ namespace jsh {
 			auto& lightsList = jshScene::_internal::GetComponentsList()[LightComponent::ID];
 
 			if (lightsList.size() / LightComponent::SIZE > JSH_GFX_MAX_LIGHTS) {
-				jshLogE("Too many lights, there are %u lights availables", JSH_GFX_MAX_LIGHTS);
+				jshDebug::LogE("Too many lights, there are %u lights availables", JSH_GFX_MAX_LIGHTS);
 			}
 
 			uint32 count = 0u;
 
-			for (uint32 i = 0; i < lightsList.size(); i += LightComponent::SIZE) {
+			const uint32 componentSize = uint32(LightComponent::SIZE);
+
+			for (uint32 i = 0; i < lightsList.size(); i += componentSize) {
 				LightComponent* lightComp = reinterpret_cast<LightComponent*>(&lightsList[i]);
 
 				if (lightComp->lightType == 0) continue;
@@ -100,7 +104,7 @@ namespace jsh {
 			jshGraphics::UpdateBuffer(m_LightBuffer, &m_LightBufferData, 0u, cmd);
 		}
 		else {
-			jshLogE("Where are the camera bro ;)");
+			jshDebug::LogE("Where are the camera bro ;)");
 			doFrame = false;
 		}
 

@@ -1,3 +1,4 @@
+#include "common.h"
 #include "PostProcessComponent.h"
 
 namespace jsh {

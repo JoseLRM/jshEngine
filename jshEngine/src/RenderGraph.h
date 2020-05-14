@@ -10,7 +10,7 @@ namespace jsh {
 	class RenderPass {
 	protected:
 		RenderGraph* m_pRenderGraph = nullptr;
-		jsh::vector<RenderPass*> m_Depencences;
+		std::vector<RenderPass*> m_Depencences;
 
 	public:
 		friend RenderGraph;
@@ -25,7 +25,7 @@ namespace jsh {
 	};
 
 	class RenderGraph {
-		jsh::vector<RenderPass*> m_RenderPasses;
+		std::vector<RenderPass*> m_RenderPasses;
 
 		bool m_Modified = true;
 

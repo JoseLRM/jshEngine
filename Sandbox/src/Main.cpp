@@ -19,7 +19,7 @@ struct State : public jsh::State {
 
 int main()
 {
-	jshEngine::Initialize(new State2D());
+	jshEngine::Initialize(new State());
 	jshEngine::Run();
 	jshEngine::Close();
 
@@ -90,13 +90,14 @@ void State::Update(float dt)
 		jshEngine::LoadState(new State2D());
 
 	if (jshInput::IsKeyPressed('U')) jshGraphics::SetFullscreen(!jshGraphics::InFullscreen());
+
 }
 
 void State::Render()
 {
 	jsh::MeshComponent* meshComp = jshScene::GetComponent<jsh::MeshComponent>(1);
 
-	jshImGui(particles.ShowImGuiWindow());
+	particles.Render();
 }
 
 void State::Close()

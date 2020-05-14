@@ -1,6 +1,4 @@
-#include "Component.h"
-
-#include "Debug.h"
+#include "common.h"
 
 using namespace jsh;
 
@@ -10,7 +8,7 @@ namespace jshScene {
 	struct ComponentData {
 		const char* name;
 		size_t size;
-		const BaseComponent* constructor;
+		const jsh::BaseComponent* constructor;
 	};
 
 	ComponentData g_ComponentData[JSH_ECS_MAX_COMPONENTS_TYPES];
@@ -19,7 +17,7 @@ namespace jshScene {
 		uint16 GetComponentID() {
 
 			if (g_IDcount == JSH_ECS_MAX_COMPONENTS_TYPES) {
-				jshDebug::ShowOkWindow(L"You exceeded components types count, just change 'JSH_ECS_MAX_COMPONENTS_TYPES' in 'config.h'", 3);
+				jshDebug::_internal::LogF("You exceeded components types count, just change 'JSH_ECS_MAX_COMPONENTS_TYPES' in 'config.h'", __LINE__, __FILE__);
 				exit(1);
 			}
 
@@ -30,7 +28,7 @@ namespace jshScene {
 			g_ComponentData[ID].size = size;
 			return size;
 		}
-		const char* SetComponentNameAndConstructor(uint16 ID, const char* name, const BaseComponent* ptr)
+		const char* SetComponentNameAndConstructor(uint16 ID, const char* name, const jsh::BaseComponent* ptr)
 		{
 			g_ComponentData[ID].name = name;
 			g_ComponentData[ID].constructor = ptr;
@@ -50,7 +48,7 @@ namespace jshScene {
 	{
 		return g_ComponentData[ID].name;
 	}
-	void ConstructComponent(uint16 ID, BaseComponent* ptr)
+	void ConstructComponent(uint16 ID, jsh::BaseComponent* ptr)
 	{
 		memcpy(ptr, g_ComponentData[ID].constructor, g_ComponentData[ID].size);
 	}

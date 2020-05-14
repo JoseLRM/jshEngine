@@ -1,6 +1,6 @@
-#include "GraphicsPrimitives.h"
+#include "common.h"
 
-#include "Debug.h"
+#include "GraphicsPrimitives.h"
 
 #include "Graphics.h"
 #include "GraphicsAPI_dx11.h"
@@ -48,6 +48,7 @@ namespace jshGraphics {
 		jshGraphics_dx11::CreateBuffer(desc, sdata, buffer);
 		Buffer_Internal* b = reinterpret_cast<Buffer_Internal*>(buffer->internalAllocation.get());
 		b->desc = *desc;
+		b->type = JSH_RESOURCE_TYPE_BUFFER;
 	}
 
 	void BindVertexBuffers(const jsh::Buffer* buffers, uint32 slot, uint32 count, const uint32* strides, const uint32* offsets, jsh::CommandList cmd)
@@ -106,6 +107,7 @@ namespace jshGraphics {
 		jshGraphics_dx11::CreateTextureRes(desc, sdata, tex);
 		TextureRes_Internal* t = reinterpret_cast<TextureRes_Internal*>(tex->internalAllocation.get());
 		t->desc = *desc;
+		t->type = JSH_RESOURCE_TYPE_TEXTURE2D;
 	}
 	void BindTexture(const TextureRes& texture, uint32 slot, JSH_SHADER_TYPE shaderType, CommandList cmd)
 	{
@@ -118,6 +120,11 @@ namespace jshGraphics {
 	void UnbindTexture(uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
 	{
 		jshGraphics_dx11::UnbindTexture(slot, shaderType, cmd);
+	}
+
+	void UpdateTexture(jsh::TextureRes& res, void* data, uint32 size, jsh::CommandList cmd)
+	{
+		jshGraphics_dx11::UpdateTexture(res, data, size, cmd);
 	}
 
 	const JSH_TEXTURE2D_DESC& GetTextureDesc(const jsh::TextureRes& res)
@@ -297,7 +304,7 @@ namespace jshGraphics {
 			samplerDesc.AddressW = JSH_TEXTURE_ADDRESS_WRAP;
 			samplerDesc.Filter = JSH_FILTER_MIN_MAG_MIP_LINEAR;
 			jshGraphics::CreateSamplerState(&samplerDesc, &s_DefaultSamplerState);
-			jshGraphics::CreateViewport(0, 0, jshGraphics::GetResolution().x, jshGraphics::GetResolution().y, &s_DefaultViewport);
+			jshGraphics::CreateViewport(0, 0, float(jshGraphics::GetResolutionWidth()), float(jshGraphics::GetResolutionHeight()), &s_DefaultViewport);
 		}
 
 		// DEFAULT BLEND STATES
@@ -328,7 +335,7 @@ namespace jshGraphics {
 		// CHANGE RESOLUTION
 		jshEvent::Register<OutputModeEvent>(JSH_EVENT_LAYER_SYSTEM, [](OutputModeEvent& e) {
 			
-			jshGraphics::CreateViewport(0.f, 0.f, e.outputMode.resolution.x, e.outputMode.resolution.y, &s_DefaultViewport);
+			jshGraphics::CreateViewport(0.f, 0.f, float(e.outputMode.resolution.x), float(e.outputMode.resolution.y), &s_DefaultViewport);
 			jshGraphics::ResizeRenderTargetView(s_OffscreenRenderTargetView, e.outputMode.resolution.x, e.outputMode.resolution.y);
 
 			JSH_TEXTURE2D_DESC desc = GetTextureDesc(s_DefaultDepthStencilView);

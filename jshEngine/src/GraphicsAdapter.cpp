@@ -1,8 +1,8 @@
+#include "common.h"
 #include "GraphicsAdapter.h"
 
 #include "GraphicsAPI_dx11.h"
 #include "EventSystem.h"
-#include "Engine.h"
 
 namespace jsh {
 

@@ -23,7 +23,7 @@ namespace jsh {
 			}
 			ImGui::Text("Sprite Coords");
 			ImGui::SliderFloat2("Position", &sprite.coords.x, 0.f, 1.f);
-			ImGui::SliderFloat2("Dimension", &sprite.coords.z, 0.f, 1.f);
+			ImGui::DragFloat2("Dimension", &sprite.coords.z, 0.f, 1.f, 0.01f);
 
 			float c[4];
 			c[0] = (float)(color.x) / 255.f;
@@ -31,10 +31,10 @@ namespace jsh {
 			c[2] = (float)(color.z) / 255.f;
 			c[3] = (float)(color.w) / 255.f;
 			ImGui::ColorPicker4("Color", c);
-			color.x = byte(c[0] * 255.f);
-			color.y = byte(c[1] * 255.f);
-			color.z = byte(c[2] * 255.f);
-			color.w = byte(c[3] * 255.f);
+			color.x = uint8(c[0] * 255.f);
+			color.y = uint8(c[1] * 255.f);
+			color.z = uint8(c[2] * 255.f);
+			color.w = uint8(c[3] * 255.f);
 		}
 #endif
 	};

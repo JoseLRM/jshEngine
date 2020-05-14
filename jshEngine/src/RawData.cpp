@@ -1,6 +1,5 @@
+#include "common.h"
 #include "RawData.h"
-
-#include "Debug.h"
 
 namespace jsh {
 
@@ -10,8 +9,8 @@ namespace jsh {
 		{
 			// calculate buffer size, vertex size and vertex layout offset
 
-			size_t bufferSize = 0u;
-			size_t vertexSize = 0u;
+			uint32 bufferSize = 0u;
+			uint32 vertexSize = 0u;
 			for (uint32 i = 0; i < m_VertexLayout.size(); ++i) {
 				m_VertexLayout[i].offset = vertexSize;
 				vertexSize += jshGraphics::GetFormatStride(m_VertexLayout[i].prop.format);
@@ -19,7 +18,7 @@ namespace jsh {
 			bufferSize = vertexSize * size_t(m_VertexCount);
 
 			// allocate vertex data
-			byte* data = new byte[bufferSize];
+			uint8* data = new uint8[bufferSize];
 			
 			// set data
 			for (uint32 i = 0; i < m_VertexLayout.size(); ++i) {
@@ -64,7 +63,7 @@ namespace jsh {
 
 	void RawData::Draw(uint32 instances, jsh::CommandList cmd)
 	{
-		assert(instances != 0);
+		JSH_ASSERT(instances != 0);
 
 		if (m_IndexBuffer.IsValid()) {
 

@@ -1,15 +1,12 @@
+#include "common.h"
+
 #include "Window.h"
 
 #include "WinLib.h"
 #include "Input.h"
 #include "EventSystem.h"
-#include "Debug.h"
-
-#include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_win32.h"
 #include "ImGui/imgui_impl_dx11.h"
-#include "vector.h"
-#include "Engine.h"
 #include "Graphics.h"
 
 using namespace jsh;
@@ -26,7 +23,7 @@ namespace jshWindow {
 	int screenW = 1080;
 	int screenH = 720;
 
-	jsh::vector<byte> rawMouseBuffer;
+	std::vector<uint8> rawMouseBuffer;
 
 	LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
 	{
@@ -57,7 +54,7 @@ namespace jshWindow {
 			// input
 			uint8 keyCode = (uint8)wParam;
 			if (keyCode > 255) {
-				jshLogW("Unknown keycode: %u", keyCode);
+				jshDebug::LogW("Unknown keycode: %u", keyCode);
 			}
 			else if (~lParam & (1 << 30)) jshInput::KeyDown(keyCode);
 
@@ -69,7 +66,7 @@ namespace jshWindow {
 			// input
 			uint8 keyCode = (uint8)wParam;
 			if (keyCode > 255) {
-				jshLogW("Unknown keycode: %u", keyCode);
+				jshDebug::LogW("Unknown keycode: %u", keyCode);
 				VK_SHIFT;
 			}
 			else jshInput::KeyUp(keyCode);

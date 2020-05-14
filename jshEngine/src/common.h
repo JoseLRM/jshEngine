@@ -2,9 +2,42 @@
 
 #include "config.h"
 
-#include <assert.h>
+///////////////////////////STD INCLUDES////////////////////////////////////////
 
-// imgui macros
+// math
+#include <cmath>
+#include <DirectXMath.h>
+
+// misc
+#include <memory>
+#include <algorithm>
+#include <functional>
+
+// thread
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
+
+// data structures
+#include <string>
+#include <cstring>
+#include <sstream>
+#include <vector>
+#include <queue>
+#include <map>
+
+using namespace DirectX;
+
+// DEBUGGING
+#include "Debug.h"
+
+#ifdef JSH_DEBUG
+#define JSH_ASSERT(x) do{ if((x) == false) { jshDebug::_internal::LogA(#x, __LINE__, __FILE__); } } while(0)
+#else
+#define JSH_ASSERT(x)
+#endif
+
+// IMGUI
 #ifdef JSH_IMGUI
 
 #define jshImGui(x) x
@@ -24,11 +57,10 @@
 #error Platform not supported
 #endif
 
-// includes
-#include <string>
-#include <memory>
-#include <sstream>
-#include <algorithm>
-#include <functional>
-#include <vector>
-#include <queue>
+//////////////////////////////JSH INCLUDES////////////////////////////////////////
+#include "types.h"
+#include "Math.h"
+#include "Engine.h"
+#include "Timer.h"
+#include "TaskSystem.h"
+#include "Scene.h"

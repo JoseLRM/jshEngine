@@ -1,3 +1,4 @@
+#include "common.h"
 #include "GuiSystem.h"
 
 #include "GraphicsAdapter.h"
@@ -28,7 +29,7 @@ namespace jsh {
 			mouse *= 2.f;
 			auto& canvasList = jshScene::_internal::GetComponentsList()[GuiCanvasComponent::ID];
 
-			for (uint32 i = 0; i < canvasList.size(); i += GuiCanvasComponent::SIZE) {
+			for (uint32 i = 0; i < canvasList.size(); i += uint32(GuiCanvasComponent::SIZE)) {
 				GuiCanvasComponent& canvas = *reinterpret_cast<GuiCanvasComponent*>(&canvasList[i]);
 
 				uint32 childsCount = 0u;
@@ -57,7 +58,7 @@ namespace jsh {
 			}
 
 			// call
-			for (int32 i = toCall.size() - 1; i >= 0; --i) {
+			for (int32 i = int32(toCall.size()) - 1; i >= 0; --i) {
 				toCall[i]->OnClickedFn(toCall[i]->entity, e);
 				if (e.IsDead()) break;
 			}
@@ -71,7 +72,7 @@ namespace jsh {
 		auto& canvasList = jshScene::_internal::GetComponentsList()[GuiCanvasComponent::ID];
 
 		// Update Constraints
-		for (uint32 i = 0; i < canvasList.size(); i += GuiCanvasComponent::SIZE) {
+		for (uint32 i = 0; i < canvasList.size(); i += uint32(GuiCanvasComponent::SIZE)) {
 			GuiCanvasComponent& canvas = *reinterpret_cast<GuiCanvasComponent*>(&canvasList[i]);
 
 			uint32 childsCount = 0u;
@@ -114,7 +115,7 @@ namespace jsh {
 		vec2 mouse = jshInput::MousePos();
 		mouse *= 2.f;
 
-		for (uint32 i = 0; i < canvasList.size(); i += GuiCanvasComponent::SIZE) {
+		for (uint32 i = 0; i < canvasList.size(); i += uint32(GuiCanvasComponent::SIZE)) {
 			GuiCanvasComponent& canvas = *reinterpret_cast<GuiCanvasComponent*>(&canvasList[i]);
 
 			uint32 childsCount = 0u;

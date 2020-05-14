@@ -18,5 +18,5 @@
 #include "..//src/AssetLoader.h"
 
 // data structures
-#include "..//src/vector.h"
 #include "..//src/Image.h"
+#include "..//src/Archive.h"

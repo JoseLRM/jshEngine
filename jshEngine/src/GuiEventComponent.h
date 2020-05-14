@@ -5,7 +5,7 @@
 namespace jsh {
 
 	class GuiSystem;
-	class MouseButtonEvent;
+	struct MouseButtonEvent;
 
 	struct GuiEventComponent : public Component<GuiEventComponent> {
 	private:

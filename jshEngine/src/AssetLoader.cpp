@@ -1,8 +1,9 @@
+#include "common.h"
+
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
 
-#include "Debug.h"
 #include "Graphics.h"
 #include "AssetLoader.h"
 #include <sstream>
@@ -11,13 +12,17 @@
 #include "stb/stb_lib.h"
 
 #include <limits>
+#include <fstream>
+#include <ios>
+
+using namespace std;
 
 namespace jshLoader
 {
 
 	/////////////////////////////////MODEL/////////////////////////////////////////
 	struct TransformedMesh {
-		jsh::Mesh* mesh;
+		jsh::Mesh* mesh = nullptr;
 		jsh::Transform transform;
 	};
 
@@ -64,7 +69,7 @@ namespace jshLoader
 			transform.SetPosition(center);
 
 			// Index Buffer
-			size_t cantOfIndices = size_t(aimesh->mNumFaces * 3);
+			size_t cantOfIndices = size_t(size_t(aimesh->mNumFaces) * 3u);
 			uint32 indexCount = 0u;
 			uint32* iData = new uint32[cantOfIndices];
 			for (uint32 i = 0; i < aimesh->mNumFaces; ++i) {
@@ -113,7 +118,7 @@ namespace jshLoader
 
 		float shininess = 1.f;
 		float specularIntensity = 1.f;
-		int transparent = 0.f;
+		int transparent = 0;
 
 		aiGetMaterialFloat(material, AI_MATKEY_SHININESS, &shininess);
 		aiGetMaterialFloat(material, AI_MATKEY_SHININESS_STRENGTH, &specularIntensity);
@@ -208,13 +213,13 @@ namespace jshLoader
 		const aiScene* scene = importer.ReadFile(absolutePath, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace | aiProcess_OptimizeMeshes);
 
 		if (!scene || !scene->HasMeshes()) {
-			jshLogE("Empty model %s", absolutePath);
+			jshDebug::LogE("Empty model %s", absolutePath);
 			return false;
 		}
 
 		std::string pathStr = absolutePath;
 		{
-			uint32 pos = pathStr.size() - 1;
+			uint32 pos = uint32(pathStr.size()) - 1u;
 			while (pathStr[pos--] != '/') if (pos == 0) break;;
 			if (pos != 0) {
 				pathStr = pathStr.substr(0u, pos + 2);
@@ -230,7 +235,7 @@ namespace jshLoader
 			const aiMesh* mesh = scene->mMeshes[i];
 
 			if (!mesh->HasPositions() || !mesh->HasNormals()) {
-				jshLogE("Invalid mesh, %s[%u]", path, i);
+				jshDebug::LogE("Invalid mesh, %s[%u]", path, i);
 				continue;
 			}
 
@@ -249,14 +254,16 @@ namespace jshLoader
 		if (aiRoot) {
 			AddNode(aiRoot, &model->root, meshes);
 		}
+
+		return true;
 	}
 
 	bool LoadTexture(const char* path, jsh::TextureRes* texture)
 	{
 		int width, height, bits;
-		byte* data = stbi_load(path, &width, &height, &bits, 4);
+		uint8* data = stbi_load(path, &width, &height, &bits, 4);
 		if (!data) {
-			jshLogE("Texture not found '%s'", path);
+			jshDebug::LogE("Texture not found '%s'", path);
 			return false;
 		}
 
@@ -285,12 +292,12 @@ namespace jshLoader
 		return true;
 	}
 
-	void CreateTexture(const jsh::Image& image, jsh::TextureRes* tex)
+	void CreateTexture(const jsh::Image& image, jsh::TextureRes* tex, bool dynamic)
 	{
 		JSH_TEXTURE2D_DESC desc;
 		desc.ArraySize = 1u;
 		desc.BindFlags = JSH_BIND_SHADER_RESOURCE;
-		desc.CPUAccessFlags = 0u;
+		desc.CPUAccessFlags = dynamic ? JSH_CPU_ACCESS_WRITE : 0u;
 		desc.Format = image.GetFormat();
 		desc.Width = image.GetWidth();
 		desc.Height = image.GetHeight();
@@ -298,7 +305,7 @@ namespace jshLoader
 		desc.MiscFlags = 0u;
 		desc.SampleDesc.Count = 1u;
 		desc.SampleDesc.Quality = 0u;
-		desc.Usage = JSH_USAGE_DEFAULT;
+		desc.Usage = dynamic ? JSH_USAGE_DYNAMIC : JSH_USAGE_IMMUTABLE;
 		JSH_SUBRESOURCE_DATA sData;
 		sData.pSysMem = image.GetBuffer();
 		sData.SysMemPitch = image.GetWidth() * jshGraphics::GetFormatStride(image.GetFormat());

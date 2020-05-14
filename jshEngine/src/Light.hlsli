@@ -67,7 +67,7 @@ inline float3 LoadLightColor(float3 position, float3 normal, float3 toCamera, fl
 
 		// attenuation
             intensity = light[i].intensity * intensity * (1.f / (light[i].quadraticAtt * distance * distance + light[i].constantAtt));
-            count += light[i].color * intensity * finalIntensity;
+            count += light[i].color.xyz * intensity * finalIntensity;
         }
 		i++;
 	}

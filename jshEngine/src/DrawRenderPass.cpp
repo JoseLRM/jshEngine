@@ -1,7 +1,8 @@
+#include "common.h"
+
 #include "DrawRenderPass.h"
 
 #include "Components.h"
-#include "Engine.h"
 #include "Renderer.h"
 #include "PostProcess.h"
 #include "BloomEffect.h"

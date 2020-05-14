@@ -1,3 +1,4 @@
+#include "common.h"
 #include "Image.h"
 
 namespace jsh {
@@ -82,7 +83,7 @@ namespace jsh {
 
 	void Image::Allocate()
 	{
-		m_Buffer = new byte[Size()];
+		m_Buffer = new uint8[Size()];
 	}
 
 }

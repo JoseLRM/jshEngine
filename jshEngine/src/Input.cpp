@@ -1,8 +1,9 @@
+#include "common.h"
+
 #include "Input.h"
 
 #include <vector>
 #include "EventSystem.h"
-#include "Debug.h"
 #include "Window.h"
 
 using namespace jsh;
@@ -134,8 +135,8 @@ namespace jshInput {
 
 	void MouseDragged(int dx, int dy)
 	{
-		g_Dragged.x = dx;
-		g_Dragged.y = dy;
+		g_Dragged.x = float(dx);
+		g_Dragged.y = float(dy);
 
 		MouseDraggedEvent e(g_Pos.x, g_Pos.y, g_Dragged.x, g_Dragged.y);
 		jshEvent::Dispatch(e);

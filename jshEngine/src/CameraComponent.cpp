@@ -1,9 +1,9 @@
+#include "common.h"
 #include "CameraComponent.h"
 
 #include "Window.h"
 #include "Input.h"
 #include "Renderer.h"
-#include "Engine.h"
 
 namespace jsh {
 

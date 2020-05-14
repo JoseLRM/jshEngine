@@ -14,7 +14,7 @@ namespace jsh {
 		RenderQueue* m_pRenderQueue = nullptr;
 		SpriteRenderQueue* m_pSpriteRenderQueue = nullptr;
 
-		byte m_InstanceData[JSH_GFX_BATCH_COUNT * JSH_GFX_MAX_INSTANCE_SIZE];
+		uint8 m_InstanceData[JSH_GFX_BATCH_COUNT * JSH_GFX_MAX_INSTANCE_SIZE];
 		InstanceBuffer m_InstanceBuffer;
 
 	public:

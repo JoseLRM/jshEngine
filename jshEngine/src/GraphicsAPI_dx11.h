@@ -52,6 +52,8 @@ namespace jshGraphics_dx11 {
 	void BindTexture(const jsh::RenderTargetView& rtv, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 	void UnbindTexture(uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 
+	void UpdateTexture(jsh::TextureRes& res, void* data, uint32 size, jsh::CommandList cmd);
+
 	/////////////////////////VIEWPORT////////////////////////
 	void CreateViewport(float x, float y, float width, float height, jsh::Viewport* vp);
 	void BindViewport(const jsh::Viewport& viewport, uint32 slot, jsh::CommandList cmd);

@@ -8,7 +8,7 @@ namespace jsh {
 	private:
 		// Bloom effect
 		bool m_BloomEffect = false;
-		uint32 m_BloomRadius = 16.f;
+		uint32 m_BloomRadius = 16;
 		float m_BloomSigma = 20.f;
 		float m_BloomIntensity = 0.5f;
 

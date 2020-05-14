@@ -15,7 +15,7 @@ struct Particle {
 	float rotationVel;
 	jsh::Color color;
 
-	Particle() : creationTime(0.f), lifeTime(0.f), velocity(), rotationVel(0.f) {}
+	Particle() : rotation(0.f), creationTime(0.f), lifeTime(0.f), velocity(), rotationVel(0.f) {}
 	Particle(jsh::vec3 position, jsh::vec2 size, float rotation, float t0, float t1, jsh::vec3 vel, float rotationVel, jsh::Color color) : position(position), size(size), rotation(rotation), creationTime(t0), lifeTime(t1), velocity(vel), rotationVel(rotationVel), color(color) {}
 };
 
@@ -106,14 +106,14 @@ public:
 				a -= particle.alpha * dt;
 				if (a > 255.f) a = 255.f;
 				else if (a < 0.f) a = 0.f;
-				particle.color.w = (byte)a;
+				particle.color.w = (uint8)a;
 			}
 			else if (abs(particle.creationTime + particle.lifeTime - m_TimeCount) <= m_AlphaTime) {
 				particle.alpha = 255.f / abs(particle.creationTime + particle.lifeTime - m_TimeCount);
 			}
 		}
 
-		for (int32 i = particles.size() - 1; i >= 0; --i) {
+		for (int32 i = int32(particles.size() - 1u); i >= 0; --i) {
 			Particle& particle = particles[i];
 			if (particle.creationTime + particle.lifeTime <= m_TimeCount) particles.erase(particles.begin() + i);
 		}
@@ -144,14 +144,14 @@ public:
 		jsh::Renderer3D& renderer = *reinterpret_cast<jsh::Renderer3D*>(jshEngine::GetRenderer());
 		auto& batch = renderer.GetSpriteRenderQueue();
 
-		batch.Reserve(particles.size());
+		batch.Reserve(uint32(particles.size()));
 
 		for (auto it = particles.begin(); it != particles.end(); ++it) {
 			Particle& particle = *it;
 			batch.DrawQuad(particle.position, particle.size, particle.rotation, particle.color, 0.f);
 		}
 
-		ShowImGuiWindow();
+		jshImGui(ShowImGuiWindow());
 	}
 
 };

@@ -11,7 +11,7 @@ namespace jsh {
 		float sigma = 1.f;
 
 	private:
-		uint8 m_BlurMode;
+		uint8 m_BlurMode = 0u;
 
 	public:
 		inline void SetGaussianMode() noexcept { m_BlurMode = 0; }
@@ -49,7 +49,7 @@ namespace jsh {
 			}
 
 			int r = radius;
-			ImGui::SliderInt("Radius", &r, 0, 16);
+			ImGui::SliderInt("Radius", &r, 0, 64);
 			radius = r;
 			if (m_BlurMode == 0) ImGui::SliderFloat("Sigma", &sigma, 0.f, 10.f);
 

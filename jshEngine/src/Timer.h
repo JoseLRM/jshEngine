@@ -1,7 +1,6 @@
 #pragma once
 
 #include "common.h"
-#include "vector.h"
 
 namespace jsh {
 
@@ -24,6 +23,17 @@ namespace jsh {
 
 	};
 
+	struct Date {
+		uint32 year;
+		uint8 month;
+		uint8 day;
+		uint8 hour;
+		uint8 minute;
+		uint8 second;
+
+		std::string ToString() const noexcept;
+	};
+
 }
 
 namespace jshTimer {
@@ -35,6 +45,8 @@ namespace jshTimer {
 	jsh::Time Now();
 	jsh::Time TimeFrom(jsh::Time& time);
 
+	jsh::Date GetDate();
+
 }
 
 namespace jsh {
@@ -45,7 +57,7 @@ namespace jsh {
 			Time currentTime = 0.f;
 		};
 
-		jsh::vector<PerformanceData> m_Data;
+		std::vector<PerformanceData> m_Data;
 
 	public:
 		PerformanceTest() {}
@@ -53,7 +65,7 @@ namespace jsh {
 		inline void Begin(uint32 ID) noexcept
 		{
 			while (m_Data.size() <= ID) {
-				m_Data.push_back(PerformanceData(), 5);
+				m_Data.emplace_back();
 			}
 			m_Data[ID].beginTime = jshTimer::Now();
 		}

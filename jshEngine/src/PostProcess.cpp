@@ -1,3 +1,5 @@
+#include "common.h"
+
 #include "PostProcess.h"
 
 #include "Renderer.h"
@@ -59,7 +61,7 @@ namespace jshGraphics {
 
 	void PostProcess(const jsh::RenderTargetView& input, const jsh::RenderTargetView& output, jsh::DepthStencilState* dss, jsh::TextureRes* dsv, uint32 stencilRef, jsh::PixelShader* ps, jsh::CommandList cmd)
 	{
-		assert(input.IsValid() && output.IsValid());
+		JSH_ASSERT(input.IsValid() && output.IsValid());
 
 		if (dss && dsv) {
 			jshGraphics::BindDepthStencilState(*dss, stencilRef, cmd);

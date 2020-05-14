@@ -1,3 +1,4 @@
+#include "common.h"
 #include "Graphics.h"
 
 namespace jsh {
@@ -9,14 +10,14 @@ namespace jsh {
 
 	void Mesh::SetRawData(RawData* rawData) noexcept
 	{
-		assert(rawData != nullptr);
+		JSH_ASSERT(rawData != nullptr);
 		m_RawData = rawData;
 
 		if (m_Material) UpdateInputLayout();
 	}
 	void Mesh::SetMaterial(Material* material) noexcept
 	{
-		assert(material != nullptr);
+		JSH_ASSERT(material != nullptr);
 		m_Material = material;
 
 		if (m_RawData) UpdateInputLayout();

@@ -62,6 +62,9 @@
       </AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <IntrinsicFunctions>false</IntrinsicFunctions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>common.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -82,6 +85,9 @@
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);JSH_ENGINE</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>
       </AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>common.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -93,7 +99,14 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Archive.cpp" />
     <ClCompile Include="src\BloomEffect.cpp" />
+    <ClCompile Include="src\pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">common.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">common.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="src\ConstantBuffer.cpp" />
     <ClCompile Include="src\GraphicsAdapter.cpp" />
     <ClCompile Include="src\GuiComponent.cpp" />
@@ -108,13 +121,18 @@
     <ClCompile Include="src\Renderer3D.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\StateManager.cpp" />
-    <ClCompile Include="src\stb\stb_lib.cpp" />
+    <ClCompile Include="src\stb\stb_lib.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\Debug.cpp" />
     <ClCompile Include="src\Component.cpp" />
     <ClCompile Include="src\Scene.cpp" />
-    <ClCompile Include="src\Exception.cpp" />
-    <ClCompile Include="src\GraphicsAPI_dx11.cpp" />
+    <ClCompile Include="src\GraphicsAPI_dx11.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">common.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">common.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="src\Graphics.cpp" />
     <ClCompile Include="src\GraphicsObjects.cpp" />
     <ClCompile Include="src\GraphicsPrimitives.cpp" />
@@ -132,11 +150,14 @@
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\TaskSystem.cpp" />
     <ClCompile Include="src\Timer.cpp" />
-    <ClCompile Include="src\Window.cpp" />
+    <ClCompile Include="src\Window.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">common.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">common.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="src\AssetLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\batch_pool.h" />
+    <ClInclude Include="src\Archive.h" />
     <ClInclude Include="src\BloomEffect.h" />
     <ClInclude Include="src\ConstantBuffer.h" />
     <ClInclude Include="src\DefaultLoadState.h" />
@@ -175,7 +196,6 @@
     <ClInclude Include="src\Entity.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\System.h" />
-    <ClInclude Include="src\Exception.h" />
     <ClInclude Include="src\Renderer.h" />
     <ClInclude Include="src\DirectX11Lib.h" />
     <ClInclude Include="src\EventSystem.h" />
@@ -203,7 +223,7 @@
     <ClInclude Include="src\Timer.h" />
     <ClInclude Include="src\AssetLoader.h" />
     <ClInclude Include="src\safe_queue.h" />
-    <ClInclude Include="src\vector.h" />
+    <ClInclude Include="src\types.h" />
     <ClInclude Include="src\Window.h" />
     <ClInclude Include="src\WinLib.h" />
     <ClInclude Include="src\Math.h" />
