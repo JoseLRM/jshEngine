@@ -58,8 +58,15 @@ using namespace DirectX;
 #endif
 
 //////////////////////////////JSH INCLUDES////////////////////////////////////////
+
+// math
 #include "types.h"
 #include "Math.h"
+
+// data structures
+#include "Archive.h"
+
+// misc
 #include "Engine.h"
 #include "Timer.h"
 #include "TaskSystem.h"

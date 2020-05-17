@@ -12,6 +12,8 @@ namespace jsh {
 		Buffer m_Buffer;
 
 	public:
+		~InstanceBuffer() { m_Buffer.Release(); }
+
 		void Create(uint32 size);
 		void Update(void* data, uint32 size, CommandList cmd);
 		

@@ -12,9 +12,12 @@
 
 
 using namespace jsh;
-using namespace jsh::_internal;
+using namespace jshGraphics::_internal;
 
 namespace jshGraphics {
+
+	using Primitive = GraphicsPrimitive<GraphicsPrimitive_internal>;
+	std::vector<Primitive> g_Primitives;
 
 	CommandList BeginCommandList()
 	{
@@ -46,9 +49,11 @@ namespace jshGraphics {
 	void CreateBuffer(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Buffer* buffer)
 	{
 		jshGraphics_dx11::CreateBuffer(desc, sdata, buffer);
-		Buffer_Internal* b = reinterpret_cast<Buffer_Internal*>(buffer->internalAllocation.get());
+		Buffer_Internal* b = reinterpret_cast<Buffer_Internal*>(buffer->internalAllocation);
 		b->desc = *desc;
 		b->type = JSH_RESOURCE_TYPE_BUFFER;
+
+		g_Primitives.push_back(*reinterpret_cast<Primitive*>(buffer));
 	}
 
 	void BindVertexBuffers(const jsh::Buffer* buffers, uint32 slot, uint32 count, const uint32* strides, const uint32* offsets, jsh::CommandList cmd)
@@ -65,7 +70,7 @@ namespace jshGraphics {
 	}
 	const JSH_BUFFER_DESC& GetBufferDesc(const jsh::Buffer& buffer)
 	{
-		Buffer_Internal* b = reinterpret_cast<Buffer_Internal*>(buffer.internalAllocation.get());
+		Buffer_Internal* b = reinterpret_cast<Buffer_Internal*>(buffer.internalAllocation);
 		return b->desc;
 	}
 	void UpdateBuffer(jsh::Buffer& res, void* data, uint32 size, jsh::CommandList cmd)
@@ -77,6 +82,7 @@ namespace jshGraphics {
 	void CreateInputLayout(const JSH_INPUT_ELEMENT_DESC* descriptors, uint32 cant, jsh::VertexShader& vs, jsh::InputLayout* il)
 	{
 		jshGraphics_dx11::CreateInputLayout(descriptors, cant, vs, il);
+		g_Primitives.push_back(*reinterpret_cast<Primitive*>(il));
 	}
 	void BindInputLayout(const jsh::InputLayout& inputLayout, CommandList cmd)
 	{
@@ -87,10 +93,12 @@ namespace jshGraphics {
 	void CreateVertexShader(const wchar* path, jsh::VertexShader* vs)
 	{
 		jshGraphics_dx11::CreateVertexShader(path, vs);
+		g_Primitives.push_back(*reinterpret_cast<Primitive*>(vs));
 	}
 	void CreatePixelShader(const wchar* path, jsh::PixelShader* ps)
 	{
 		jshGraphics_dx11::CreatePixelShader(path, ps);
+		g_Primitives.push_back(*reinterpret_cast<Primitive*>(ps));
 	}
 	void BindVertexShader(const jsh::VertexShader& vs, CommandList cmd)
 	{
@@ -105,9 +113,10 @@ namespace jshGraphics {
 	void CreateTextureRes(const JSH_TEXTURE2D_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::TextureRes* tex)
 	{
 		jshGraphics_dx11::CreateTextureRes(desc, sdata, tex);
-		TextureRes_Internal* t = reinterpret_cast<TextureRes_Internal*>(tex->internalAllocation.get());
+		TextureRes_Internal* t = reinterpret_cast<TextureRes_Internal*>(tex->internalAllocation);
 		t->desc = *desc;
 		t->type = JSH_RESOURCE_TYPE_TEXTURE2D;
+		g_Primitives.push_back(*reinterpret_cast<Primitive*>(tex));
 	}
 	void BindTexture(const TextureRes& texture, uint32 slot, JSH_SHADER_TYPE shaderType, CommandList cmd)
 	{
@@ -129,7 +138,7 @@ namespace jshGraphics {
 
 	const JSH_TEXTURE2D_DESC& GetTextureDesc(const jsh::TextureRes& res)
 	{
-		TextureRes_Internal* t = reinterpret_cast<TextureRes_Internal*>(res.internalAllocation.get());
+		TextureRes_Internal* t = reinterpret_cast<TextureRes_Internal*>(res.internalAllocation);
 		return t->desc;
 	}
 
@@ -137,6 +146,7 @@ namespace jshGraphics {
 	void CreateViewport(float x, float y, float width, float height, jsh::Viewport* vp)
 	{
 		jshGraphics_dx11::CreateViewport(x, y, width, height, vp);
+		g_Primitives.push_back(*reinterpret_cast<Primitive*>(vp));
 	}
 	void BindViewport(const Viewport& viewport, uint32 slot, CommandList cmd)
 	{
@@ -147,6 +157,7 @@ namespace jshGraphics {
 	void CreateSamplerState(const JSH_SAMPLER_DESC* desc, jsh::SamplerState* ss)
 	{
 		jshGraphics_dx11::CreateSamplerState(desc, ss);
+		g_Primitives.push_back(*reinterpret_cast<Primitive*>(ss));
 	}
 	void BindSamplerState(const jsh::SamplerState& ss, uint32 slot, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
 	{
@@ -156,6 +167,7 @@ namespace jshGraphics {
 	void CreateBlendState(const JSH_BLEND_DESC* desc, jsh::BlendState* bs)
 	{
 		return jshGraphics_dx11::CreateBlendState(desc, bs);
+		g_Primitives.push_back(*reinterpret_cast<Primitive*>(bs));
 	}
 	void BindBlendState(const BlendState& bs, CommandList cmd)
 	{
@@ -165,7 +177,8 @@ namespace jshGraphics {
 	/////////////////////////DEPTHSTENCIL STATE//////////////////////
 	void CreateDepthStencilState(const JSH_DEPTH_STENCIL_DESC* desc, jsh::DepthStencilState* dss)
 	{
-		return jshGraphics_dx11::CreateDepthStencilState(desc, dss);
+		jshGraphics_dx11::CreateDepthStencilState(desc, dss);
+		g_Primitives.push_back(*reinterpret_cast<Primitive*>(dss));
 	}
 	void BindDepthStencilState(const DepthStencilState& dsState, uint32 stencilRef, CommandList cmd)
 	{
@@ -179,7 +192,8 @@ namespace jshGraphics {
 	/////////////////////////RASTERIZER STATE//////////////////////
 	void CreateRasterizerState(const JSH_RASTERIZER_DESC* desc, jsh::RasterizerState* rs)
 	{
-		return jshGraphics_dx11::CreateRasterizerState(desc, rs);
+		jshGraphics_dx11::CreateRasterizerState(desc, rs);
+		g_Primitives.push_back(*reinterpret_cast<Primitive*>(rs));
 	}
 	void BindRasterizerState(const RasterizerState& rasterizerState, CommandList cmd)
 	{
@@ -190,9 +204,10 @@ namespace jshGraphics {
 	void CreateRenderTargetView(const JSH_RENDER_TARGET_VIEW_DESC* desc, const JSH_TEXTURE2D_DESC* texDesc, jsh::RenderTargetView* rtv)
 	{
 		jshGraphics_dx11::CreateRenderTargetView(desc, texDesc, rtv);
-		RenderTargetView_Internal* RTV = reinterpret_cast<RenderTargetView_Internal*>(rtv->internalAllocation.get());
+		RenderTargetView_Internal* RTV = reinterpret_cast<RenderTargetView_Internal*>(rtv->internalAllocation);
 		RTV->desc = *desc;
 		RTV->resDesc = *texDesc;
+		g_Primitives.push_back(*reinterpret_cast<Primitive*>(rtv));
 	}
 	jsh::RenderTargetView& GetRenderTargetViewFromBackBuffer()
 	{
@@ -222,13 +237,21 @@ namespace jshGraphics {
 
 	const JSH_RENDER_TARGET_VIEW_DESC& GetRenderTargetViewDesc(const jsh::RenderTargetView& rtv)
 	{
-		RenderTargetView_Internal* RTV = reinterpret_cast<RenderTargetView_Internal*>(rtv.internalAllocation.get());
+		RenderTargetView_Internal* RTV = reinterpret_cast<RenderTargetView_Internal*>(rtv.internalAllocation);
 		return RTV->desc;
 	}
 	const JSH_TEXTURE2D_DESC& GetRenderTargetTextureDesc(const jsh::RenderTargetView& rtv)
 	{
-		RenderTargetView_Internal* RTV = reinterpret_cast<RenderTargetView_Internal*>(rtv.internalAllocation.get());
+		RenderTargetView_Internal* RTV = reinterpret_cast<RenderTargetView_Internal*>(rtv.internalAllocation);
 		return RTV->resDesc;
+	}
+
+	void jshGraphics::_internal::ReleasePrimitives()
+	{
+		for (auto it = g_Primitives.begin(); it != g_Primitives.end(); ++it) {
+			(*it).Release();
+		}
+		g_Primitives.clear();
 	}
 
 	//////////////////////////DEFAULT PRIMITIVES///////////////////////

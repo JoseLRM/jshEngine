@@ -28,6 +28,9 @@ namespace jsh {
 		uint32 entity = INVALID_ENTITY;
 
 	public:
+		virtual void Serialize(Archive& archive) {}
+		virtual void Deserialize(Archive& archive) {}
+
 #ifdef JSH_IMGUI
 		virtual void ShowInfo() {}
 #endif

@@ -16,98 +16,144 @@ namespace jshGraphics_dx11 {
 
 	//////////////////GRAPHICS PRIMITIVES////////////////////
 
-	struct Buffer_dx11 : public jsh::_internal::Buffer_Internal {
+	struct Buffer_dx11 : public jshGraphics::_internal::Buffer_Internal {
 		ComPtr<ID3D11Buffer> ptr;
+		void Release() override
+		{
+			ptr.Reset();
+		}
 	};
 
-	struct InputLayout_dx11 : public jsh::_internal::InputLayout_Internal {
+	struct InputLayout_dx11 : public jshGraphics::_internal::InputLayout_Internal {
 		ComPtr<ID3D11InputLayout> ptr;
+		void Release() override
+		{
+			ptr.Reset();
+		}
 	};
 
-	struct VertexShader_dx11 : public jsh::_internal::VertexShader_Internal {
+	struct VertexShader_dx11 : public jshGraphics::_internal::VertexShader_Internal {
 		ComPtr<ID3D11VertexShader> ptr;
 		ComPtr<ID3DBlob> blob;
+		void Release() override
+		{
+			ptr.Reset();
+			blob.Reset();
+		}
 	};
 
-	struct PixelShader_dx11 : public jsh::_internal::PixelShader_Internal {
+	struct PixelShader_dx11 : public jshGraphics::_internal::PixelShader_Internal {
 		ComPtr<ID3D11PixelShader> ptr;
+		void Release() override
+		{
+			ptr.Reset();
+		}
 	};
 
-	struct Texture_dx11 : public jsh::_internal::TextureRes_Internal {
+	struct Texture_dx11 : public jshGraphics::_internal::TextureRes_Internal {
 		ComPtr<ID3D11Texture2D> texturePtr;
 		ComPtr<ID3D11ShaderResourceView> shaderSrcView;
 		ComPtr<ID3D11DepthStencilView> depthStencilView;
+		void Release() override
+		{
+			texturePtr.Reset();
+			shaderSrcView.Reset();
+			depthStencilView.Reset();
+		}
 	};
 
-	struct Viewport_dx11 : public jsh::_internal::Viewport_Internal {
+	struct Viewport_dx11 : public jshGraphics::_internal::Viewport_Internal {
 		D3D11_VIEWPORT viewport;
+		void Release() override {}
 	};
 
-	struct SamplerState_dx11 : public jsh::_internal::SamplerState_Internal {
+	struct SamplerState_dx11 : public jshGraphics::_internal::SamplerState_Internal {
 		ComPtr<ID3D11SamplerState> ptr;
+		void Release() override
+		{
+			ptr.Reset();
+		}
 	};
 
-	struct BlendState_dx11 : public jsh::_internal::BlendState_Internal {
+	struct BlendState_dx11 : public jshGraphics::_internal::BlendState_Internal {
 		ComPtr<ID3D11BlendState> ptr;
+		void Release() override
+		{
+			ptr.Reset();
+		}
 	};
 
-	struct DepthStencilState_dx11 : public jsh::_internal::DepthStencilState_Internal {
+	struct DepthStencilState_dx11 : public jshGraphics::_internal::DepthStencilState_Internal {
 		ComPtr<ID3D11DepthStencilState> statePtr;
+		void Release() override
+		{
+			statePtr.Reset();
+		}
 	};
 
-	struct RasterizerState_dx11 : public jsh::_internal::RasterizerState_Internal {
+	struct RasterizerState_dx11 : public jshGraphics::_internal::RasterizerState_Internal {
 		ComPtr<ID3D11RasterizerState> ptr;
+		void Release() override
+		{
+			ptr.Reset();
+		}
 	};
 
-	struct RenderTargetView_dx11 : public jsh::_internal::RenderTargetView_Internal {
+	struct RenderTargetView_dx11 : public jshGraphics::_internal::RenderTargetView_Internal {
 		ComPtr<ID3D11RenderTargetView> ptr;
 		ComPtr<ID3D11Texture2D> resourcePtr;
 		ComPtr<ID3D11ShaderResourceView> shaderResView;
+		void Release() override
+		{
+			ptr.Reset();
+			resourcePtr.Reset();
+			shaderResView.Reset();
+		}
 	};
 
 	inline Buffer_dx11* ToInternal(const jsh::Buffer& primitive)
 	{ 
-		return (Buffer_dx11*)primitive.internalAllocation.get(); 
+		return (Buffer_dx11*)primitive.internalAllocation; 
 	}
 	inline Texture_dx11* ToInternal(const jsh::TextureRes& primitive)
 	{
-		return (Texture_dx11*)primitive.internalAllocation.get();
+		return (Texture_dx11*)primitive.internalAllocation;
 	}
 	inline InputLayout_dx11* ToInternal(const jsh::InputLayout& primitive)
 	{
-		return (InputLayout_dx11*)primitive.internalAllocation.get();
+		return (InputLayout_dx11*)primitive.internalAllocation;
 	}
 	inline VertexShader_dx11* ToInternal(const jsh::VertexShader& primitive)
 	{
-		return (VertexShader_dx11*)primitive.internalAllocation.get();
+		return (VertexShader_dx11*)primitive.internalAllocation;
 	}
 	inline PixelShader_dx11* ToInternal(const jsh::PixelShader& primitive)
 	{
-		return (PixelShader_dx11*)primitive.internalAllocation.get();
+		return (PixelShader_dx11*)primitive.internalAllocation;
 	}
 	inline Viewport_dx11* ToInternal(const jsh::Viewport& primitive)
 	{
-		return (Viewport_dx11*)primitive.internalAllocation.get();
+		return (Viewport_dx11*)primitive.internalAllocation;
 	}
 	inline SamplerState_dx11* ToInternal(const jsh::SamplerState& primitive)
 	{
-		return (SamplerState_dx11*)primitive.internalAllocation.get();
+		return (SamplerState_dx11*)primitive.internalAllocation;
 	}
 	inline BlendState_dx11* ToInternal(const jsh::BlendState& primitive)
 	{
-		return (BlendState_dx11*)primitive.internalAllocation.get();
+		return (BlendState_dx11*)primitive.internalAllocation;
 	}
 	inline DepthStencilState_dx11* ToInternal(const jsh::DepthStencilState& primitive)
 	{
-		return (DepthStencilState_dx11*)primitive.internalAllocation.get();
+		return (DepthStencilState_dx11*)primitive.internalAllocation;
 	}
 	inline RasterizerState_dx11* ToInternal(const jsh::RasterizerState& primitive)
 	{
-		return (RasterizerState_dx11*)primitive.internalAllocation.get();
+		return (RasterizerState_dx11*)primitive.internalAllocation;
 	}
 	inline RenderTargetView_dx11* ToInternal(const jsh::RenderTargetView& primitive)
 	{
-		return (RenderTargetView_dx11*)primitive.internalAllocation.get();
+		return (RenderTargetView_dx11*)primitive.internalAllocation;
 	}
 
 	////////////////////ALLOCATION//////////////////////////
@@ -248,7 +294,7 @@ namespace jshGraphics_dx11 {
 
 	void CreateBackBuffer(DXGI_FORMAT format)
 	{
-		auto RTV = std::make_shared<RenderTargetView_dx11>();
+		RenderTargetView_dx11* RTV = new RenderTargetView_dx11();
 		g_RenderTargetView.internalAllocation = RTV;
 
 		D3D11_RENDER_TARGET_VIEW_DESC desc;
@@ -440,7 +486,7 @@ namespace jshGraphics_dx11 {
 	//////////////////////////////BUFFER//////////////////////////////
 	void CreateBuffer(const JSH_BUFFER_DESC* d, JSH_SUBRESOURCE_DATA* s, jsh::Buffer* b)
 	{
-		auto buffer = std::make_shared<Buffer_dx11>();
+		Buffer_dx11* buffer = new Buffer_dx11();
 		b->internalAllocation = buffer;
 
 		D3D11_BUFFER_DESC desc;
@@ -528,17 +574,16 @@ namespace jshGraphics_dx11 {
 	//////////////////////////////INPUT LAYOUT//////////////////////////////
 	void CreateInputLayout(const JSH_INPUT_ELEMENT_DESC* desc, uint32 cant, jsh::VertexShader& vs, jsh::InputLayout* il)
 	{
-		auto inputLayout = std::make_shared<InputLayout_dx11>();
+		InputLayout_dx11* inputLayout = new InputLayout_dx11();
 		il->internalAllocation = inputLayout;
 
-		std::vector<D3D11_INPUT_ELEMENT_DESC> elements;
-		elements.reserve(cant);
+		D3D11_INPUT_ELEMENT_DESC elements[JSH_GFX_INPUT_LAYOUT_COUNT];
 		for (uint32 i = 0; i < cant; ++i) {
 			elements[i] = ParseInputElementDesc(desc[i]);
 		}
 
 		VertexShader_dx11* vertexShader = ToInternal(vs);
-		jshGfx(g_Device->CreateInputLayout(elements.data(), cant, vertexShader->blob->GetBufferPointer(), vertexShader->blob->GetBufferSize(), &inputLayout->ptr));
+		jshGfx(g_Device->CreateInputLayout(elements, cant, vertexShader->blob->GetBufferPointer(), vertexShader->blob->GetBufferSize(), &inputLayout->ptr));
 	}
 	void BindInputLayout(const jsh::InputLayout& il, jsh::CommandList cmd)
 	{
@@ -550,7 +595,7 @@ namespace jshGraphics_dx11 {
 	//////////////////////////////SHADERS//////////////////////////////
 	void CreateVertexShader(const wchar* path, jsh::VertexShader* vs)
 	{
-		auto vertexShader = std::make_shared<VertexShader_dx11>();
+		VertexShader_dx11* vertexShader = new VertexShader_dx11();
 		vs->internalAllocation = vertexShader;
 
 		jshGfx(D3DReadFileToBlob(path, &vertexShader->blob));
@@ -558,7 +603,7 @@ namespace jshGraphics_dx11 {
 	}
 	void CreatePixelShader(const wchar* path, jsh::PixelShader* ps)
 	{
-		auto pixelShader = std::make_shared<PixelShader_dx11>();
+		PixelShader_dx11* pixelShader = new PixelShader_dx11();
 		ps->internalAllocation = pixelShader;
 
 		ComPtr<ID3DBlob> blob;
@@ -582,7 +627,7 @@ namespace jshGraphics_dx11 {
 	//////////////////////////////TEXUTRE//////////////////////////////
 	void CreateTextureRes(const JSH_TEXTURE2D_DESC* d, JSH_SUBRESOURCE_DATA* s, jsh::TextureRes* t)
 	{
-		auto texture = std::make_shared<Texture_dx11>();
+		Texture_dx11* texture = new Texture_dx11();
 		t->internalAllocation = texture;
 
 		D3D11_TEXTURE2D_DESC texDesc;
@@ -718,7 +763,7 @@ namespace jshGraphics_dx11 {
 	/////////////////////////VIEWPORT////////////////////////////////////////
 	void CreateViewport(float x, float y, float width, float height, jsh::Viewport* vp)
 	{
-		auto viewport = std::make_shared<Viewport_dx11>();
+		Viewport_dx11* viewport = new Viewport_dx11();
 		vp->internalAllocation = viewport;
 
 		viewport->viewport.Width = width;
@@ -738,7 +783,7 @@ namespace jshGraphics_dx11 {
 	/////////////////////////SAMPLER STATE////////////////////////////////////////
 	void CreateSamplerState(const JSH_SAMPLER_DESC* d, jsh::SamplerState* ss)
 	{
-		auto samplerState = std::make_shared<SamplerState_dx11>();
+		SamplerState_dx11* samplerState = new SamplerState_dx11();
 		ss->internalAllocation = samplerState;
 
 		D3D11_SAMPLER_DESC desc;
@@ -778,7 +823,7 @@ namespace jshGraphics_dx11 {
 	/////////////////////////BLEND STATE////////////////////////////////////////
 	void CreateBlendState(const JSH_BLEND_DESC* d, jsh::BlendState* bs)
 	{
-		auto blendState = std::make_shared<BlendState_dx11>();
+		BlendState_dx11* blendState = new BlendState_dx11();
 		bs->internalAllocation = blendState;
 
 		D3D11_BLEND_DESC desc = {};
@@ -807,7 +852,7 @@ namespace jshGraphics_dx11 {
 	/////////////////////////DEPTHSTENCIL STATE////////////////////////////////////////
 	void CreateDepthStencilState(const JSH_DEPTH_STENCIL_DESC* d, jsh::DepthStencilState* dss)
 	{
-		auto depthStencilState = std::make_shared<DepthStencilState_dx11>();
+		DepthStencilState_dx11* depthStencilState = new DepthStencilState_dx11();
 		dss->internalAllocation = depthStencilState;
 
 		D3D11_DEPTH_STENCIL_DESC desc;
@@ -844,7 +889,7 @@ namespace jshGraphics_dx11 {
 	/////////////////////////RASTERIZER STATE////////////////////////////////////////
 	void CreateRasterizerState(const JSH_RASTERIZER_DESC* d, jsh::RasterizerState* rs)
 	{
-		auto rasterizerState = std::make_shared<RasterizerState_dx11>();
+		RasterizerState_dx11* rasterizerState = new RasterizerState_dx11();
 		rs->internalAllocation = rasterizerState;
 
 		D3D11_RASTERIZER_DESC desc;
@@ -871,7 +916,7 @@ namespace jshGraphics_dx11 {
 	/////////////////////////RENDER TARGET VIEW////////////////////////
 	void CreateRenderTargetView(const JSH_RENDER_TARGET_VIEW_DESC* d, const JSH_TEXTURE2D_DESC* td, jsh::RenderTargetView* rtv)
 	{
-		auto RTV = std::make_shared<RenderTargetView_dx11>();
+		RenderTargetView_dx11* RTV = new RenderTargetView_dx11();
 		rtv->internalAllocation = RTV;
 
 		// resource

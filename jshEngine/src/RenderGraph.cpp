@@ -74,7 +74,11 @@ namespace jsh {
 			auto& lightsList = jshScene::_internal::GetComponentsList()[LightComponent::ID];
 
 			if (lightsList.size() / LightComponent::SIZE > JSH_GFX_MAX_LIGHTS) {
+#ifdef JSH_DEBUG
+				jshFatalError("Too many lights, there are %u lights availables", JSH_GFX_MAX_LIGHTS);
+#else
 				jshDebug::LogE("Too many lights, there are %u lights availables", JSH_GFX_MAX_LIGHTS);
+#endif
 			}
 
 			uint32 count = 0u;

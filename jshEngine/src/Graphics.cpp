@@ -45,6 +45,9 @@ namespace jshGraphics {
 	{
 		jshGraphics::ClearObjects();
 		jshGraphics::SetFullscreen(false);
+
+		jshGraphics::_internal::ReleasePrimitives();
+
 		return jshGraphics_dx11::Close();
 	}
 

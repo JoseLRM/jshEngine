@@ -2,14 +2,77 @@
 
 #include "GraphicsDesc.h"
 
+namespace jshGraphics {
+	namespace _internal {
+		template<typename T>
+		struct GraphicsPrimitive {
+			T* internalAllocation = nullptr;
+			inline bool IsValid() const noexcept { return internalAllocation; }
+			inline void Release() noexcept
+			{
+				internalAllocation->Release();
+				delete internalAllocation;
+				internalAllocation = nullptr;
+			}
+		};
+
+		struct GraphicsPrimitive_internal {
+			virtual void Release() = 0;
+		};
+
+		struct Resource_Internal : public GraphicsPrimitive_internal {
+			JSH_RESOURCE_TYPE type = JSH_RESOURCE_TYPE_INVALID;
+		};
+		struct Buffer_Internal : public Resource_Internal {
+			JSH_BUFFER_DESC desc;
+		};
+		struct TextureRes_Internal : public Resource_Internal {
+			JSH_TEXTURE2D_DESC desc;
+		};
+
+		struct InputLayout_Internal : public GraphicsPrimitive_internal {};
+
+		struct VertexShader_Internal : public GraphicsPrimitive_internal {};
+		struct PixelShader_Internal : public GraphicsPrimitive_internal {};
+		struct GeometryShader_Internal : public GraphicsPrimitive_internal {};
+		struct HullShader_Internal : public GraphicsPrimitive_internal {};
+		struct DomainShader_Internal : public GraphicsPrimitive_internal {};
+		struct ComputeShader_Internal : public GraphicsPrimitive_internal {};
+
+		struct Viewport_Internal : public GraphicsPrimitive_internal {};
+
+		struct RenderTargetView_Internal : public GraphicsPrimitive_internal {
+			JSH_RENDER_TARGET_VIEW_DESC desc;
+			JSH_TEXTURE2D_DESC resDesc;
+		};
+		struct DepthStencilState_Internal : public GraphicsPrimitive_internal {};
+		struct SamplerState_Internal : public GraphicsPrimitive_internal {};
+		struct BlendState_Internal : public GraphicsPrimitive_internal {};
+		struct RasterizerState_Internal : public GraphicsPrimitive_internal {};
+	}
+}
+
 namespace jsh {
 
 	typedef uint32 CommandList;
 
-	struct GraphicsPrimitive {
-		std::shared_ptr<void> internalAllocation;
-		inline bool IsValid() const noexcept { return internalAllocation.get() != nullptr; }
-	};
+	typedef jshGraphics::_internal::GraphicsPrimitive<jshGraphics::_internal::Resource_Internal>			Resource;
+	typedef jshGraphics::_internal::GraphicsPrimitive<jshGraphics::_internal::Buffer_Internal>				Buffer;
+	typedef jshGraphics::_internal::GraphicsPrimitive<jshGraphics::_internal::TextureRes_Internal>			TextureRes;
+			
+	typedef jshGraphics::_internal::GraphicsPrimitive<jshGraphics::_internal::InputLayout_Internal>			InputLayout;
+			
+	typedef jshGraphics::_internal::GraphicsPrimitive<jshGraphics::_internal::VertexShader_Internal>		VertexShader;
+	typedef jshGraphics::_internal::GraphicsPrimitive<jshGraphics::_internal::PixelShader_Internal>			PixelShader;
+	typedef jshGraphics::_internal::GraphicsPrimitive<jshGraphics::_internal::GeometryShader_Internal>		GeometryShader;
+			
+	typedef jshGraphics::_internal::GraphicsPrimitive<jshGraphics::_internal::Viewport_Internal>			Viewport;
+
+	typedef jshGraphics::_internal::GraphicsPrimitive<jshGraphics::_internal::RenderTargetView_Internal>	RenderTargetView;
+	typedef jshGraphics::_internal::GraphicsPrimitive<jshGraphics::_internal::DepthStencilState_Internal>	DepthStencilState;
+	typedef jshGraphics::_internal::GraphicsPrimitive<jshGraphics::_internal::SamplerState_Internal>		SamplerState;
+	typedef jshGraphics::_internal::GraphicsPrimitive<jshGraphics::_internal::BlendState_Internal>			BlendState;
+	typedef jshGraphics::_internal::GraphicsPrimitive<jshGraphics::_internal::RasterizerState_Internal>		RasterizerState;
 
 	struct VertexProperty {
 		const char* name;
@@ -22,62 +85,13 @@ namespace jsh {
 		VertexProperty(const char* name, JSH_FORMAT format, uint32 index) : name(name), format(format), index(index) {}
 	};
 
-	struct Resource : public GraphicsPrimitive {};
-	struct Buffer : public Resource {};
-	struct TextureRes : public Resource {};
-
-	struct InputLayout : public GraphicsPrimitive {};
-
-	struct VertexShader : public GraphicsPrimitive {};
-	struct PixelShader : public GraphicsPrimitive {};
-	struct GeometryShader : public GraphicsPrimitive {};
-	struct HullShader : public GraphicsPrimitive {};
-	struct DomainShader : public GraphicsPrimitive {};
-	struct ConstantShader : public GraphicsPrimitive {};
-
-	struct Viewport : public GraphicsPrimitive {};
-
-	struct RenderTargetView : public GraphicsPrimitive {};
-	struct DepthStencilState : public GraphicsPrimitive {};
-	struct SamplerState : public GraphicsPrimitive {};
-	struct BlendState : public GraphicsPrimitive {};
-	struct RasterizerState : public GraphicsPrimitive {};
-
-	namespace _internal {
-		struct Resource_Internal {
-			JSH_RESOURCE_TYPE type = JSH_RESOURCE_TYPE_INVALID;
-		};
-		struct Buffer_Internal : public Resource_Internal {
-			JSH_BUFFER_DESC desc;
-		};
-		struct TextureRes_Internal : public Resource_Internal {
-			JSH_TEXTURE2D_DESC desc;
-		};
-
-		struct InputLayout_Internal {};
-
-		struct VertexShader_Internal {};
-		struct PixelShader_Internal {};
-		struct GeometryShader_Internal {};
-		struct HullShader_Internal {};
-		struct DomainShader_Internal {};
-		struct ConstantShader_Internal {};
-
-		struct Viewport_Internal {};
-
-		struct RenderTargetView_Internal {
-			JSH_RENDER_TARGET_VIEW_DESC desc;
-			JSH_TEXTURE2D_DESC resDesc;
-		};
-		struct DepthStencilState_Internal {};
-		struct SamplerState_Internal {};
-		struct BlendState_Internal {};
-		struct RasterizerState_Internal {};
-	}
-
 }
 
 namespace jshGraphics {
+
+	namespace _internal {
+		void ReleasePrimitives();
+	}
 
 	jsh::CommandList BeginCommandList();
 
