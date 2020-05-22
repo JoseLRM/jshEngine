@@ -1,7 +1,7 @@
 #include "common.h"
 #include "GuiSystem.h"
 
-#include "GraphicsAdapter.h"
+#include "Graphics.h"
 #include "Input.h"
 #include "EventSystem.h"
 
@@ -22,7 +22,7 @@ namespace jsh {
 
 	void GuiSystem::Initialize()
 	{
-		jshEvent::Register<MouseButtonEvent>(JSH_EVENT_LAYER_GUI, [this](MouseButtonEvent& e) {
+		m_MouseListener.Register(JSH_EVENT_LAYER_GUI, [this](MouseButtonEvent& e) {
 
 			std::vector<GuiEventComponent*> toCall;
 			vec2 mouse = jshInput::MousePos();
@@ -57,6 +57,19 @@ namespace jsh {
 				}
 			}
 
+			m_ResolutionListener.Register(JSH_EVENT_LAYER_SYSTEM, [](ResolutionEvent& e) {
+			
+				auto& canvasList = jshScene::_internal::GetComponentsList()[GuiCanvasComponent::ID];
+				const uint32 size = uint32(GuiCanvasComponent::SIZE);
+
+				for (uint32 i = 0; i < canvasList.size(); i += size) {
+					GuiCanvasComponent* canvas = reinterpret_cast<GuiCanvasComponent*>(&canvasList[i]);
+					canvas->m_UpdateAll = true;
+				}
+
+				return true;
+			});
+
 			// call
 			for (int32 i = int32(toCall.size()) - 1; i >= 0; --i) {
 				toCall[i]->OnClickedFn(toCall[i]->entity, e);
@@ -79,31 +92,45 @@ namespace jsh {
 			jsh::Entity* childs;
 			jshScene::GetEntitySons(canvas.entity, &childs, &childsCount);
 
-			uint32 j = 0;
-			while (j < childsCount) {
-				GuiComponent* gui = jshScene::GetComponent<GuiComponent>(childs[j]);
+			if (canvas.m_UpdateAll) {
 
-				if (gui && gui->m_Modified) {
-					UpdateGui(*gui, canvas);
-					
-					uint32 guiChilds = 0u;
-					jshScene::GetEntitySons(gui->entity, nullptr, &guiChilds);
+				for (uint32 j = 0; j < childsCount; ++j) {
+					GuiComponent* gui = jshScene::GetComponent<GuiComponent>(childs[j]);
 
-					j++;
-					uint32 w = 0u;
-					while (w < guiChilds) {
-						GuiComponent* guiChild = jshScene::GetComponent<GuiComponent>(childs[j + w]);
-						if (guiChild) {
-							UpdateGui(*guiChild, canvas);
+					if (gui) {
+						UpdateGui(*gui, canvas);
+					}
+				}
+
+				canvas.m_UpdateAll = false;
+			}
+			else {
+				uint32 j = 0;
+				while (j < childsCount) {
+					GuiComponent* gui = jshScene::GetComponent<GuiComponent>(childs[j]);
+
+					if (gui && gui->m_Modified) {
+						UpdateGui(*gui, canvas);
+						
+						uint32 guiChilds = 0u;
+						jshScene::GetEntitySons(gui->entity, nullptr, &guiChilds);
+
+						j++;
+						uint32 w = 0u;
+						while (w < guiChilds) {
+							GuiComponent* guiChild = jshScene::GetComponent<GuiComponent>(childs[j + w]);
+							if (guiChild) {
+								UpdateGui(*guiChild, canvas);
+							}
+
+							++w;
 						}
 
-						++w;
+						j += guiChilds;
 					}
-
-					j += guiChilds;
-				}
-				else {
-					++j;
+					else {
+						++j;
+					}
 				}
 			}
 		}

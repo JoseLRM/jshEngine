@@ -35,6 +35,12 @@ namespace jshDebug {
 
 		void Close()
 		{
+#ifdef JSH_IMGUI
+			jsh::Archive file;
+			file << ImGui::GetStyle();
+			file.SaveFile("ImGuiStyle.jsh");
+#endif
+
 			RegisterLog();
 		}
 
@@ -187,6 +193,7 @@ namespace jshDebug {
 	bool g_ShowTextures = false;
 	bool g_ShowRenderer = false;
 	bool g_ShowGraphics = false;
+	bool g_ShowImGuiStyle = false;
 	bool g_ShowImGuiDemo = false;
 
 	void ShowImGuiWindow()
@@ -210,7 +217,11 @@ namespace jshDebug {
 			if (ImGui::Button("Renderer")) g_ShowRenderer = !g_ShowRenderer;
 			if (ImGui::Button("Graphics")) g_ShowGraphics = !g_ShowGraphics;
 
+			if (ImGui::Button("ImGuiStyle")) g_ShowImGuiStyle = !g_ShowImGuiStyle;
+
 			if (ImGui::Button("ImGui Demo")) g_ShowImGuiDemo = !g_ShowImGuiDemo;
+
+			if (ImGui::Button("Exit")) jshEngine::Exit(0);
 
 			uint32 FPS = jshEngine::GetFPS();
 			ImVec4 col = { 0.f, 1.f, 0.f, 1.f };
@@ -227,15 +238,14 @@ namespace jshDebug {
 		if (g_ShowMeshes) g_ShowMeshes = jshGraphics::ShowMeshImGuiWindow();
 		if (g_ShowRawData) g_ShowRawData = jshGraphics::ShowRawDataImGuiWindow();
 		if (g_ShowMaterials) g_ShowMaterials = jshGraphics::ShowMaterialImGuiWindow();
-		if (g_ShowShaders) g_ShowShaders = jshGraphics::ShowShaderImGuiWindow();
+		//if (g_ShowShaders) g_ShowShaders = jshGraphics::ShowShaderImGuiWindow();
 		if (g_ShowTextures) g_ShowTextures = jshGraphics::ShowTextureImGuiWindow();
-		if (g_ShowRenderer) {
-			if (ImGui::Begin("Renderer")) {
-				jshEngine::GetRenderer()->ShowInfo();
-			}
+		if (g_ShowRenderer) g_ShowRenderer = jshRenderer::_internal::ShowImGuiWindow();
+		if (g_ShowGraphics) g_ShowGraphics = jshGraphics::_internal::ShowImGuiWindow();
+		if (g_ShowImGuiStyle) {
+			if (ImGui::Begin("ImGui Style")) ImGui::ShowStyleEditor();
 			ImGui::End();
 		}
-		if (g_ShowGraphics) g_ShowGraphics = jshGraphics::ShowImGuiWindow();
 		if (g_ShowImGuiDemo) ImGui::ShowDemoWindow(&g_ShowImGuiDemo);
 	}
 

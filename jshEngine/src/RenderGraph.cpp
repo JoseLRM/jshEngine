@@ -1,22 +1,21 @@
 #include "common.h"
 
 #include "RenderGraph.h"
-
-#include "TaskSystem.h"
-#include "Components.h"
+#include "Technique.h"
 
 namespace jsh {
 
-	void RenderPass::AddDependence(RenderPass* renderPass) noexcept
-	{
-		if (renderPass == this) return;
-		for (uint32 i = 0; i < m_Depencences.size(); ++i) {
-			if (m_Depencences[i] == renderPass) return;
-		}
-		m_Depencences.push_back(renderPass);
-	}
+	RenderGraph::TechniqueNode::TechniqueNode(Technique* t) : technique(t) {}
 
-	RenderGraph::RenderGraph() {}
+	RenderGraph::~RenderGraph()
+	{
+		//TODO: Clear nodes
+
+		for (uint32 i = 0; i < m_Techniques.size(); ++i) {
+			m_Techniques[i]->Close();
+			delete m_Techniques[i];
+		}
+	}
 
 	void RenderGraph::Create()
 	{
@@ -32,58 +31,32 @@ namespace jsh {
 			JSH_SUBRESOURCE_DATA cameraSData;
 			cameraSData.pSysMem = &m_CameraBufferData;
 			jshGraphics::CreateBuffer(&cameraDesc, &cameraSData, &m_CameraBuffer);
-
-			JSH_BUFFER_DESC lightDesc;
-			lightDesc.BindFlags = JSH_BIND_CONSTANT_BUFFER;
-			lightDesc.ByteWidth = sizeof(m_LightBufferData);
-			lightDesc.CPUAccessFlags = 0u;
-			lightDesc.MiscFlags = 0u;
-			lightDesc.StructureByteStride = 0u;
-			lightDesc.Usage = JSH_USAGE_DEFAULT;
-			JSH_SUBRESOURCE_DATA lightSData;
-			lightSData.pSysMem = &m_LightBufferData;
-			jshGraphics::CreateBuffer(&lightDesc, &lightSData, &m_LightBuffer);
 		}
 	}
 
-	void RenderGraph::Render(CameraComponent* camera)
+	void RenderGraph::Render(Camera* camera)
 	{
-		// Clear
-		CommandList cmd = jshGraphics::BeginCommandList();
-
-		jshGraphics::ClearRenderTargetView(jshGraphics::primitives::GetOffscreenRenderTargetView(), 0.f, 0.f, 0.f, 1.f, cmd);
-		jshGraphics::ClearRenderTargetView(jshGraphics::GetRenderTargetViewFromBackBuffer(), 0.f, 0.f, 0.f, 1.f, cmd);
-		jshGraphics::ClearDepthStencilView(jshGraphics::primitives::GetDefaultDepthStencilView(), cmd);
-
 		//GLOBAL BUFFERS
 		bool doFrame = true;
-		m_pCurrentCamera = camera;
+		m_CurrentCamera = camera;
 
-		if (camera != nullptr) {
+		if (camera) {
+
+			// command list to update globals
+			CommandList cmd = 0;
 
 			// camera
-			Transform& cameraTransform = jshScene::GetTransform(camera->entity);
-
-			m_CameraBufferData.vm = XMMatrixTranspose(camera->GetViewMatrix() * camera->GetProjectionMatrix());
-			const vec3 pos = cameraTransform.GetWorldPosition();
-			m_CameraBufferData.position = vec4(pos.x, pos.y, pos.z, 1.f);
+			m_CameraBufferData.vm = XMMatrixTranspose(camera->GetProjectionMatrix());
+			m_CameraBufferData.position = { camera->position.x, camera->position.y, camera->position.z, 1.f };
 			jshGraphics::UpdateBuffer(m_CameraBuffer, &m_CameraBufferData, 0u, cmd);
 
 			// lights
-			jshZeroMemory(&m_LightBufferData, sizeof(m_LightBufferData));
+			m_Lights.clear();
 			auto& lightsList = jshScene::_internal::GetComponentsList()[LightComponent::ID];
 
-			if (lightsList.size() / LightComponent::SIZE > JSH_GFX_MAX_LIGHTS) {
-#ifdef JSH_DEBUG
-				jshFatalError("Too many lights, there are %u lights availables", JSH_GFX_MAX_LIGHTS);
-#else
-				jshDebug::LogE("Too many lights, there are %u lights availables", JSH_GFX_MAX_LIGHTS);
-#endif
-			}
-
-			uint32 count = 0u;
-
 			const uint32 componentSize = uint32(LightComponent::SIZE);
+
+			XMMATRIX viewMatrix = camera->GetViewMatrix();
 
 			for (uint32 i = 0; i < lightsList.size(); i += componentSize) {
 				LightComponent* lightComp = reinterpret_cast<LightComponent*>(&lightsList[i]);
@@ -92,42 +65,179 @@ namespace jsh {
 
 				Transform& trans = jshScene::GetTransform(lightComp->entity);
 
-				vec3 rotation = trans.GetLocalRotation();
-				XMVECTOR rotated = XMVector3Rotate( XMVectorSet(0.f, 0.f, -1.f, 1.f), XMQuaternionRotationRollPitchYaw(rotation.x, rotation.y, rotation.z));
-				rotation = rotated;
+				XMMATRIX tm = trans.GetWorldMatrix() * viewMatrix;
 
-				Light& light = m_LightBufferData.lights[count++];
-				light.color = lightComp->color;
-				light.direction = vec4(rotation.x, rotation.y, rotation.z, lightComp->spotRange);
-				light.lightPos = *(vec4*)& trans.GetWorldPosition();
-				light.data.x = lightComp->quadraticAttenuation;
-				light.data.y = lightComp->constantAttenuation;
-				light.data.z = lightComp->intensity;
-				light.data.w = *reinterpret_cast<float*>(&lightComp->lightType);
+				XMVECTOR position;
+				XMVECTOR rotationV;
+				XMVECTOR scale;
+				XMMatrixDecompose(&scale, &rotationV, &position, tm);
+
+				vec3 rotation;
+				if (lightComp->lightType != JSH_LIGHT_TYPE_POINT) {
+					//TODO: Get World Rotation
+					rotation = trans.GetLocalRotation();
+					XMVECTOR rotated = XMVector3Rotate(XMVectorSet(0.f, 0.f, -1.f, 1.f), XMQuaternionRotationAxis(rotationV, 0.f));
+					rotation = rotated;
+				}
+
+				LightBufferData light;
+				light.color = vec4(lightComp->color);
+				light.direction = vec4(rotation.x, rotation.y, rotation.z, 0.f);
+				light.lightPos = position;
+				light.smoothness = lightComp->smoothness;
+				light.range = lightComp->range;
+				light.intensity = lightComp->intensity;
+				light.spotRange = lightComp->spotRange;
+				light.type = lightComp->lightType;
+				m_Lights.emplace_back(light);
 			}
-			jshGraphics::UpdateBuffer(m_LightBuffer, &m_LightBufferData, 0u, cmd);
 		}
 		else {
-			jshDebug::LogE("Where are the camera bro ;)");
+			jshDebug::LogE("Invalid parameters in RenderGraph, you're missing something...");
 			doFrame = false;
 		}
 
-		if (m_Modified) UpdateGraph();
 		if (!doFrame) return;
 
-		for (uint32 i = 0; i < m_RenderPasses.size(); ++i) {
-			m_RenderPasses[i]->Load();
+		// UPDATE TECHNIQUES
+		{
+			for (uint32 i = 0; i < m_Techniques.size(); ++i) {
+				m_Techniques[i]->Load();
+			}
 		}
 
-		for (uint32 i = 0; i < m_RenderPasses.size(); ++i) {
-			m_RenderPasses[i]->Render(jshGraphics::BeginCommandList());
+		// RENDER TECHNIQUES
+		{
+			std::vector<TechniqueNode*> nextNodes;
+			std::vector<TechniqueNode*> renderingNodes;
+
+			// add root nodes
+			for (uint32 i = 0; i < m_RootNodes.size(); ++i) {
+				m_RootNodes[i].technique->Run();
+
+				renderingNodes.push_back(&m_RootNodes[i]);
+
+				for (uint32 j = 0; j < m_RootNodes[i].childs.size(); ++j) {
+					TechniqueNode* child = m_RootNodes[i].childs[j];
+
+					auto it = std::find(nextNodes.begin(), nextNodes.end(), child);
+
+					if(it == nextNodes.end())
+						nextNodes.push_back(child);
+				}
+			}
+
+			while (!nextNodes.empty()) {
+				for (uint32 i = 0; i < nextNodes.size(); ++i) {
+					TechniqueNode* node = nextNodes[i];
+
+					bool render = true;
+
+					for (uint32 j = 0; j < node->depencences.size(); ++j) {
+						if (node->depencences[j]->technique->IsRendering()) {
+							render = false;
+							break;
+						}
+					}
+
+					if (render) {
+						node->technique->Run();
+						renderingNodes.push_back(node);
+
+						nextNodes.erase(nextNodes.begin() + i);
+
+						for (uint32 j = 0; j < node->childs.size(); ++j) {
+							TechniqueNode* child = node->childs[j];
+							if(std::find(nextNodes.begin(), nextNodes.end(), child) == nextNodes.end())
+								nextNodes.push_back(child);
+						}
+					}
+
+					for (uint32 i = 0; i < renderingNodes.size(); ++i) {
+						if (!renderingNodes[i]->technique->IsRendering()) renderingNodes.erase(renderingNodes.begin() + i);
+					}
+				}
+
+				std::this_thread::yield();
+			}
+
+			uint32 count = 0;
+			while (count < renderingNodes.size()) {
+
+				while (renderingNodes[count]->technique->IsRendering()) {
+					std::this_thread::yield();
+				}
+
+				count++;
+			}
 		}
 	}
 
-	void RenderGraph::UpdateGraph()
+	void RenderGraph::AddTechnique(Technique* technique) noexcept
 	{
-		m_Modified = false;
-		//TODO: Render graph
+		technique->m_pRenderGraph = this;
+		technique->Initialize();
+		m_Techniques.push_back(technique);
+
+		auto attachments = technique->m_Attachments;
+		uint32 numOfAttachments = 0u;
+		for (uint32 i = 0; i < JSH_GFX_ATTACHMENTS_COUNT; ++i) {
+			if (attachments[i] == nullptr) break;
+			numOfAttachments++;
+		}
+
+
+		if (numOfAttachments == 0) {
+			m_RootNodes.emplace_back(technique);
+			return;
+		}
+
+		TechniqueNode** dependences = new TechniqueNode * [numOfAttachments];
+		jshZeroMemory(dependences, sizeof(TechniqueNode*) * numOfAttachments);
+
+		for (uint32 att = 0; att < numOfAttachments; ++att) {
+			GfxPrimitive* attachment = attachments[att];
+			TechniqueNode* dependence = nullptr;
+
+			for (uint32 i = 0; i < m_RootNodes.size(); ++i) {
+				if (m_RootNodes[i].technique->HasAttachment(attachment)) {
+					dependence = &m_RootNodes[i];
+					break;
+				}
+			}
+
+			if (dependence != nullptr) {
+				bool end = false;
+
+				while (!end)
+				{
+					end = true;
+					for (uint32 j = 0; j < dependence->childs.size(); ++j) {
+						if (dependence->childs[j]->technique->HasAttachment(attachment)) {
+							dependence = dependence->childs[j];
+							end = false;
+							break;
+						}
+					}
+				}
+			}
+
+			dependences[att] = dependence;
+		}
+
+		TechniqueNode* addNode = new TechniqueNode(technique);
+		bool root = true;
+		for (uint32 i = 0; i < numOfAttachments; ++i) {
+			if (dependences[i] != nullptr) {
+				root = false;
+				addNode->depencences.push_back(dependences[i]);
+				dependences[i]->childs.push_back(addNode);
+			}
+		}
+
+		if (root) {
+			m_RootNodes.push_back(*addNode);
+		}
 	}
 
 }

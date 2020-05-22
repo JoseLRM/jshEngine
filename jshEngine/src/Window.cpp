@@ -23,7 +23,22 @@ namespace jshWindow {
 	int screenW = 1080;
 	int screenH = 720;
 
+	bool g_WindowResized = false;
+
 	std::vector<uint8> rawMouseBuffer;
+
+	void AdjustWindow(int x, int y, int& w, int& h)
+	{
+		RECT rect;
+		rect.left = x;
+		rect.right = x + w;
+		rect.top = y;
+		rect.bottom = y + h;
+
+		AdjustWindowRect(&rect, g_Style, false);
+		w = rect.right - rect.left;
+		h = rect.bottom - rect.top;
+	}
 
 	LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
 	{
@@ -39,7 +54,7 @@ namespace jshWindow {
 				LPARAM newLParam = *((LPARAM*)& mPos.x);
 			}
 
-			ImGui_ImplWin32_WndProcHandler(windowHandle, message, wParam, newLParam);
+			if (ImGui_ImplWin32_WndProcHandler(windowHandle, message, wParam, lParam)) return DefWindowProcW(windowHandle, message, wParam, lParam);
 		}
 #endif
 
@@ -121,8 +136,7 @@ namespace jshWindow {
 		{
 			screenW = LOWORD(lParam);
 			screenH = HIWORD(lParam);
-			jsh::WindowResizedEvent e(screenW, screenH);
-			jshEvent::Dispatch(e);
+			g_WindowResized = true;
 
 			break;
 		}
@@ -149,19 +163,6 @@ namespace jshWindow {
 		}
 
 		return DefWindowProcW(windowHandle, message, wParam, lParam);
-	}
-
-	void AdjustWindow(int x, int y, int& w, int& h)
-	{
-		RECT rect;
-		rect.left = x;
-		rect.right = x + w;
-		rect.top = y;
-		rect.bottom = y + h;
-
-		AdjustWindowRect(&rect, g_Style, false);
-		w = rect.right - rect.left;
-		h = rect.bottom - rect.top;
 	}
 
 	bool Initialize()
@@ -220,6 +221,20 @@ namespace jshWindow {
 	bool UpdateInput()
 	{
 		jshInput::Update();
+
+		if (g_WindowResized) {
+			jsh::WindowResizedEvent e(screenW, screenH);
+			jshEvent::Dispatch(e);
+
+			if (screenW > 0 && screenH > 0) {
+
+				int w = screenW, h = screenH;
+				AdjustWindow(0, 0, w, h);
+
+				jshGraphics::_internal::SetResolutionAspect((float)w / (float)h);
+			}
+			g_WindowResized = false;
+		}
 
 		MSG message;
 

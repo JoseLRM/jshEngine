@@ -4,20 +4,40 @@
 
 namespace jshGraphics {
 	namespace _internal {
+
+		void ReleasePrimitives();
+
+		struct GraphicsPrimitive_internal {
+			uint32 ID = 0u;
+			virtual void Release() = 0;
+		};
+
+		void ReleasePrimitive(GraphicsPrimitive_internal* primitive);
+
 		template<typename T>
 		struct GraphicsPrimitive {
 			T* internalAllocation = nullptr;
+
+			GraphicsPrimitive<T>() = default;
+			GraphicsPrimitive<T>(const GraphicsPrimitive<T>& other) = delete;
+			GraphicsPrimitive<T>(GraphicsPrimitive<T>&& other) = delete;
+			GraphicsPrimitive<T> operator=(const GraphicsPrimitive<T>& other) = delete;
+			GraphicsPrimitive<T> operator=(GraphicsPrimitive<T>&& other) = delete;
+
 			inline bool IsValid() const noexcept { return internalAllocation; }
 			inline void Release() noexcept
 			{
-				internalAllocation->Release();
-				delete internalAllocation;
-				internalAllocation = nullptr;
+				if (IsValid()) {
+					ReleasePrimitive(internalAllocation);
+					internalAllocation = nullptr;
+				}
 			}
-		};
-
-		struct GraphicsPrimitive_internal {
-			virtual void Release() = 0;
+			inline void Move(GraphicsPrimitive<T>& other) noexcept
+			{
+				Release();
+				internalAllocation = other.internalAllocation;
+				other.internalAllocation = nullptr;
+			}
 		};
 
 		struct Resource_Internal : public GraphicsPrimitive_internal {
@@ -56,6 +76,8 @@ namespace jsh {
 
 	typedef uint32 CommandList;
 
+	typedef jshGraphics::_internal::GraphicsPrimitive<jshGraphics::_internal::GraphicsPrimitive_internal>	GfxPrimitive;
+
 	typedef jshGraphics::_internal::GraphicsPrimitive<jshGraphics::_internal::Resource_Internal>			Resource;
 	typedef jshGraphics::_internal::GraphicsPrimitive<jshGraphics::_internal::Buffer_Internal>				Buffer;
 	typedef jshGraphics::_internal::GraphicsPrimitive<jshGraphics::_internal::TextureRes_Internal>			TextureRes;
@@ -89,10 +111,6 @@ namespace jsh {
 
 namespace jshGraphics {
 
-	namespace _internal {
-		void ReleasePrimitives();
-	}
-
 	jsh::CommandList BeginCommandList();
 
 	/////////////////////////DRAW CALLS//////////////////////
@@ -107,9 +125,9 @@ namespace jshGraphics {
 	/////////////////////////BUFFER//////////////////////
 	void CreateBuffer(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Buffer* buffer);
 
-	void BindVertexBuffers(const jsh::Buffer* buffers, uint32 slot, uint32 count, const uint32* strides, const uint32* offsets, jsh::CommandList cmd);
+	void BindVertexBuffers(const jsh::Buffer** buffers, uint32 slot, uint32 count, const uint32* strides, const uint32* offsets, jsh::CommandList cmd);
 	void BindIndexBuffer(const jsh::Buffer& buffer, JSH_FORMAT format, uint32 offset, jsh::CommandList cmd);
-	void BindConstantBuffers(const jsh::Buffer* buffers, uint32 slot, uint32 count, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
+	void BindConstantBuffers(const jsh::Buffer** buffers, uint32 slot, uint32 count, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 
 	const JSH_BUFFER_DESC& GetBufferDesc(const jsh::Buffer& buffer);
 
@@ -174,9 +192,6 @@ namespace jshGraphics {
 		static jsh::DepthStencilState s_DefaultDepthStencilState;
 		static jsh::DepthStencilState s_DisabledDepthStencilState;
 
-		static jsh::TextureRes s_DefaultDepthStencilView;
-		static jsh::RenderTargetView s_OffscreenRenderTargetView;
-
 		static jsh::SamplerState s_DefaultSamplerState;
 		static jsh::Viewport s_DefaultViewport;
 
@@ -191,9 +206,6 @@ namespace jshGraphics {
 	public:		
 		inline static jsh::DepthStencilState& GetDefaultDepthStencilState() { return s_DefaultDepthStencilState; }
 		inline static jsh::DepthStencilState& GetDisabledDepthStencilState() { return s_DisabledDepthStencilState; }
-		inline static jsh::TextureRes& GetDefaultDepthStencilView() { return s_DefaultDepthStencilView; }
-
-		inline static jsh::RenderTargetView& GetOffscreenRenderTargetView() { return s_OffscreenRenderTargetView; }
 
 		inline static jsh::SamplerState& GetDefaultSamplerState() { return s_DefaultSamplerState; }
 		inline static jsh::Viewport& GetDefaultViewport() { return s_DefaultViewport; }

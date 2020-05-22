@@ -1,8 +1,7 @@
 #pragma once
 
+#include "common.h"
 #include "State.h"
-#include "Engine.h"
-#include "Renderer3D.h"
 
 namespace jsh {
 
@@ -12,14 +11,15 @@ namespace jsh {
 	public:
 		void Initialize() override
 		{
-			jsh::Renderer* renderer = jshEngine::GetRenderer();
+			jsh::Entity camEntity = jshScene::CreateEntity(CameraComponent());
+			jsh::CameraComponent* camera = jshScene::GetComponent<CameraComponent>(camEntity);
 
-			jsh::CameraComponent camera;
-			camera.Set2D();
-			camera.SetOrthographicMatrix();
-			camera.SetDimension(10.f);
+			Camera& cam = camera->GetCamera();
+			cam.Set2D();
+			cam.SetOrthographicMatrix();
+			cam.SetDimension(10.f);
 
-			renderer->SetMainCamera(jshScene::CreateEntity(camera));
+			jshRenderer::SetCamera(camera);
 
 			entity = jshScene::CreateEntity(jsh::SpriteComponent());
 			Transform& trans = jshScene::GetTransform(entity);

@@ -72,19 +72,6 @@ namespace jshGraphics {
 	{
 		return g_Mode;
 	}
-
-	uint32 GetResolutionWidth()
-	{
-		return g_Mode.resolution.x;
-	}
-	uint32 GetResolutionHeight()
-	{
-		return g_Mode.resolution.y;
-	}
-	uvec2 GetResolution()
-	{
-		return g_Mode.resolution;
-	}
 	uvec2 GetMonitorResolution()
 	{
 		return g_Mode.resolution;

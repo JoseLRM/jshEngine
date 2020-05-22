@@ -61,8 +61,8 @@ namespace jsh {
 
 		inline std::vector<VertexLayout>& GetVertexLayout() noexcept { return m_VertexLayout; }
 
-		inline Buffer GetVertexBuffer() const noexcept { return m_VertexBuffer; }
-		inline Buffer GetIndexBuffer() const noexcept { return m_IndexBuffer; }
+		inline Buffer& GetVertexBuffer() noexcept { return m_VertexBuffer; }
+		inline Buffer& GetIndexBuffer() noexcept { return m_IndexBuffer; }
 
 		inline JSH_FORMAT GetIndexBufferFormat() const noexcept { return m_IndexBufferFormat; }
 

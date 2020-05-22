@@ -4,7 +4,7 @@
 #include "TaskSystem.h"
 #include "Timer.h"
 #include "Graphics.h"
-#include "Renderer3D.h"
+#include "Renderer.h"
 #include "State.h"
 #include "DefaultLoadState.h"
 #include "StateManager.h"
@@ -15,18 +15,6 @@ using namespace jsh::_internal;
 
 namespace jshEngine {
 
-#ifdef JSH_CONSOLE
-	namespace _DontTouchItxD {
-		struct ConsoleController {
-			~ConsoleController()
-			{
-				system("pause");
-			}
-		};
-		ConsoleController pleaseKillMe;
-	}
-#endif 
-
 	void BeginUpdate(float dt);
 	void EndUpdate(float dt);
 
@@ -36,8 +24,6 @@ namespace jshEngine {
 	float g_FixedUpdateDeltaTime;
 
 	StateManager g_State;
-
-	Renderer* g_pRenderer;
 
 	GuiSystem g_GuiSystem;
 
@@ -77,26 +63,22 @@ namespace jshEngine {
 				return false;
 			}
 
-			if (!jshGraphics::Initialize()) {
-				jshDebug::LogE("Can't initialize jshGraphics");
+			if (!jshRenderer::_internal::Initialize()) {
+				jshDebug::LogE("Can't initialize jshRenderer");
 				return false;
 			}
 
 			//im gui initialize
-			jshImGui(if (!jshGraphics::InitializeImGui()) {
+			jshImGui(if (!jshGraphics::_internal::InitializeImGui()) {
 				jshDebug::LogE("Cant't initialize ImGui");
 				return false;
 			});
-
-			SetRenderer(new Renderer3D());
 
 			jshScene::Initialize();
 
 			g_GuiSystem.Initialize();
 
 			LoadState(state, loadState);
-			
-			if(g_pRenderer) if(!g_pRenderer->Initialize()) return false;
 
 			jshDebug::LogI("jshEngine initialized");
 			jshDebug::LogSeparator();
@@ -156,12 +138,10 @@ namespace jshEngine {
 				EndUpdate(g_DeltaTime);
 
 				// render
-				if (g_pRenderer) {
-					g_pRenderer->Begin();
-					g_State.Render();
-					g_pRenderer->Render();
-					g_pRenderer->End();
-				}
+				jshRenderer::_internal::Begin();
+				g_State.Render();
+				jshRenderer::_internal::Render();
+				jshRenderer::_internal::End();
 
 				// FPS count
 				dtCount += g_DeltaTime;
@@ -193,11 +173,6 @@ namespace jshEngine {
 		g_EngineState = JSH_ENGINE_STATE_CLOSING;
 
 		try {
-
-			if (g_pRenderer) {
-				if (!g_pRenderer->Close()) return false;
-				delete g_pRenderer;
-			}
 			
 			g_State.ClearState();
 
@@ -207,7 +182,7 @@ namespace jshEngine {
 
 			if (!jshWindow::Close()) return false;
 
-			if (!jshGraphics::Close()) return false;
+			if (!jshRenderer::_internal::Close()) return false;
 
 			jshDebug::LogI("jshEngine closed");
 			jshDebug::_internal::Close();
@@ -236,10 +211,8 @@ namespace jshEngine {
 
 	void BeginUpdate(float dt)
 	{
-		g_GuiSystem.Update(dt);
-	}
-	void EndUpdate(float dt)
-	{
+		if (jshInput::IsKey(JSH_KEY_CONTROL) && jshInput::IsKeyPressed(JSH_KEY_F11)) jshEngine::Exit(0);
+
 		// Update Camera matrices
 		{
 			auto& cameras = jshScene::_internal::GetComponentsList()[CameraComponent::ID];
@@ -248,6 +221,13 @@ namespace jshEngine {
 				camera->UpdateMatrices();
 			}
 		}
+
+		// Update Gui
+		g_GuiSystem.Update(dt);
+	}
+	void EndUpdate(float dt)
+	{
+		
 	}
 
 	////////////////////////////////////////STATE MANAGEMENT////////////////////////////
@@ -273,22 +253,6 @@ namespace jshEngine {
 	bool IsInitialized()
 	{
 		return g_EngineState != JSH_ENGINE_STATE_NONE && g_EngineState != JSH_ENGINE_STATE_INITIALIZING;
-	}
-
-	// RENDERER
-	void SetRenderer(jsh::Renderer* renderer)
-	{
-		if (g_pRenderer) {
-			g_pRenderer->Close();
-			delete g_pRenderer;
-		}
-		g_pRenderer = renderer;
-		if (IsInitialized()) g_pRenderer->Initialize();
-	}
-
-	jsh::Renderer* GetRenderer()
-	{
-		return g_pRenderer;
 	}
 
 	// FIXED UPDATE METHODS

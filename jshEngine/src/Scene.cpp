@@ -200,13 +200,13 @@ namespace jshScene {
 		g_Entities.resize(lastEntitiesSize + cant);
 
 		EntityData& parentData = g_EntityData[parent];
-		size_t entityIndex = size_t(parent) + size_t(parentData.sonsCount) - size_t(cant) + 1u;
+		size_t entityIndex = size_t(parentData.handleIndex) + size_t(parentData.sonsCount) - size_t(cant) + 1u;
 
 		// if the parent and sons aren't in back of the list
 		if (entityIndex != lastEntitiesSize) {
 			size_t newDataIndex = size_t(parent) + size_t(parentData.sonsCount) + 1u;
 			// move old entities
-			for (size_t i = g_Entities.capacity() - 1; i >= newDataIndex; --i) {
+			for (size_t i = g_Entities.size() - 1; i >= newDataIndex; --i) {
 				g_Entities[i] = g_Entities[i - cant];
 				g_EntityData[g_Entities[i]].handleIndex = i;
 			}
@@ -281,11 +281,12 @@ namespace jshScene {
 			ed.parent = INVALID_ENTITY;
 			ed.sonsCount = 0u;
 			ed.layer = JSH_DEFAULT_LAYER;
+			ed.transform = Transform();
 			g_FreeEntityData.emplace_back(e);
 		}
 
 		// remove from entities & update indices
-		memcpy(&g_Entities[indexBeginDest], &g_Entities[indexBeginSrc], cpyCant * sizeof(Entity));
+		if(cpyCant != 0) memcpy(&g_Entities[indexBeginDest], &g_Entities[indexBeginSrc], cpyCant * sizeof(Entity));
 		g_Entities.resize(g_Entities.size() - cant);
 		for (size_t i = indexBeginDest; i < g_Entities.size(); ++i) {
 			g_EntityData[g_Entities[i]].handleIndex = i;

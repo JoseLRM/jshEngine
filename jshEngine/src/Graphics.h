@@ -4,41 +4,39 @@
 #include "GraphicsObjects.h"
 #include "GraphicsAdapter.h"
 
+#include "Shaders.h"
+
 namespace jshGraphics {
 
-#ifdef JSH_ENGINE
-	bool Initialize();
-	bool Close();
+	namespace _internal {
+		bool Initialize();
+		bool Close();
+		void Present(jsh::RenderTargetView& rtv);
 
 #ifdef JSH_IMGUI
-	bool InitializeImGui();
+		bool InitializeImGui();
+		bool CloseImGui();
+		bool ShowImGuiWindow();
 #endif
-#endif
+	}
 
 	JSH_GRAPHICS_API GetAPI();
-
-	void Begin();
-	void End();
-	void Present(uint32 interval);
-
-#ifdef JSH_IMGUI
-	void BeginImGui();
-	void EndImGui(const jsh::RenderTargetView& rtv);
-	bool ShowImGuiWindow();
-#endif
 
 	void SetFullscreen(bool fullscreen);
 	bool InFullscreen();
 
-	bool GenerateInputLayout(jsh::Shader* shader, jsh::RawData* rawData, jsh::InputLayout* il);
+	uint32 GetResolutionWidth();
+	uint32 GetResolutionHeight();
+	jsh::uvec2 GetResolution();
+	float GetResolutionAspect();
+	void SetResolution(float width);
+	namespace _internal {
+		void SetResolutionAspect(float aspect);
+	}
 
 	class objects {
 		static jsh::SolidShader s_SolidShader;
 		static jsh::NormalShader s_NormalShader;
-		static jsh::Shader s_SpriteShader;
-		static jsh::Shader s_GuiShader;
-
-		static jsh::RawData s_SpriteRawData;
 
 #ifdef JSH_ENGINE
 	public:
@@ -48,11 +46,7 @@ namespace jshGraphics {
 	public:
 		inline static jsh::SolidShader* GetSolidShader() { return &s_SolidShader; }
 		inline static jsh::NormalShader* GetNormalShader() { return &s_NormalShader; }
-		inline static jsh::Shader* GetSpriteShader() { return &s_SpriteShader; }
-		inline static jsh::Shader* GetGuiShader() { return &s_GuiShader; }
 
-
-		inline static jsh::RawData* GetSpriteRawData() { return &s_SpriteRawData; }
 	};
 
 }

@@ -2,12 +2,12 @@
 
 cbuffer material : register(JSH_GFX_SLOT_CBUFFER_FREE0)
 {
+    float shininess;
+    float specularIntensity;
+    
     bool diffuseEnabled;
     bool normalEnabled;
     bool specularEnabled;
-
-    float shininess;
-    float specularIntensity;
 };
 
 struct PS_IN
@@ -15,12 +15,13 @@ struct PS_IN
     float3 position : FragPosition;
     float3x3 tanBiNor : FragTanBiNor;
     float2 texCoord : FragTexCoord;
-    float3 toCamera : FragToCamera;
 };
 
 Texture2D tex[3] : register(t0);
-SamplerState sam : register(s0);
+SamplerState diffuseSam : register(s0);
+SamplerState sam : register(s1);
 
+[earlydepthstencil]
 float4 main(PS_IN input) : SV_TARGET
 {
 	float3 normal;
@@ -47,11 +48,11 @@ float4 main(PS_IN input) : SV_TARGET
 		shiny *= s.w;
 	}
 
-    float3 lightColor = LoadLightColor(input.position, normal, input.toCamera, specI, shiny);
+    float3 lightColor = LoadLightColor(input.position, normal, specI, shiny);
 	
     if (diffuseEnabled)
     {
-        return float4(lightColor, 1.f) * tex[0].Sample(sam, input.texCoord);
+        return float4(lightColor, 1.f) * tex[0].Sample(diffuseSam, input.texCoord);
     }
 	else {
 		return float4(lightColor, 1.f);

@@ -75,7 +75,10 @@ namespace jshGraphics {
 
 		uint32 stride = 2 * sizeof(float);
 		uint32 offset = 0u;
-		jshGraphics::BindVertexBuffers(&g_VertexBuffer, 0u, 1u, &stride, &offset, cmd);
+		const Buffer* vBuffers[] = {
+			&g_VertexBuffer
+		};
+		jshGraphics::BindVertexBuffers(vBuffers, 0u, 1u, &stride, &offset, cmd);
 		jshGraphics::BindInputLayout(g_InputLayout, cmd);
 		jshGraphics::BindVertexShader(g_VertexShader, cmd);
 		jshGraphics::BindPixelShader((ps == nullptr) ? g_DefaultPixelShader : *ps, cmd);

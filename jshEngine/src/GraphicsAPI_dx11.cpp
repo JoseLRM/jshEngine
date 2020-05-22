@@ -6,6 +6,7 @@
 #include "Window.h"
 #include "Graphics.h"
 #include "DirectX11Lib.h"
+#include "PostProcess.h"
 
 #include "safe_queue.h"
 
@@ -294,6 +295,10 @@ namespace jshGraphics_dx11 {
 
 	void CreateBackBuffer(DXGI_FORMAT format)
 	{
+		if (g_RenderTargetView.internalAllocation != nullptr) {
+			g_RenderTargetView.internalAllocation->Release();
+			delete g_RenderTargetView.internalAllocation;
+		}
 		RenderTargetView_dx11* RTV = new RenderTargetView_dx11();
 		g_RenderTargetView.internalAllocation = RTV;
 
@@ -405,33 +410,36 @@ namespace jshGraphics_dx11 {
 		return true;
 	}
 
-#ifdef JSH_IMGUI
-	bool InitializeImGui()
-	{
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		if (!ImGui_ImplWin32_Init(jshWindow::GetWindowHandle())) return false;
-		if (!ImGui_ImplDX11_Init(g_Device.Get(), g_ImmediateContext.Get())) return false;
-		return true;
-	}
-#endif
-
 	bool Close()
 	{
+		for (uint32 i = 0; i < JSH_GFX_COMMANDLISTS_COUNT; ++i) {
+			g_CommandLists[i].Reset();
+			g_DeferredContext[i].Reset();
+		}
+
+		if (g_RenderTargetView.internalAllocation) {
+			g_RenderTargetView.internalAllocation->Release();
+			delete g_RenderTargetView.internalAllocation;
+		}
+
 		g_ImmediateContext.Reset();
 		g_SwapChain.Reset();
 		g_Device.Reset();
+
 		return true;
 	}
 
-	void Begin()
-	{
-		
-	}
-	void End()
+	void Present(jsh::RenderTargetView& rtv, uint32 interval)
 	{
 		jsh::CommandList cmd;
 		while (g_ActiveCommandLists.pop(cmd)) {
+
+			// offscrent rtv to back buffer
+			if (g_ActiveCommandLists.size() == 0) {
+				jshGraphics::BindViewport(jshGraphics::primitives::GetDefaultViewport(), 0u, cmd);
+				jshGraphics::BindBlendState(jshGraphics::primitives::GetDefaultBlendState(), cmd);
+				jshGraphics::PostProcess(rtv, g_RenderTargetView, nullptr, nullptr, 0u, nullptr, cmd);
+			}
 
 			g_DeferredContext[cmd]->FinishCommandList(FALSE, g_CommandLists[cmd].GetAddressOf());
 			g_ImmediateContext->ExecuteCommandList(g_CommandLists[cmd].Get(), FALSE);
@@ -439,13 +447,35 @@ namespace jshGraphics_dx11 {
 
 			g_FreeCommandLists.push(cmd);
 		}
-	}
-	void Present(uint32 interval)
-	{
-		g_SwapChain->Present(interval, 0u);
-	}
 
 #ifdef JSH_IMGUI
+		g_ImmediateContext->OMSetRenderTargets(1u, ToInternal(g_RenderTargetView)->ptr.GetAddressOf(), nullptr);
+		EndImGui();
+#endif
+
+		g_SwapChain->Present(interval, 0u);
+
+		jshImGui(BeginImGui());
+	}
+
+	////////////////////////////////////////IM GUI/////////////////////////////////////
+#ifdef JSH_IMGUI
+	bool InitializeImGui()
+	{
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		if (!ImGui_ImplWin32_Init(jshWindow::GetWindowHandle())) return false;
+		if (!ImGui_ImplDX11_Init(g_Device.Get(), g_ImmediateContext.Get())) return false;
+		jshImGui(BeginImGui());
+		return true;
+	}
+	bool CloseImGui()
+	{
+		ImGui_ImplDX11_Shutdown();
+		ImGui_ImplWin32_Shutdown();
+		ImGui::DestroyContext();
+		return true;
+	}
 	void BeginImGui()
 	{
 		jshImGui(ImGui_ImplDX11_NewFrame());
@@ -453,11 +483,8 @@ namespace jshGraphics_dx11 {
 		jshImGui(ImGui::NewFrame());
 		jshImGui(jshDebug::ShowImGuiWindow());
 	}
-	void EndImGui(const jsh::RenderTargetView& rtv)
+	void EndImGui()
 	{
-		RenderTargetView_dx11* RTV = ToInternal(rtv);
-		g_ImmediateContext->OMSetRenderTargets(1, RTV->ptr.GetAddressOf(), nullptr);
-
 		jshImGui(ImGui::Render());
 		jshImGui(ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData()));
 	}
@@ -506,12 +533,12 @@ namespace jshGraphics_dx11 {
 
 		jshGfx(g_Device->CreateBuffer(&desc, (s == nullptr) ? nullptr : &subres, buffer->ptr.GetAddressOf()));
 	}
-	void BindVertexBuffers(const jsh::Buffer* b, uint32 slot, uint32 count, const uint32* strides, const uint32* offsets, jsh::CommandList cmd)
+	void BindVertexBuffers(const jsh::Buffer** b, uint32 slot, uint32 count, const uint32* strides, const uint32* offsets, jsh::CommandList cmd)
 	{
 		ID3D11Buffer* buffers[JSH_GFX_VERTEX_BUFFERS_COUNT];
 
 		for(uint32 i = 0; i < count; ++i) {
-			buffers[i] = ToInternal(b[i])->ptr.Get();
+			buffers[i] = ToInternal(*b[i])->ptr.Get();
 		}
 
 		g_DeferredContext[cmd]->IASetVertexBuffers(slot, count, buffers, strides, offsets);
@@ -527,11 +554,11 @@ namespace jshGraphics_dx11 {
 
 		return;
 	}
-	void BindConstantBuffers(const jsh::Buffer* b, uint32 slot, uint32 count, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
+	void BindConstantBuffers(const jsh::Buffer** b, uint32 slot, uint32 count, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd)
 	{
 		ID3D11Buffer* buffers[JSH_GFX_CONSTANT_BUFFERS_COUNT];
 		for (uint32 i = 0; i < count; ++i) {
-			buffers[i] = ToInternal(b[i])->ptr.Get();
+			buffers[i] = ToInternal(*b[i])->ptr.Get();
 		}
 
 		switch (shaderType) {

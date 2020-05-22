@@ -9,6 +9,9 @@ namespace jsh {
 	class GuiSystem {
 		jsh::Entity m_FocusedEntity = INVALID_ENTITY;
 
+		jshEvent::Listener<jsh::MouseButtonEvent> m_MouseListener;
+		jshEvent::Listener<jsh::ResolutionEvent> m_ResolutionListener;
+
 	public:
 		void Initialize();
 		void Update(float dt);

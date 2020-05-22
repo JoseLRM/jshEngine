@@ -67,7 +67,10 @@ using namespace DirectX;
 #include "Archive.h"
 
 // misc
+#include "Input.h"
 #include "Engine.h"
 #include "Timer.h"
+#include "EventSystem.h"
 #include "TaskSystem.h"
 #include "Scene.h"
+#include "Renderer.h"

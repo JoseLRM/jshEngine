@@ -42,13 +42,9 @@ namespace jsh {
 	XMVECTOR Transform::GetWorldPositionDXV() noexcept
 	{
 		if (m_Modified) UpdateWorldMatrix();
-		XMVECTOR scale;
-		XMVECTOR rotation;
-		XMVECTOR position;
 
-		XMMatrixDecompose(&scale, &rotation, &position, XMLoadFloat4x4(&m_WorldMatrix));
-
-		return position;
+		vec3 position = GetWorldPosition();
+		return XMVectorSet(position.x, position.y, position.z, 0.f);
 	}
 	XMVECTOR Transform::GetWorldRotationDXV() noexcept
 	{

@@ -8,20 +8,16 @@ namespace jshGraphics_dx11 {
 	////////////////////FUNCTIONS///////////////////////////
 
 	bool Initialize();
-
-	jshImGui(bool InitializeImGui());
-
 	bool Close();
-
-	void Begin();
-	void End();
-	void Present(uint32 interval);
+	void Present(jsh::RenderTargetView& rtv, uint32 interval);
 
 	jsh::CommandList BeginCommandList();
 
 #ifdef JSH_IMGUI
+	bool InitializeImGui();
+	bool CloseImGui();
 	void BeginImGui();
-	void EndImGui(const jsh::RenderTargetView& rtv);
+	void EndImGui();
 #endif
 
 	/////////////////////////TOPOLOGY//////////////////////
@@ -30,9 +26,9 @@ namespace jshGraphics_dx11 {
 	/////////////////////////BUFFER//////////////////////
 	void CreateBuffer(const JSH_BUFFER_DESC* desc, JSH_SUBRESOURCE_DATA* sdata, jsh::Buffer* buffer);
 
-	void BindVertexBuffers(const jsh::Buffer* buffers, uint32 slot, uint32 count, const uint32* strides, const uint32* offsets, jsh::CommandList cmd);
+	void BindVertexBuffers(const jsh::Buffer** buffers, uint32 slot, uint32 count, const uint32* strides, const uint32* offsets, jsh::CommandList cmd);
 	void BindIndexBuffer(const jsh::Buffer& buffer, JSH_FORMAT format, uint32 offset, jsh::CommandList cmd);
-	void BindConstantBuffers(const jsh::Buffer* buffers, uint32 slot, uint32 count, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
+	void BindConstantBuffers(const jsh::Buffer** buffers, uint32 slot, uint32 count, JSH_SHADER_TYPE shaderType, jsh::CommandList cmd);
 
 	void UpdateBuffer(jsh::Buffer& res, void* data, uint32 size, jsh::CommandList cmd);
 

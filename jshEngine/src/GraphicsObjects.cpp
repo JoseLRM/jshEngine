@@ -25,6 +25,107 @@ namespace jsh {
 		jshGraphics::UpdateBuffer(m_Buffer, data, size, cmd);
 	}
 
+	//////////////////////MESH SHADER//////////////////////////////
+	void MeshShader::Bind(RawData* rawData, CommandList cmd)
+	{
+		BindInputLayout(rawData, cmd);
+		jshGraphics::BindVertexShader(m_VertexShader, cmd);
+		jshGraphics::BindPixelShader(m_PixelShader, cmd);
+	}
+
+	void MeshShader::BindVertexShader(RawData* rawData, CommandList cmd)
+	{
+		BindInputLayout(rawData, cmd);
+		jshGraphics::BindVertexShader(m_VertexShader, cmd);
+	}
+
+	void MeshShader::AddVertexProperty(const char* name, JSH_FORMAT format, uint32 index)
+	{
+		m_VertexProps.emplace_back(name, format, index);
+	}
+
+	void MeshShader::CreateInputLayoutFromRawData(RawData* rawData, InputLayout* il)
+	{
+		static constexpr JSH_INPUT_ELEMENT_DESC instanceElements[] = {
+
+			{ "TM", 0, JSH_FORMAT_R32G32B32A32_FLOAT, 1u, false, 0 * sizeof(float),	1u },
+			{ "TM", 1, JSH_FORMAT_R32G32B32A32_FLOAT, 1u, false, 4 * sizeof(float), 1u },
+			{ "TM", 2, JSH_FORMAT_R32G32B32A32_FLOAT, 1u, false, 8 * sizeof(float), 1u },
+			{ "TM", 3, JSH_FORMAT_R32G32B32A32_FLOAT, 1u, false, 12 * sizeof(float), 1u }
+
+		};
+		constexpr uint32 instanceElementsCount = sizeof(instanceElements) / sizeof(instanceElements[0]);
+
+
+		auto& sProps = m_VertexProps;
+		auto& rLayout = rawData->GetVertexLayout();
+
+		uint32 descSize = uint32(sProps.size() + instanceElementsCount);
+		JSH_INPUT_ELEMENT_DESC* desc = new JSH_INPUT_ELEMENT_DESC[descSize];
+
+		// create vertex input elements
+		for (uint32 i = 0; i < sProps.size(); ++i) {
+			bool find = false;
+			uint32 j;
+			VertexProperty& prop = sProps[i];
+
+			for (j = 0; j < rLayout.size(); ++j) {
+				if (prop == rLayout[j].prop) {
+					find = true;
+					break;
+				}
+			}
+			if (!find) {
+				return;
+			}
+
+			desc[i] = { prop.name, prop.index, prop.format, 0u, true, rLayout[j].offset, 0u };
+		}
+
+		// create instance input elements
+		{
+			uint32 beginIndex = sProps.size();
+			for (uint32 i = 0; i < instanceElementsCount; ++i) {
+				desc[beginIndex + i] = instanceElements[i];
+			}
+		}
+
+		jshGraphics::CreateInputLayout(desc, descSize, m_VertexShader, il);
+
+		delete[] desc;
+	}
+
+	void MeshShader::BindInputLayout(RawData* rawData, CommandList cmd)
+	{
+		auto it = m_InputLayouts.find(rawData);
+		if (it != m_InputLayouts.end()) {
+			jshGraphics::BindInputLayout((*it).second, cmd);
+		}
+		else {
+			InputLayout il;
+			CreateInputLayoutFromRawData(rawData, &il);
+
+			if (il.IsValid()) {
+				jshGraphics::BindInputLayout(il, cmd);
+				m_InputLayouts[rawData];
+				m_InputLayouts[rawData].Move(il);
+			}
+			else {
+				jshDebug::LogE("Shader and rawData are not compatible");
+			}
+		}
+	}
+
+	//////////////////////MATERIAL//////////////////////////////
+	void Material::SetShader(MeshShader* shader) {
+		// Destroy last material
+		if (m_pShader && m_MaterialData) {
+			m_pShader->DestroyMaterialData(m_MaterialData);
+		}
+		m_pShader = shader;
+		m_MaterialData = shader->CreateMaterialData();
+	}
+
 	//////////////////////MODEL/////////////////////////////////
 	Model::Model() : root() {}
 
@@ -82,7 +183,7 @@ namespace jshGraphics {
 	std::map<std::string, Mesh*> g_Mesh;
 	std::map<std::string, RawData*> g_RawData;
 	std::map<std::string, Material*> g_Material;
-	std::map<std::string, Shader*> g_Shader;
+	std::map<std::string, MeshShader*> g_Shader;
 	std::map<std::string, Texture*> g_Texture;
 
 #define CreateObject(name, obj, map) \
@@ -128,12 +229,6 @@ if (it != map.end()) { \
 		CreateObject(name, material, g_Material);
 		return material;
 	}
-	jsh::Shader* CreateShader(const char* name)
-	{
-		Shader* shader = new Shader();
-		CreateObject(name, shader, g_Shader);
-		return shader;
-	}
 	jsh::Texture* CreateTexture(const char* name)
 	{
 		Texture* texture = new Texture();
@@ -153,10 +248,6 @@ GetObject(name, g_RawData);
 	{
 		GetObject(name, g_Material);
 	}
-	jsh::Shader* GetShader(const char* name)
-	{
-		GetObject(name, g_Shader);
-	}
 	jsh::Texture* GetTexture(const char* name)
 	{
 		GetObject(name, g_Texture);
@@ -173,10 +264,6 @@ GetObject(name, g_RawData);
 	void RemoveMaterial(const char* name)
 	{
 		RemoveObject(name, g_Material);
-	}
-	void RemoveShader(const char* name)
-	{
-		RemoveObject(name, g_Shader);
 	}
 	void RemoveTexture(const char* name)
 	{
@@ -301,11 +388,11 @@ GetObject(name, g_RawData);
 	{
 		Material* material = g_Material[g_SelectedMaterial];
 
-		Shader* shader = material->GetShader();
+		MeshShader* shader = material->GetShader();
 		if (shader) {
-			ConstantData* cd = material->GetConstantData();
+			void* md = material->GetMaterialData();
 
-			shader->ShowConstantDataInfo(*cd);
+			shader->ShowMaterialInfo(md);
 		}
 	}
 	bool ShowMaterialImGuiWindow()
@@ -353,10 +440,6 @@ GetObject(name, g_RawData);
 	jsh::Material* GetMaterialImGui()
 	{
 		return GetObjImGui(g_Material);
-	}
-	jsh::Shader* GetShaderImGui()
-	{
-		return GetObjImGui(g_Shader);
 	}
 	jsh::Texture* GetTextureImGui()
 	{

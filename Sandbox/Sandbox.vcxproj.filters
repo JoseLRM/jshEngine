@@ -29,5 +29,8 @@
     <ClInclude Include="src\ParticleGenerator.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="src\LightGenerator.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

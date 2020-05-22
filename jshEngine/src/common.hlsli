@@ -1,7 +1,7 @@
 #ifndef JSH_COMMON
 #define JSH_COMMON
 
-#define JSH_GFX_MAX_LIGHTS 2u
+#define JSH_GFX_MAX_LIGHTS 100u
 
 #define JSH_GFX_SLOT_CBUFFER_CAMERA		b0
 #define JSH_GFX_SLOT_CBUFFER_LIGHTS		b1
@@ -47,20 +47,17 @@ typedef unsigned int uint32;
 typedef min16uint uint16;
 
 struct Camera {
-	matrix vm;
-
+	matrix pm;
 	float4 position;
-	float4 fasgargvcfcfvaga;
-	float4 fasgargcfcfvaga;
-	float4 fasgarcfcfvaga;
 };
 
 struct Light {
-	float4 position;
-	float quadraticAtt;
-	float constantAtt;
+	float3 position;
+	float smoothness;
+	float range;
 	float intensity;
 	unsigned int type;
+    float spotRange;
 	float4 color;
 	float4 direction;
 };

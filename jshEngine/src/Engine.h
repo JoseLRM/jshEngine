@@ -24,11 +24,6 @@ namespace jshEngine {
 	uint32 GetFPS();
 	float GetDeltaTime();
 
-	// renderer
-	void SetRenderer(jsh::Renderer* renderer);
-
-	jsh::Renderer* GetRenderer();
-
 	// fixedUpdate methods
 	void SetFixedUpdateFrameRate(uint32 frameRate);
 	float GetFixedUpdateDeltaTime();

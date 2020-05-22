@@ -6,8 +6,6 @@
 #include "..//src/Engine.h"
 #include "..//src/TaskSystem.h"
 #include "..//src/Window.h"
-#include "..//src/Graphics.h"
-#include "..//src/Renderer3D.h"
 #include "..//src/Debug.h"
 #include "..//src/EventSystem.h"
 #include "..//src/Input.h"
@@ -20,3 +18,10 @@
 // data structures
 #include "..//src/Image.h"
 #include "..//src/Archive.h"
+
+// Graphics
+#include "..//src/Graphics.h"
+#include "..//src/Renderer.h"
+
+#include "..//src/SpriteRenderer.h"
+#include "..//src/MeshRenderer.h"

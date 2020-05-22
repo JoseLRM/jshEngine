@@ -14,7 +14,6 @@ struct VS_OUT {
 	float3 fragPos : FragPosition;
 	float3x3 tanBiNor : FragTanBiNor;
 	float2 texCoord : FragTexCoord;
-	float3 toCamera : FragToCamera;
     
 	float4 position : SV_Position;
 };
@@ -25,8 +24,7 @@ VS_OUT main( VS_IN input )
 
 	output.fragPos = mul(float4(input.position, 1.f), input.tm).xyz;
 	output.tanBiNor = mul(float3x3(input.tangent, input.bitangent, input.normal), (float3x3)input.tm);
-	output.toCamera = normalize(output.fragPos - camera.position.xyz);
-    output.position = mul(float4(output.fragPos, 1.f), camera.vm);
+    output.position = mul(float4(output.fragPos, 1.f), camera.pm);
 	output.texCoord = input.texCoord;
 
     

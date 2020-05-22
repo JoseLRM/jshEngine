@@ -6,73 +6,59 @@ namespace jsh {
 
 	struct CameraComponent;
 	class RenderGraph;
+	class Technique;
 
-	class RenderPass {
-	protected:
-		RenderGraph* m_pRenderGraph = nullptr;
-		std::vector<RenderPass*> m_Depencences;
+	typedef void(*RenderPass)(jsh::CommandList cmd);
 
-	public:
-		friend RenderGraph;
-		RenderPass() {}
-
-		virtual void Create() = 0;
-		virtual void Load() {}
-		virtual void Render(CommandList cmd) = 0;
-
-		void AddDependence(RenderPass* renderPass) noexcept;
-
+	struct LightBufferData {
+		jsh::vec3 lightPos;
+		float smoothness;
+		float range;
+		float intensity;
+		uint32 type;
+		float spotRange;
+		jsh::vec4 color;
+		jsh::vec4 direction;
 	};
 
 	class RenderGraph {
-		std::vector<RenderPass*> m_RenderPasses;
+		struct TechniqueNode {
+			Technique* technique = nullptr;
+			
+			std::vector<TechniqueNode*> depencences;
+			std::vector<TechniqueNode*> childs;
 
-		bool m_Modified = true;
+			TechniqueNode() = default;
+			TechniqueNode(Technique*);
+		};
+		std::vector<TechniqueNode> m_RootNodes;
 
+		std::vector<Technique*> m_Techniques;
+
+		// Globals
 		struct {
 			XMMATRIX vm;
-
-			jsh::vec4 position;
-			jsh::vec4 aux0;
-			jsh::vec4 aux1;
-			jsh::vec4 aux2;
+			vec4 position;
 		} m_CameraBufferData;
 
-		struct Light {
-			vec4 lightPos;
-			vec4 data;
-			vec4 color;
-			vec4 direction;
-		};
-		struct alignas(16) {
-			Light lights[JSH_GFX_MAX_LIGHTS];
-		} m_LightBufferData;
+		jsh::Buffer						m_CameraBuffer;
+		std::vector<LightBufferData>	m_Lights;
 
-		Buffer m_CameraBuffer;
-		Buffer m_LightBuffer;
-
-		CameraComponent* m_pCurrentCamera = nullptr;
+		jsh::Camera*		m_CurrentCamera = nullptr;
 
 	public:
-		RenderGraph();
-
-		inline Buffer& GetCameraBuffer() noexcept { return m_CameraBuffer; }
-		inline Buffer& GetLightBuffer() noexcept { return m_LightBuffer; }
-
-		inline CameraComponent* GetCurrentCamera() const noexcept { return m_pCurrentCamera; }
+		~RenderGraph();
 
 		void Create();
-		void Render(CameraComponent* camera);
+		void Render(Camera* camera);
 
-		inline void AddPass(RenderPass* pass) noexcept 
-		{ 
-			m_RenderPasses.push_back(pass);
-			m_Modified = true;
-			pass->m_pRenderGraph = this;
-		}
+		inline Buffer& GetCameraBuffer() noexcept { return m_CameraBuffer; }
+		inline std::vector<LightBufferData>& GetLights() noexcept { return m_Lights; }
 
-	private:
-		void UpdateGraph();
+		inline Camera* GetCamera() const noexcept { return m_CurrentCamera; }
+
+		void AddTechnique(Technique* technique) noexcept;
+
 	};
 
 }

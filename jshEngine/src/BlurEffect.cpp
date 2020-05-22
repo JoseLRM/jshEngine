@@ -98,7 +98,7 @@ namespace jsh {
 		jshGraphics::CreateViewport(0.f, 0.f, float(m_Resolution.x), float(m_Resolution.y), &m_Viewport);
 	}
 
-	void BlurEffect::Render(RenderTargetView input, RenderTargetView output, Viewport viewport, DepthStencilState* dss, TextureRes* dsv, uint32 stencilRef, CommandList cmd)
+	void BlurEffect::Render(RenderTargetView& input, RenderTargetView& output, Viewport& viewport, DepthStencilState* dss, TextureRes* dsv, uint32 stencilRef, CommandList cmd)
 	{
 		JSH_ASSERT(input.IsValid() && output.IsValid());
 
@@ -131,8 +131,12 @@ namespace jsh {
 
 		jshGraphics::UpdateBuffer(m_BlurBuffer, &blurData, 0u, cmd);
 		jshGraphics::UpdateBuffer(m_CoefficientsBuffer, &coefficientsData,0u, cmd);
-		jshGraphics::BindConstantBuffers(&m_BlurBuffer, 0u, 1u, JSH_SHADER_TYPE_PIXEL, cmd);
-		jshGraphics::BindConstantBuffers(&m_CoefficientsBuffer, 1u, 1u, JSH_SHADER_TYPE_PIXEL, cmd);
+
+		const Buffer* buffers[] = {
+			&m_BlurBuffer,
+			& m_CoefficientsBuffer
+		};
+		jshGraphics::BindConstantBuffers(buffers, 0u, 2u, JSH_SHADER_TYPE_PIXEL, cmd);
 
 		jshGraphics::BindViewport(m_Viewport, 0u, cmd);
 
@@ -173,7 +177,7 @@ namespace jsh {
 		uint32 radius = m_Radius / 4;
 
 		for (uint32 x = 0; x < radius; ++x) {
-			c.coefficients[x].x = jsh::Gauss((float)x, m_Sigma);
+			c.coefficients[x].x = jshMath::Gauss((float)x, m_Sigma);
 			co += c.coefficients[x].x;
 		}
 

@@ -415,11 +415,12 @@ namespace jsh {
 	typedef Vector4D<int32>	 ivec4;
 	typedef Vector4D<uint32> uvec4;
 
-	typedef Vector4D<uint8> Color;
-
 #pragma endregion
+}
 
-	inline void QuaternionToEuler(vec4* q, vec3* e)
+namespace jshMath {
+
+	inline void QuaternionToEuler(jsh::vec4* q, jsh::vec3* e)
 	{
 		// roll (x-axis rotation)
 		float sinr_cosp = 2.f * (q->w * q->x + q->y * q->z);
@@ -445,15 +446,77 @@ namespace jsh {
 		return ((T)1.f / sqrt((T)2.f * (T)PI * sigma * sigma)) * exp(-(x * x) / ((T)2.f * sigma * sigma));
 	}
 
+	constexpr float ByteColorToFloat(uint8 c) { return float(c) / 255.f; }
+	constexpr uint8 FloatColorToByte(float c) { return uint8(c * 255.f); }
 }
 
-namespace jshColor {
+/////////////////////////////////////////////////////COLORS/////////////////////////////////////////////////////////////////
+namespace jsh {
+	typedef Vector4D<uint8> Color4b;
+	typedef Vector3D<uint8> Color3b;
+	typedef Vector4D<float> Color4f;
+	typedef Vector3D<float> Color3f;
+	typedef uint32			Color1u;
+}
 
-	constexpr jsh::Color BLACK(jsh::Color(0u, 0u, 0u, 255u));
-	constexpr jsh::Color WHITE(jsh::Color(255u));
-	constexpr jsh::Color RED(jsh::Color(255u, 0u, 0u, 255u));
-	constexpr jsh::Color GREEN(jsh::Color(0u, 255u, 0u, 255u));
-	constexpr jsh::Color BLUE(jsh::Color(0u, 0u, 255u, 255u));
-	constexpr jsh::Color GREY(uint8 n) { return jsh::Color(n, n, n, 255); }
+namespace jshColor4b {
+
+	constexpr jsh::Color4b BLACK(0u, 0u, 0u, 255u);
+	constexpr jsh::Color4b WHITE(255u);
+	constexpr jsh::Color4b RED(255u, 0u, 0u, 255u);
+	constexpr jsh::Color4b GREEN(0u, 255u, 0u, 255u);
+	constexpr jsh::Color4b BLUE(0u, 0u, 255u, 255u);
+	constexpr jsh::Color4b YELLOW(255u, 255u, 0u, 255u);
+	constexpr jsh::Color4b ORANGE(255u, 100u, 0u, 255u);
+	constexpr jsh::Color4b GREY(uint8 n) { return jsh::Color4b(n, n, n, 255u); }
+
+	constexpr jsh::Color3b ToColor3b(jsh::Color4b c) { return jsh::Color3b(c.x, c.y, c.z); }
+	constexpr jsh::Color4f ToColor4f(jsh::Color4b c) { return jsh::Color4f(jshMath::ByteColorToFloat(c.x), jshMath::ByteColorToFloat(c.y), jshMath::ByteColorToFloat(c.z), jshMath::ByteColorToFloat(c.w)); }
+	constexpr jsh::Color3f ToColor3f(jsh::Color4b c) { return jsh::Color3f(jshMath::ByteColorToFloat(c.x), jshMath::ByteColorToFloat(c.y), jshMath::ByteColorToFloat(c.z)); }
+
+}
+
+namespace jshColor3b {
+
+	constexpr jsh::Color3b BLACK(0u, 0u, 0u);
+	constexpr jsh::Color3b WHITE(255u);
+	constexpr jsh::Color3b RED(255u, 0u, 0u);
+	constexpr jsh::Color3b GREEN(0u, 255u, 0u);
+	constexpr jsh::Color3b BLUE(0u, 0u, 255u);
+	constexpr jsh::Color3b GREY(uint8 n) { return jsh::Color3b(n, n, n); }
+
+	constexpr jsh::Color4b ToColor4b(jsh::Color3b c) { return jsh::Color4b(c.x, c.y, c.z, 255u); }
+	constexpr jsh::Color4f ToColor4f(jsh::Color3b c) { return jsh::Color4f(jshMath::ByteColorToFloat(c.x), jshMath::ByteColorToFloat(c.y), jshMath::ByteColorToFloat(c.z), 1.f); }
+	constexpr jsh::Color3f ToColor3f(jsh::Color3b c) { return jsh::Color3f(jshMath::ByteColorToFloat(c.x), jshMath::ByteColorToFloat(c.y), jshMath::ByteColorToFloat(c.z)); }
+
+}
+
+namespace jshColor4f {
+
+	constexpr jsh::Color4f BLACK(0.f, 0.f, 0.f, 1.f);
+	constexpr jsh::Color4f WHITE(1.f);
+	constexpr jsh::Color4f RED(1.f, 0.f, 0.f, 1.f);
+	constexpr jsh::Color4f GREEN(0.f, 1.f, 0.f, 1.f);
+	constexpr jsh::Color4f BLUE(0.f, 0.f, 1.f, 1.f);
+	constexpr jsh::Color4f GREY(float n) { return jsh::Color4f(n, n, n, 1.f); }
+
+	constexpr jsh::Color4b ToColor4b(jsh::Color4f c) { return jsh::Color4b(jshMath::FloatColorToByte(c.x), jshMath::FloatColorToByte(c.y), jshMath::FloatColorToByte(c.z), jshMath::FloatColorToByte(c.w)); }
+	constexpr jsh::Color3b ToColor3b(jsh::Color4f c) { return jsh::Color3b(jshMath::FloatColorToByte(c.x), jshMath::FloatColorToByte(c.y), jshMath::FloatColorToByte(c.z)); }
+	constexpr jsh::Color3f ToColor3f(jsh::Color4f c) { return jsh::Color3f(c.x, c.y, c.z); }
+
+}
+
+namespace jshColor3f {
+
+	constexpr jsh::Color3f BLACK(0.f, 0.f, 0.f);
+	constexpr jsh::Color3f WHITE(1.f);
+	constexpr jsh::Color3f RED(1.f, 0.f, 0.f);
+	constexpr jsh::Color3f GREEN(0.f, 1.f, 0.f);
+	constexpr jsh::Color3f BLUE(0.f, 0.f, 1.f);
+	constexpr jsh::Color3f GREY(float n) { return jsh::Color3f(n, n, n); }
+
+	constexpr jsh::Color4b ToColor4b(jsh::Color3f c) { return jsh::Color4b(jshMath::FloatColorToByte(c.x), jshMath::FloatColorToByte(c.y), jshMath::FloatColorToByte(c.z), 255u); }
+	constexpr jsh::Color3b ToColor3b(jsh::Color3f c) { return jsh::Color3b(jshMath::FloatColorToByte(c.x), jshMath::FloatColorToByte(c.y), jshMath::FloatColorToByte(c.z)); }
+	constexpr jsh::Color4f ToColor4f(jsh::Color3f c) { return jsh::Color4f(c.x, c.y, c.z, 1.f); }
 
 }

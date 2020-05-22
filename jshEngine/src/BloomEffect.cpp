@@ -67,7 +67,10 @@ namespace jsh {
 		jshGraphics::BindBlendState(jshGraphics::primitives::GetDefaultBlendState(), cmd);
 		jshGraphics::BindViewport(m_Viewport, 0u, cmd);
 
-		jshGraphics::BindConstantBuffers(&m_BloomBuffer, 0u, 1u, JSH_SHADER_TYPE_PIXEL, cmd);
+		const Buffer* buffers[] = {
+			&m_BloomBuffer
+		};
+		jshGraphics::BindConstantBuffers(buffers, 0u, 1u, JSH_SHADER_TYPE_PIXEL, cmd);
 		
 		jsh::vec4 i;
 		i.x = intensity;

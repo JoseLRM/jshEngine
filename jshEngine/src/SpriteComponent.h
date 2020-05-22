@@ -6,12 +6,12 @@ namespace jsh {
 
 	struct SpriteComponent : public jsh::Component<SpriteComponent> {
 		Sprite sprite;
-		Color color = jshColor::WHITE;
+		Color4b color = jshColor4b::WHITE;
 
 		SpriteComponent() = default;
 		SpriteComponent(const Sprite& sprite) : sprite(sprite) {}
-		SpriteComponent(const Color& color) : color(color) {}
-		SpriteComponent(const Sprite& sprite, const Color& color) : sprite(sprite), color(color) {}
+		SpriteComponent(const Color4b& color) : color(color) {}
+		SpriteComponent(const Sprite& sprite, const Color4b& color) : sprite(sprite), color(color) {}
 
 #ifdef JSH_IMGUI
 		void ShowInfo() override 

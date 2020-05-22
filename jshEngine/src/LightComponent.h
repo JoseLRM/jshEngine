@@ -7,12 +7,12 @@ namespace jsh {
 
 	struct LightComponent : public Component<LightComponent> {
 
-		float quadraticAttenuation = 0.025f;
-		float constantAttenuation = 1.f;
-		float intensity = 5.f;
+		float range = 1.f;
+		float intensity = 1.f;
+		float smoothness = 0.5f;
 		JSH_LIGHT_TYPE lightType = JSH_LIGHT_TYPE_POINT;
 
-		vec4 color = { 1.f, 1.f, 1.f, 1.f };
+		vec3 color = { 1.f, 1.f, 1.f };
 		float spotRange = 0.3f;
 
 #ifdef JSH_IMGUI
@@ -49,9 +49,9 @@ namespace jsh {
 				ImGui::SliderFloat("Spot Range", &spotRange, 0.f, 1.f);
 			}
 
-			ImGui::DragFloat("Quadratic Att", &quadraticAttenuation, 0.0005f, 0.0001f, FLT_MAX);
-			ImGui::DragFloat("Constant Att", &constantAttenuation, 0.075f, 0.0001f, FLT_MAX);
-			ImGui::DragFloat("Intensity", &intensity, 0.2f, 0.0001f, FLT_MAX);
+			ImGui::DragFloat("Range", &range, 0.05f, 0.0f, FLT_MAX);
+			ImGui::DragFloat("Intensity", &intensity, 0.05f, 0.0f, FLT_MAX);
+			ImGui::DragFloat("Smoothness", &smoothness, 0.005f, 0.f, 1.f);
 			ImGui::ColorPicker3("Color", &color.x);
 		}
 #endif

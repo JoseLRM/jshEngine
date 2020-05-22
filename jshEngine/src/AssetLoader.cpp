@@ -127,10 +127,10 @@ namespace jshLoader
 		jsh::NormalShader* shader = jshGraphics::objects::GetNormalShader();
 
 		mesh->GetMaterial()->SetShader(shader);
-		jsh::ConstantData* cd = mesh->GetMaterial()->GetConstantData();
+		void* matData = mesh->GetMaterial()->GetMaterialData();
 
-		shader->SetShininess(shininess, *cd);
-		shader->SetSpecularIntensity(specularIntensity, *cd);
+		shader->SetShininess(shininess, matData);
+		shader->SetSpecularIntensity(specularIntensity, matData);
 
 		// mapping
 		if (material->GetTextureCount(aiTextureType_DIFFUSE) != 0) {
@@ -138,24 +138,24 @@ namespace jshLoader
 			material->GetTexture(aiTextureType_DIFFUSE, 0, &path0);
 			jsh::Texture* diffuseMap = jshGraphics::CreateTexture((std::string(meshName) + "[diffuse]").c_str());
 			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &diffuseMap->resource);
-			diffuseMap->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
-			shader->SetDiffuseMap(diffuseMap, *mesh->GetMaterial()->GetConstantData());
+			diffuseMap->samplerState = &jshGraphics::primitives::GetDefaultSamplerState();
+			shader->SetDiffuseMap(diffuseMap, matData);
 		}
 		if (material->GetTextureCount(aiTextureType_NORMALS) != 0) {
 			aiString path0;
 			material->GetTexture(aiTextureType_NORMALS, 0, &path0);
 			jsh::Texture* normalMap = jshGraphics::CreateTexture((std::string(meshName) + "[normal]").c_str());
 			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &normalMap->resource);
-			normalMap->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
-			shader->SetNormalMap(normalMap, *mesh->GetMaterial()->GetConstantData());
+			normalMap->samplerState = &jshGraphics::primitives::GetDefaultSamplerState();
+			shader->SetNormalMap(normalMap, matData);
 		}
 		if (material->GetTextureCount(aiTextureType_SPECULAR) != 0) {
 			aiString path0;
 			material->GetTexture(aiTextureType_SPECULAR, 0, &path0);
 			jsh::Texture* specularMap = jshGraphics::CreateTexture((std::string(meshName) + "[specular]").c_str());
 			jshLoader::LoadTexture((std::string(path) + std::string(path0.C_Str())).c_str(), &specularMap->resource);
-			specularMap->samplerState = jshGraphics::primitives::GetDefaultSamplerState();
-			shader->SetSpecularMap(specularMap, *mesh->GetMaterial()->GetConstantData());
+			specularMap->samplerState = &jshGraphics::primitives::GetDefaultSamplerState();
+			shader->SetSpecularMap(specularMap, matData);
 		}
 
 		mesh->SetRawData(rawData);
@@ -177,7 +177,7 @@ namespace jshLoader
 			XMVECTOR scaleV;
 			
 			XMMatrixDecompose(&scaleV, &qRotationV, &positionV, localMatrix);
-			jsh::QuaternionToEuler((jsh::vec4*)& qRotationV, &rotation);
+			jshMath::QuaternionToEuler((jsh::vec4*)& qRotationV, &rotation);
 
 			XMStoreFloat3((XMFLOAT3*)& position, positionV);
 			XMStoreFloat3((XMFLOAT3*)& scale, scaleV);

@@ -50,10 +50,6 @@ namespace jshGraphics {
 
 	void SetOutputMode(const jsh::OutputMode& mode);
 	const jsh::OutputMode& GetOutputMode();
-
-	uint32 GetResolutionWidth();
-	uint32 GetResolutionHeight();
-	jsh::uvec2 GetResolution();
 	
 	jsh::uvec2 GetMonitorResolution();
 

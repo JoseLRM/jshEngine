@@ -6,8 +6,10 @@
 struct State : public jsh::State {
 
 	ParticleGenerator particles;
+	LightGenerator lights;
 
 	jsh::Model model;
+
 
 	void Load() override;
 	void Initialize() override;
@@ -19,7 +21,7 @@ struct State : public jsh::State {
 
 int main()
 {
-	jshEngine::Initialize(new State());
+	jshEngine::Initialize(new State2D());
 	jshEngine::Run();
 	jshEngine::Close();
 
@@ -39,9 +41,10 @@ void State::Initialize()
 	jsh::Entity cameraEntity = jshScene::CreateEntity(jsh::NameComponent("Camera"), jsh::CameraComponent(), jsh::LightComponent());
 
 	jshScene::GetComponent<jsh::LightComponent>(cameraEntity)->intensity = 4.f;
+	jshScene::GetComponent<jsh::LightComponent>(cameraEntity)->range = 10.f;
 
 	jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(cameraEntity);
-	jshEngine::GetRenderer()->SetMainCamera(cameraEntity);
+	jshRenderer::SetCamera(camera);
 	jsh::vec3 pos = jshScene::GetTransform(cameraEntity).GetLocalPosition();
 	pos.x = -1.f;
 	pos.z = -4.f;
@@ -65,13 +68,15 @@ void State::Initialize()
 	}
 
 	particles.Initialize();
+	jshGraphics::SetResolution(1280);
 }
 
 
 void State::Update(float dt)
 {
 	static bool actived = false;
-	jsh::CameraComponent* camera = jshScene::GetComponent<jsh::CameraComponent>(jshEngine::GetRenderer()->GetMainCamera());
+	jsh::CameraComponent* camera = jshRenderer::GetCamera();
+
 
 	if (jshInput::IsKeyPressed('C')) {
 		actived = !actived;
@@ -82,15 +87,14 @@ void State::Update(float dt)
 		camera->UpdateFirstPerson3D(0.5f, 0.5f, 5.f, 5.f, dt);
 	}
 
-	jsh::Transform& camTrans = jshScene::GetTransform(camera->entity);
-	jsh::vec3 pos = camTrans.GetLocalPosition();
 	particles.Update(dt, 0.f, 0.f, 0.f, true);
 
 	if (jshInput::IsKeyPressed(JSH_KEY_F5)) 
-		jshEngine::LoadState(new State2D());
+		jshEngine::LoadState(new State());
 
 	if (jshInput::IsKeyPressed('U')) jshGraphics::SetFullscreen(!jshGraphics::InFullscreen());
 
+	lights.Update(dt);
 }
 
 void State::Render()
@@ -98,6 +102,7 @@ void State::Render()
 	jsh::MeshComponent* meshComp = jshScene::GetComponent<jsh::MeshComponent>(1);
 
 	particles.Render();
+	lights.Render();
 }
 
 void State::Close()

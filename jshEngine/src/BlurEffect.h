@@ -43,7 +43,7 @@ namespace jsh {
 
 		void Create(uvec2 resolution);
 		void SetResolution(uint32 width, uint32 height);
-		void Render(RenderTargetView input, RenderTargetView output, Viewport viewport, DepthStencilState* dss, TextureRes* dsv, uint32 stencilRef, CommandList cmd);
+		void Render(RenderTargetView& input, RenderTargetView& output, Viewport& viewport, DepthStencilState* dss, TextureRes* dsv, uint32 stencilRef, CommandList cmd);
 
 		inline void SetSolidMode(uint32 radius)
 		{
